@@ -53,8 +53,8 @@ screen_diag = CAMERA('XF:07BM-BI{FS:1}', name='screen_diag') # HOW TO CALL CAMER
 mono_diag = CAMERA('XF:07BM-BI{Mono:1}', name='mono_diag')
 dcr_diag = CAMERA('XF:07BM-BI{Diag:1}', name='dcr_diag')
 
-for bpm in [colmirror_diag]:
-    bpm.read_attrs = ['stats1', 'stats2']
-    bpm.image.read_attrs = ['array_data']
-    bpm.stats1.read_attrs = ['total', 'centroid']
-    bpm.stats2.read_attrs = ['total', 'centroid']
+for camera in [colmirror_diag, screen_diag, mono_diag, dcr_diag]:
+    camera.read_attrs = ['stats1', 'stats2']
+    camera.image.read_attrs = ['array_data']
+    camera.stats1.read_attrs = ['total', 'centroid']
+    camera.stats2.read_attrs = ['total', 'centroid']

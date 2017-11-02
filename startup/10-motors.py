@@ -11,16 +11,17 @@ class SampleStage(Device):
 sample_stage1 = SampleStage('XF:07BMB-ES{Stg:1', name='sample_stage1')
 
 
-class HHMTrajDesc(Device):
+class MonoTrajDesc(Device):
     filename = Cpt(EpicsSignal, '-Name')
     elem = Cpt(EpicsSignal, '-Elem')
     edge = Cpt(EpicsSignal, '-Edge')
 
 
 class Monochromator(Device):
-    _default_configuration_attrs = ('pitch', 'roll', 'theta', 'y', 'energy')
-    _default_read_attrs = ('pitch', 'roll', 'theta', 'y', 'energy')
+    _default_configuration_attrs = ('bragg', 'energy', 'pico', 'diag')
+    _default_read_attrs = ('bragg', 'energy', 'pico', 'diag')
     "Monochromator"
+    ip = '10.7.130.93'
     bragg = Cpt(EpicsMotor, 'Mono:1-Ax:Scan}Mtr')
     energy = Cpt(EpicsMotor, 'Mono:1-Ax:E}Mtr')
     pico = Cpt(EpicsMotor, 'Mono:1-Ax:Pico}Mtr')
@@ -49,28 +50,28 @@ class Monochromator(Device):
     trajectory_progress = Cpt(EpicsSignal,'MC:03}TrajProgress')
     trajectory_name = Cpt(EpicsSignal, 'MC:03}TrajFilename')
 
-    traj1 = Cpt(HHMTrajDesc, 'MC:03}Traj:1')
-    traj2 = Cpt(HHMTrajDesc, 'MC:03}Traj:2')
-    traj3 = Cpt(HHMTrajDesc, 'MC:03}Traj:3')
-    traj4 = Cpt(HHMTrajDesc, 'MC:03}Traj:4')
-    traj5 = Cpt(HHMTrajDesc, 'MC:03}Traj:5')
-    traj6 = Cpt(HHMTrajDesc, 'MC:03}Traj:6')
-    traj7 = Cpt(HHMTrajDesc, 'MC:03}Traj:7')
-    traj8 = Cpt(HHMTrajDesc, 'MC:03}Traj:8')
-    traj9 = Cpt(HHMTrajDesc, 'MC:03}Traj:9')
+    traj1 = Cpt(MonoTrajDesc, 'MC:03}Traj:1')
+    traj2 = Cpt(MonoTrajDesc, 'MC:03}Traj:2')
+    traj3 = Cpt(MonoTrajDesc, 'MC:03}Traj:3')
+    traj4 = Cpt(MonoTrajDesc, 'MC:03}Traj:4')
+    traj5 = Cpt(MonoTrajDesc, 'MC:03}Traj:5')
+    traj6 = Cpt(MonoTrajDesc, 'MC:03}Traj:6')
+    traj7 = Cpt(MonoTrajDesc, 'MC:03}Traj:7')
+    traj8 = Cpt(MonoTrajDesc, 'MC:03}Traj:8')
+    traj9 = Cpt(MonoTrajDesc, 'MC:03}Traj:9')
 
     angle_offset = Cpt(EpicsSignal, 'Mono:1-Ax:E}Offset', limits=True)
 
-mono = Monochromator('XF:07BMA-OP{', name='mono')
-mono.hints = {'fields': ['mono_energy', 'mono_bragg']}
+mono1 = Monochromator('XF:07BMA-OP{', name='mono1')
+mono1.hints = {'fields': ['mono_energy', 'mono_bragg']}
 
 
 class Mirror(Device):
-    hor_up = Cpt(EpicsMotor, '-Ax:XU}Mtr')  # upstream
-    hor_down = Cpt(EpicsMotor, '-Ax:XD}Mtr')  # downstream
+    hor_up = Cpt(EpicsMotor, '-Ax:XU}Mtr')
+    hor_down = Cpt(EpicsMotor, '-Ax:XD}Mtr')
     vert_up = Cpt(EpicsMotor, '-Ax:YU}Mtr')
-    vert_down_in = Cpt(EpicsMotor, '-Ax:YD1}Mtr')  # downstream inboard
-    vert_down_out = Cpt(EpicsMotor, '-Ax:YD2}Mtr')  # downstream outboard
+    vert_down_in = Cpt(EpicsMotor, '-Ax:YD1}Mtr')
+    vert_down_out = Cpt(EpicsMotor, '-Ax:YD2}Mtr')
     bend = Cpt(EpicsMotor, '-Ax:BD}Mtr')
 
 cm = Mirror('XF:07BMFE-OP{Mir:Col', name='cm')
@@ -91,11 +92,11 @@ ip_y_stage = EpicsMotor('XF:07BMB-OP{IBP:1-Ax:Y}Mtr', name='ip_y_stage')
 
 
 class Table(Device):
-    hor_up = Cpt(EpicsMotor, '-Ax:XU}Mtr')  # upstream
-    hor_down = Cpt(EpicsMotor, '-Ax:XD}Mtr')  # downstream
+    hor_up = Cpt(EpicsMotor, '-Ax:XU}Mtr')
+    hor_down = Cpt(EpicsMotor, '-Ax:XD}Mtr')
     beam_dir = Cpt(EpicsMotor, '-Ax:Z}Mtr')
     vert_up = Cpt(EpicsMotor, '-Ax:YDU}Mtr')
-    vert_down_in = Cpt(EpicsMotor, '-Ax:YDI}Mtr')  # downstream inboard
-    vert_down_out = Cpt(EpicsMotor, '-Ax:YDO}Mtr')  # downstream outboard
+    vert_down_in = Cpt(EpicsMotor, '-Ax:YDI}Mtr')
+    vert_down_out = Cpt(EpicsMotor, '-Ax:YDO}Mtr')
 
 exp_table = Table('XF:07BMB-OP{Asm:1', name='exp_table')
