@@ -22,10 +22,13 @@ class Monochromator(Device):
     _default_read_attrs = ('bragg', 'energy', 'pico', 'diag')
     "Monochromator"
     ip = '10.7.130.93'
+    traj_filepath = '/home/xf07bm/trajectory/'
     bragg = Cpt(EpicsMotor, 'Mono:1-Ax:Scan}Mtr')
     energy = Cpt(EpicsMotor, 'Mono:1-Ax:E}Mtr')
     pico = Cpt(EpicsMotor, 'Mono:1-Ax:Pico}Mtr')
     diag = Cpt(EpicsMotor, 'Mono:1-Ax:Diag}Mtr')
+
+    main_motor_res = Cpt(EpicsSignal, 'Mono:1-Ax:Scan}Mtr.MRES')
 
     # The following are related to trajectory motion
     lut_number = Cpt(EpicsSignal, 'MC:03}LUT-Set')
@@ -62,6 +65,10 @@ class Monochromator(Device):
 
     angle_offset = Cpt(EpicsSignal, 'Mono:1-Ax:E}Offset', limits=True)
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.pulses_per_deg = 1/self.main_motor_res.value
+
 mono1 = Monochromator('XF:07BMA-OP{', name='mono1')
 mono1.hints = {'fields': ['mono_energy', 'mono_bragg']}
 
@@ -87,6 +94,14 @@ class Slits(Device):
 foe_slits = Slits('XF:07BMA-OP{Slt:1', name='foe_slits')
 jj_slits = Slits('XF:07BMB-OP{Slt:1', name='jj_slits')
 
+
+class FE_Slits(Device):
+    top = Cpt(EpicsMotor, '1-Ax:T}Mtr')
+    bottom = Cpt(EpicsMotor, '2-Ax:B}Mtr')
+    outboard = Cpt(EpicsMotor, '1-Ax:O}Mtr')
+    inboard = Cpt(EpicsMotor, '2-Ax:I}Mtr')
+
+fe_slits = FE_Slits('FE:C07B-OP{Slt:', name = 'fe_slits')
 
 ip_y_stage = EpicsMotor('XF:07BMB-OP{IBP:1-Ax:Y}Mtr', name='ip_y_stage')
 
