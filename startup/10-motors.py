@@ -15,6 +15,7 @@ class MonoTrajDesc(Device):
     filename = Cpt(EpicsSignal, '-Name')
     elem = Cpt(EpicsSignal, '-Elem')
     edge = Cpt(EpicsSignal, '-Edge')
+    e0 = Cpt(EpicsSignal, '-E0')
 
 
 class Monochromator(Device):

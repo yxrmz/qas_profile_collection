@@ -11,6 +11,12 @@ detector_dictionary = {colmirror_diag:[colmirror_diag.stats1.total.name, colmirr
                        dcr_diag:[dcr_diag.stats1.total.name, dcr_diag.stats2.total.name],
                       }
 
+detector_dictionary = {colmirror_diag.name: {'obj': colmirror_diag, 'elements': [colmirror_diag.stats1.total.name, colmirror_diag.stats2.total.name]},
+                       screen_diag.name: {'obj': screen_diag, 'elements': [screen_diag.stats1.total.name, screen_diag.stats2.total.name]},
+                       mono_diag.name: {'obj': mono_diag, 'elements': [mono_diag.stats1.total.name, mono_diag.stats2.total.name]},
+                       dcr_diag.name: {'obj': dcr_diag, 'elements': [dcr_diag.stats1.total.name, dcr_diag.stats2.total.name]}
+                      }
+
 motors_dictionary = {foe_slits.top.name: {'name': foe_slits.top.name, 'description':foe_slits.top.name, 'object': foe_slits.top},
                      foe_slits.bottom.name: {'name': foe_slits.bottom.name, 'description':foe_slits.bottom.name, 'object': foe_slits.bottom},
                      foe_slits.outboard.name: {'name': foe_slits.outboard.name, 'description':foe_slits.outboard.name, 'object': foe_slits.outboard},
