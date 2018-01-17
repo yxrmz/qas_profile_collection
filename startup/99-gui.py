@@ -5,16 +5,14 @@ from bluesky.examples import motor
 motor.move = motor.set
 
 
-detector_dictionary = {colmirror_diag:[colmirror_diag.stats1.total.name, colmirror_diag.stats2.total.name],
-                       screen_diag:[screen_diag.stats1.total.name, screen_diag.stats2.total.name],
-                       mono_diag:[mono_diag.stats1.total.name, mono_diag.stats2.total.name],
-                       dcr_diag:[dcr_diag.stats1.total.name, dcr_diag.stats2.total.name],
-                      }
-
 detector_dictionary = {colmirror_diag.name: {'obj': colmirror_diag, 'elements': [colmirror_diag.stats1.total.name, colmirror_diag.stats2.total.name]},
                        screen_diag.name: {'obj': screen_diag, 'elements': [screen_diag.stats1.total.name, screen_diag.stats2.total.name]},
                        mono_diag.name: {'obj': mono_diag, 'elements': [mono_diag.stats1.total.name, mono_diag.stats2.total.name]},
-                       dcr_diag.name: {'obj': dcr_diag, 'elements': [dcr_diag.stats1.total.name, dcr_diag.stats2.total.name]}
+                       dcr_diag.name: {'obj': dcr_diag, 'elements': [dcr_diag.stats1.total.name, dcr_diag.stats2.total.name]},
+                       pba1.adc1.name: {'obj': pba1.adc1, 'elements': ['pba1_adc1_volt']},
+                       pba1.adc6.name: {'obj': pba1.adc6, 'elements': ['pba1_adc6_volt']},
+                       pba1.adc7.name: {'obj': pba1.adc7, 'elements': ['pba1_adc7_volt']},
+                       pb1.enc1.name: {'obj': pb1.enc1, 'elements': ['pb1_enc1_pos_I']},
                       }
 
 motors_dictionary = {foe_slits.top.name: {'name': foe_slits.top.name, 'description':foe_slits.top.name, 'object': foe_slits.top},
@@ -33,7 +31,10 @@ motors_dictionary = {foe_slits.top.name: {'name': foe_slits.top.name, 'descripti
                      mono1.bragg.name: {'name': mono1.bragg.name, 'description': mono1.bragg.name, 'object':mono1.bragg},
                      mono1.energy.name: {'name': mono1.energy.name, 'description': mono1.energy.name, 'object':mono1.energy},
                      mono1.pico.name: {'name': mono1.pico.name, 'description': mono1.pico.name, 'object':mono1.pico},
-                     #mono1.diag.name: {'name': mono1.diag.name, 'description': mono1.diag.name, 'object':mono1.diag},
+                     sample_stage1.x.name: {'name': sample_stage1.x.name, 'description':sample_stage1.x.name, 'object':sample_stage1.x},
+                     sample_stage1.y.name: {'name': sample_stage1.y.name, 'description':sample_stage1.y.name, 'object':sample_stage1.y},
+                     sample_stage1.z.name: {'name': sample_stage1.z.name, 'description':sample_stage1.z.name, 'object':sample_stage1.z},
+                     sample_stage1.rotary.name: {'name': sample_stage1.rotary.name, 'description':sample_stage1.rotary.name, 'object':sample_stage1.rotary},
                      cm.hor_up.name: {'name': cm.hor_up.name, 'description': cm.hor_up.name, 'object':cm.hor_up},
                      cm.hor_down.name: {'name': cm.hor_down.name, 'description': cm.hor_down.name, 'object':cm.hor_down},
                      cm.vert_up.name: {'name': cm.vert_up.name, 'description': cm.vert_up.name, 'object':cm.vert_up},
@@ -55,7 +56,10 @@ motors_dictionary = {foe_slits.top.name: {'name': foe_slits.top.name, 'descripti
                      exp_table.vert_down_out.name: {'name': exp_table.vert_down_out.name, 'description': exp_table.vert_down_out.name, 'object':exp_table.vert_down_out}
                     }
 
-xlive_gui = isstools.gui.ScanGui([], 
+
+sample_stages = [{'x': sample_stage1.x.name, 'y': sample_stage1.y.name}]
+
+xlive_gui = isstools.gui.ScanGui([tscan], 
                                  prep_traj_plan, 
                                  RE,
                                  db, 
@@ -65,7 +69,7 @@ xlive_gui = isstools.gui.ScanGui([],
                                  detector_dictionary,
                                  motors_dictionary,
                                  general_scan,
-                                 sample_stages = [])
+                                 sample_stages = sample_stages)
 
 def xlive():
     xlive_gui.show()
