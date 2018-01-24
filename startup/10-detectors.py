@@ -53,11 +53,17 @@ screen_diag = CAMERA('XF:07BM-BI{FS:1}', name='screen_diag') # HOW TO CALL CAMER
 mono_diag = CAMERA('XF:07BM-BI{Mono:1}', name='mono_diag')
 dcr_diag = CAMERA('XF:07BM-BI{Diag:1}', name='dcr_diag')
 
-for camera in [colmirror_diag, screen_diag, mono_diag, dcr_diag]:
+# Prosilica detector in hutch 7-BM-B
+hutchb_diag = CAMERA('XF:07BMB-BI{Diag:1}', name='hutchb_diag')
+
+
+for camera in [colmirror_diag, screen_diag, mono_diag, dcr_diag, hutchb_diag]:
     camera.read_attrs = ['stats1', 'stats2']
     camera.image.read_attrs = ['array_data']
     camera.stats1.read_attrs = ['total', 'centroid']
     camera.stats2.read_attrs = ['total', 'centroid']
+    camera.hints = {'fields' : [camera.stats1.total.name,
+                                camera.stats2.total.name]} 
 
 
 class Encoder(Device):
