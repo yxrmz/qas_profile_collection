@@ -6,6 +6,45 @@ import os
 import signal
 
 
+### Added by Chanaka and Julien
+
+def slit_scan_plan(detectors, num, slit1, slit2, rel_start, rel_stop):
+    ''' Scan slit 1 and slit 2 together relative.
+
+        Parameters
+        ----------
+        num : number of steps
+        detectors : detectors
+        slit1 : first slit
+        slit2 : second slit
+        rel_start : relative begin motion
+        rel_stop : relative end motion
+
+        Example
+        -------
+        You can scan the inboard and outboard slits together from -2 to +2 of
+        their current position in 21 steps while measuring the ROI from the
+        camera:
+
+        RE(slit_scan_plan([hutchb_diag], 21
+                       jj_slits.inboard,
+                       jj_slits.outboard,
+                       -2, 2))
+    '''
+    rel_scan = bp.relative_inner_product_scan
+    yield from rel_scan(detectors, num,
+                        slit1, rel_start, rel_stop,
+                        slit2, rel_start, rel_stop)
+
+
+## TODO :
+## Add scans from ISS 95-user.py little by little
+## start with the simple scans (no trajectory)
+
+
+
+###
+
 def general_scan_plan(detectors, motor, rel_start, rel_stop, num):
 
     
