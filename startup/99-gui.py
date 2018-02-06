@@ -59,16 +59,17 @@ motors_dictionary = {foe_slits.top.name: {'name': foe_slits.top.name, 'descripti
 
 sample_stages = [{'x': sample_stage1.x.name, 'y': sample_stage1.y.name}]
 
-xlive_gui = isstools.gui.ScanGui([tscan], 
-                                 prep_traj_plan, 
-                                 RE,
-                                 db, 
-                                 nsls_ii,
-                                 mono1,#None,
-                                 {},
-                                 detector_dictionary,
-                                 motors_dictionary,
-                                 general_scan,
+print(mono1)
+xlive_gui = isstools.gui.ScanGui(plan_funcs=[tscan], 
+                                 prep_traj_plan=prep_traj_plan, 
+                                 RE=RE,
+                                 db=db, 
+                                 accelerator=nsls_ii,
+                                 hhm=mono1,#None,
+                                 shutters_dict={},
+                                 det_dict=detector_dictionary,
+                                 motors_dict=motors_dictionary,
+                                 general_scan_func=general_scan,
                                  sample_stages = sample_stages)
 
 def xlive():

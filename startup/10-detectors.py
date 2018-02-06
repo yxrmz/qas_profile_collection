@@ -106,7 +106,7 @@ class EncoderFS(Encoder):
 
         if(self.connected):
             print(self.name, 'stage')
-            DIRECTORY = '/epics/'
+            DIRECTORY = '/home/xf07bm/'
             rpath = 'pb_data'
             filename = 'en_' + str(uuid.uuid4())[:6]
             full_path = os.path.join(rpath, filename)
@@ -173,6 +173,7 @@ class EncoderFS(Encoder):
                        'timestamps': {key: now for key in data}, 'time': now}
         else:
             print('collect {}: File was not created'.format(self.name))
+            print("filename : {}", self._full_path)
 
     def describe_collect(self):
         # TODO Return correct shape (array dims)
@@ -234,7 +235,7 @@ class DIFS(DigitalInput):
 
 
         print(self.name, 'stage')
-        DIRECTORY = '/GPFS/xf08id/'
+        DIRECTORY = '/home/xf07bm/'
         rpath = 'pizza_box_data'
         filename = 'di_' + str(uuid.uuid4())[:6]
         full_path = os.path.join(rpath, filename)
@@ -301,6 +302,7 @@ class DIFS(DigitalInput):
                        'timestamps': {key: now for key in data}, 'time': now}
         else:
             print('collect {}: File was not created'.format(self.name))
+            print("filename : {}", self._full_path)
 
     def describe_collect(self):
         # TODO Return correct shape (array dims)
@@ -485,6 +487,7 @@ class AdcFS(Adc):
                        'timestamps': {key: now for key in data}, 'time': now}
         else:
             print('collect {}: File was not created'.format(self.name))
+            print("filename : {}", self._full_path)
 
     def describe_collect(self):
         # TODO Return correct shape (array dims)
