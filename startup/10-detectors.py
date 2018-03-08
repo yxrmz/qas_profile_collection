@@ -76,7 +76,7 @@ class Encoder(Device):
     index_array = Cpt(EpicsSignal, '}Cnt:Index_Bin_')
     data_array = Cpt(EpicsSignal, '}Data_Bin_')
     # The '$' in the PV allows us to write 40 chars instead of 20.
-    filepath = Cpt(EpicsSignal, '}ID:File.VAL$', string=True)
+    filepath = Cpt(EpicsSignal, '}ID:File.VAL', string=True)
     dev_name = Cpt(EpicsSignal, '}DevName')
 
     filter_dy = Cpt(EpicsSignal, '}Fltr:dY-SP')
@@ -100,28 +100,29 @@ class Encoder(Device):
 class EncoderFS(Encoder):
     "Encoder Device, when read, returns references to data in filestore."
     chunk_size = 1024
+    write_path_template = '/nsls2/xf07bm/data/pizza_box_data/%Y/%m/%d/'
 
     def stage(self):
         "Set the filename and record it in a 'resource' document in the filestore database."
 
         if(self.connected):
             print(self.name, 'stage')
-            DIRECTORY = '/home/xf07bm/'
-            rpath = 'pb_data'
+            #DIRECTORY = datetime.now().strftime(self.write_path_template)
+            DIRECTORY = "/nsls2/xf07bm/data/pb_data"
+
             filename = 'en_' + str(uuid.uuid4())[:6]
-            full_path = os.path.join(rpath, filename)
-            self._full_path = os.path.join(DIRECTORY, full_path)  # stash for future reference
-            if len(self._full_path) > 40:
-                raise RuntimeError("Stupidly, EPICS limits the file path to 80 characters. "
-                               "Choose a different DIRECTORY with a shorter path. (I know....)")
-            self._full_path = os.path.join(DIRECTORY, full_path)  # stash for future reference
+            self._full_path = os.path.join(DIRECTORY, filename)  # stash for future reference
+            print("writing data to {}".format(self._full_path))
+
             self.filepath.put(self._full_path)
             self.resource_uid = self._reg.register_resource(
                 'PIZZABOX_ENC_FILE_TXT',
-                DIRECTORY, full_path,
+                DIRECTORY, self._full_path,
                 {'chunk_size': self.chunk_size})
 
             super().stage()
+        else:
+            print("encoder was not staged : {}".format(self.name))
 
     def unstage(self):
         if(self.connected):
@@ -212,7 +213,7 @@ class DigitalInput(Device):
     index_array = Cpt(EpicsSignal, '}Cnt:Index_Bin_')
     data_array = Cpt(EpicsSignal, '}Data_Bin_')
     # The '$' in the PV allows us to write 40 chars instead of 20.
-    filepath = Cpt(EpicsSignal, '}ID:File.VAL$', string=True)
+    filepath = Cpt(EpicsSignal, '}ID:File.VAL', string=True)
     dev_name = Cpt(EpicsSignal, '}DevName')
 
     ignore_rb = Cpt(EpicsSignal, '}Ignore-RB')
@@ -229,21 +230,19 @@ class DigitalInput(Device):
 class DIFS(DigitalInput):
     "Encoder Device, when read, returns references to data in filestore."
     chunk_size = 1024
+    write_path_template = '/nsls2/xf07bm/data/pizza_box_data/%Y/%m/%d/'
 
     def stage(self):
         "Set the filename and record it in a 'resource' document in the filestore database."
 
 
         print(self.name, 'stage')
-        DIRECTORY = '/home/xf07bm/'
-        rpath = 'pizza_box_data'
+        #DIRECTORY = datetime.now().strftime(self.write_path_template)
+        DIRECTORY = "/nsls2/xf07bm/data/pb_data"
+
         filename = 'di_' + str(uuid.uuid4())[:6]
-        full_path = os.path.join(rpath, filename)
-        self._full_path = os.path.join(DIRECTORY, full_path)  # stash for future reference
-        if len(self._full_path) > 40:
-            raise RuntimeError("Stupidly, EPICS limits the file path to 80 characters. "
-                           "Choose a different DIRECTORY with a shorter path. (I know....)")
-        self._full_path = os.path.join(DIRECTORY, full_path)  # stash for future reference
+        self._full_path = os.path.join(DIRECTORY, filename)  # stash for future reference
+
         self.filepath.put(self._full_path)
         self.resource_uid = self._reg.register_resource(
             'PIZZABOX_DI_FILE_TXT',
@@ -352,7 +351,8 @@ class PizzaBoxFS(Device):
 
 
 pb1 = PizzaBoxFS('XF:07BM-CT{Enc01', name = 'pb1')
-pb1.enc1.pulses_per_deg = 9400000/360
+#pb1.enc1.pulses_per_deg = 9400000/360
+pb1.enc1.pulses_per_deg=23600*400/360
 
 
 class Adc(Device):
@@ -406,6 +406,7 @@ class Adc(Device):
 class AdcFS(Adc):
     "Adc Device, when read, returns references to data in filestore."
     chunk_size = 1024
+    write_path_template = '/nsls2/xf07bm/data/pizza_box_data/%Y/%m/%d/'
 
     def __init__(self, *args, reg, **kwargs):
         self._reg = reg
@@ -417,19 +418,17 @@ class AdcFS(Adc):
 
         if(self.connected):
             print(self.name, 'stage')
-            DIRECTORY = '/GPFS/xf08id/'
-            rpath = 'pizza_box_data'
+            #DIRECTORY = datetime.now().strftime(self.write_path_template)
+            DIRECTORY = "/nsls2/xf07bm/data/pb_data"
+
             filename = 'an_' + str(uuid.uuid4())[:6]
-            full_path = os.path.join(rpath, filename)
-            self._full_path = os.path.join(DIRECTORY, full_path)  # stash for future reference
-            if len(self._full_path) > 40:
-                raise RuntimeError("Stupidly, EPICS limits the file path to 80 characters. "
-                               "Choose a different DIRECTORY with a shorter path. (I know....)")
-            self._full_path = os.path.join(DIRECTORY, full_path)  # stash for future reference
+            self._full_path = os.path.join(DIRECTORY, filename)  # stash for future reference
+            print("writing to {}".format(self._full_path))
+
             self.filepath.put(self._full_path)
             self.resource_uid = self._reg.register_resource(
                 'PIZZABOX_AN_FILE_TXT',
-                DIRECTORY, full_path,
+                DIRECTORY, self._full_path,
                 {'chunk_size': self.chunk_size})
 
             super().stage()
@@ -487,7 +486,7 @@ class AdcFS(Adc):
                        'timestamps': {key: now for key in data}, 'time': now}
         else:
             print('collect {}: File was not created'.format(self.name))
-            print("filename : {}", self._full_path)
+            print("filename : {}".format(self._full_path))
 
     def describe_collect(self):
         # TODO Return correct shape (array dims)
@@ -533,6 +532,7 @@ class PizzaBoxAnalogFS(Device):
 pba1 = PizzaBoxAnalogFS('XF:07BMB-CT{GP1-', name = 'pba1')
 
 
+# TODO : move upstream
 class PizzaBoxEncHandlerTxt(HandlerBase):
     encoder_row = namedtuple('encoder_row',
                              ['ts_s', 'ts_ns', 'encoder', 'index', 'state'])

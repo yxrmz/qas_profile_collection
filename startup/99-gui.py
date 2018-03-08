@@ -9,7 +9,7 @@ detector_dictionary = {colmirror_diag.name: {'obj': colmirror_diag, 'elements': 
                        screen_diag.name: {'obj': screen_diag, 'elements': [screen_diag.stats1.total.name, screen_diag.stats2.total.name]},
                        mono_diag.name: {'obj': mono_diag, 'elements': [mono_diag.stats1.total.name, mono_diag.stats2.total.name]},
                        dcr_diag.name: {'obj': dcr_diag, 'elements': [dcr_diag.stats1.total.name, dcr_diag.stats2.total.name]},
-                       pba1.adc1.name: {'obj': pba1.adc1, 'elements': ['pba1_adc1_volt']},
+                       #pba1.adc1.name: {'obj': pba1.adc1, 'elements': ['pba1_adc1_volt']},
                        pba1.adc6.name: {'obj': pba1.adc6, 'elements': ['pba1_adc6_volt']},
                        pba1.adc7.name: {'obj': pba1.adc7, 'elements': ['pba1_adc7_volt']},
                        pb1.enc1.name: {'obj': pb1.enc1, 'elements': ['pb1_enc1_pos_I']},
@@ -56,17 +56,20 @@ motors_dictionary = {foe_slits.top.name: {'name': foe_slits.top.name, 'descripti
                      exp_table.vert_down_out.name: {'name': exp_table.vert_down_out.name, 'description': exp_table.vert_down_out.name, 'object':exp_table.vert_down_out}
                     }
 
+shutters_dictionary = collections.OrderedDict([(shutter_fe.name, shutter_fe),
+                                         (shutter_ph.name, shutter_ph),])
+                                         #(shutter.name, shutter)])
 
 sample_stages = [{'x': sample_stage1.x.name, 'y': sample_stage1.y.name}]
 
 print(mono1)
-xlive_gui = isstools.gui.ScanGui(plan_funcs=[tscan], 
+xlive_gui = isstools.gui.ScanGui(plan_funcs=[tscan, get_offsets], 
                                  prep_traj_plan=prep_traj_plan, 
                                  RE=RE,
                                  db=db, 
                                  accelerator=nsls_ii,
                                  hhm=mono1,#None,
-                                 shutters_dict={},
+                                 shutters_dict=shutters_dictionary,
                                  det_dict=detector_dictionary,
                                  motors_dict=motors_dictionary,
                                  general_scan_func=general_scan,

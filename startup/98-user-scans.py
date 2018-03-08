@@ -76,3 +76,79 @@ def general_scan(detectors, num_name, den_name, result_name, motor, rel_start, r
         uid, = RE(general_scan_plan(detectors, motor, rel_start, rel_stop, int(num)), NormPlot(num_name, den_name, result_name, result_name, motor.name, ax=ax))
         yield uid
     print('[General Scan] Done!')
+
+
+def get_offsets(num:int = 20, *args, **kwargs):
+    """
+    Get Ion Chambers Offsets - Gets the offsets from the ion chambers and automatically subtracts from the acquired data in the next scans
+
+    Parameters
+    ----------
+    num : int
+        Number of points to acquire and average for each ion chamber
+
+
+    Returns
+    -------
+    uid : list(str)
+        List containing the unique id of the scan
+
+
+    See Also
+    --------
+    :func:`tscan`
+    """
+
+    adcs = list(args)
+    if not len(adcs):
+        raise ValueError("Error, no adcs supplied (please define your detector_dictionary")
+
+    old_avers = []
+    for adc in adcs:
+        old_avers.append(adc.averaging_points.get())
+        adc.averaging_points.put(15)
+    
+    uid, = RE(get_offsets_plan(adcs, num = int(num)))
+
+    if 'dummy_read' not in kwargs:
+        print('Updating values...')
+
+    arrays = []
+    offsets = []
+    df = db.get_table(db[-1])
+    for index, adc in enumerate(adcs):
+        key = '{}_volt'.format(adc.name)
+        array = df[key]
+        offset = np.mean(df[key][2:int(num)])
+
+        arrays.append(array)
+        offsets.append(offset)
+        if 'dummy_read' not in kwargs:
+            adc.offset.put(offset)
+            print('{}\nMean ({}) = {}'.format(array, adc.dev_name.value, offset))
+        adc.averaging_points.put(old_avers[index])
+    
+    run = db[uid]
+    for i in run['descriptors']:
+        if i['name'] != 'primary':
+            os.remove(i['data_keys'][i['name']]['filename'])
+
+    if 'dummy_read' in kwargs:
+        print_message = ''
+        for index, adc in enumerate(adcs):
+            print('Mean ({}) = {}'.format(adc.dev_name.value, offsets[index]))
+
+            saturation = adc.dev_saturation.value
+
+            if adc.polarity == 'neg':
+                if offsets[index] > saturation/100:
+                    print_message += 'Increase {} gain by 10^2\n'.format(adc.dev_name.value)
+                elif offsets[index] <= saturation/100 and offsets[index] > saturation/10:
+                    print_message += 'Increase {} gain by 10^1\n'.format(adc.dev_name.value)
+        print('-' * 30)
+        print(print_message[:-1])
+        print('-' * 30)
+
+    print(uid)
+    print('Done!')
+    yield uid

@@ -2,6 +2,9 @@ import nslsii
 
 nslsii.configure_base(get_ipython().user_ns, 'qas')
 
+bec.disable_plots()
+bec.disable_table()
+
 
 # At the end of every run, verify that files were saved and
 # print a confirmation message.
@@ -12,7 +15,14 @@ from bluesky.callbacks.broker import verify_files_saved
 RE.md['group'] = 'qas'
 RE.md['beamline_id'] = 'QAS'
 RE.md['proposal_id'] = None
+# isstools reads these
+RE.md['PI'] = "No PI"
+RE.md['PROPOSAL'] = None
+RE.md['SAF'] = None
+RE.md['year'] = 2018
+RE.md['cycle'] = 1
 RE.is_aborted = False
+
 
 # convenience imports
 from bluesky.callbacks import *

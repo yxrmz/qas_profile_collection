@@ -109,7 +109,7 @@ def execute_trajectory(name, **metadata):
         ex:
             execute_trajectory(**md)
     '''
-    flyers = [pb1.enc1]
+    flyers = [pb1.enc1, pba1.adc6, pba1.adc7]
     def inner():
         curr_traj = getattr(mono1, 'traj{:.0f}'.format(mono1.lut_number_rbv.value))
         md = {'plan_args': {},
@@ -180,3 +180,22 @@ def execute_trajectory(name, **metadata):
 
     return (yield from bpp.fly_during_wrapper(bpp.finalize_wrapper(inner(), final_plan()),
                                               flyers))
+
+
+def get_offsets_plan(detectors, num = 1, name = '', **metadata):
+    """
+    Example
+    -------
+    >>> RE(get_offset([pba1.adc1, pba1.adc6, pba1.adc7, pba2.adc6]))
+    """
+
+    flyers = detectors 
+
+    plan = bp.count(flyers, num, md={'plan_name': 'get_offset', 'name': name}, delay = 0.5)
+
+    def set_offsets():
+        for flyer in flyers:
+            ret = flyer.volt.value
+            yield from bps.abs_set(flyer.offset, ret, wait=True)
+
+    yield from bpp.fly_during_wrapper(bpp.finalize_wrapper(plan, set_offsets()), flyers)
