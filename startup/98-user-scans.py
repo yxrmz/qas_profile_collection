@@ -131,7 +131,9 @@ def get_offsets(num:int = 20, *args, **kwargs):
     run = db[uid]
     for i in run['descriptors']:
         if i['name'] != 'primary':
-            os.remove(i['data_keys'][i['name']]['filename'])
+            filename = i['data_keys'][i['name']]['filename']
+            if os.path.isfile(filename):
+                os.remove(filename)
 
     if 'dummy_read' in kwargs:
         print_message = ''

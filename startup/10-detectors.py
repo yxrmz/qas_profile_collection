@@ -10,6 +10,8 @@ from bluesky.examples import NullStatus
 
 from databroker.assets.handlers_base import HandlerBase
 
+from datetime import datetime
+
 
 class BPM(ProsilicaDetector, SingleTrigger):
     image = Cpt(ImagePlugin, 'image1:')
@@ -107,8 +109,8 @@ class EncoderFS(Encoder):
 
         if(self.connected):
             print(self.name, 'stage')
-            #DIRECTORY = datetime.now().strftime(self.write_path_template)
-            DIRECTORY = "/nsls2/xf07bm/data/pb_data"
+            DIRECTORY = datetime.now().strftime(self.write_path_template)
+            #DIRECTORY = "/nsls2/xf07bm/data/pb_data"
 
             filename = 'en_' + str(uuid.uuid4())[:6]
             self._full_path = os.path.join(DIRECTORY, filename)  # stash for future reference
@@ -130,25 +132,30 @@ class EncoderFS(Encoder):
             return super().unstage()
 
     def kickoff(self):
-        print('kickoff', self.name)
-        self._ready_to_collect = True
         "Start writing data into the file."
 
-        set_and_wait(self.ignore_sel, 0)
+        print('kickoff', self.name)
+        self._ready_to_collect = True
+
+        # set_and_wait(self.ignore_sel, 0)
+        st = self.ignore_sel.set(0)
 
         # Return a 'status object' that immediately reports we are 'done' ---
         # ready to collect at any time.
-        return NullStatus()
+        # return NullStatus()
+        return st
 
     def complete(self):
         print('complete', self.name, '| filepath', self._full_path)
         if not self._ready_to_collect:
             raise RuntimeError("must called kickoff() method before calling complete()")
         # Stop adding new data to the file.
-        set_and_wait(self.ignore_sel, 1)
+        #set_and_wait(self.ignore_sel, 1)
+        st = self.ignore_sel.set(1)
         #while not os.path.isfile(self._full_path):
         #    ttime.sleep(.1)
-        return NullStatus()
+        #return NullStatus()
+        return st
 
     def collect(self):
         """
@@ -237,8 +244,8 @@ class DIFS(DigitalInput):
 
 
         print(self.name, 'stage')
-        #DIRECTORY = datetime.now().strftime(self.write_path_template)
-        DIRECTORY = "/nsls2/xf07bm/data/pb_data"
+        DIRECTORY = datetime.now().strftime(self.write_path_template)
+        #DIRECTORY = "/nsls2/xf07bm/data/pb_data"
 
         filename = 'di_' + str(uuid.uuid4())[:6]
         self._full_path = os.path.join(DIRECTORY, filename)  # stash for future reference
@@ -260,11 +267,13 @@ class DIFS(DigitalInput):
         self._ready_to_collect = True
         "Start writing data into the file."
 
-        set_and_wait(self.ignore_sel, 0)
+        # set_and_wait(self.ignore_sel, 0)
+        st = self.ignore_sel.set(0)
 
         # Return a 'status object' that immediately reports we are 'done' ---
         # ready to collect at any time.
-        return NullStatus()
+        # return NullStatus()
+        return st
 
     def complete(self):
         print('complete', self.name, '| filepath', self._full_path)
@@ -418,8 +427,8 @@ class AdcFS(Adc):
 
         if(self.connected):
             print(self.name, 'stage')
-            #DIRECTORY = datetime.now().strftime(self.write_path_template)
-            DIRECTORY = "/nsls2/xf07bm/data/pb_data"
+            DIRECTORY = datetime.now().strftime(self.write_path_template)
+            #DIRECTORY = "/nsls2/xf07bm/data/pb_data"
 
             filename = 'an_' + str(uuid.uuid4())[:6]
             self._full_path = os.path.join(DIRECTORY, filename)  # stash for future reference
@@ -443,11 +452,13 @@ class AdcFS(Adc):
         self._ready_to_collect = True
         "Start writing data into the file."
 
-        set_and_wait(self.enable_sel, 0)
+        # set_and_wait(self.enable_sel, 0)
+        st = self.enable_sel.set(0)
 
         # Return a 'status object' that immediately reports we are 'done' ---
         # ready to collect at any time.
-        return NullStatus()
+        # return NullStatus()
+        return st
 
     def complete(self):
         print('complete', self.name, '| filepath', self._full_path)
