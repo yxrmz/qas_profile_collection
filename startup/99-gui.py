@@ -73,7 +73,8 @@ xlive_gui = isstools.gui.ScanGui(plan_funcs=[tscan, get_offsets],
                                  det_dict=detector_dictionary,
                                  motors_dict=motors_dictionary,
                                  general_scan_func=general_scan,
-                                 sample_stages = sample_stages)
+                                 sample_stages = sample_stages,
+                                 futures_queue=futures_queue)
 
 def xlive():
     xlive_gui.show()
