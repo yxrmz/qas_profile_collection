@@ -545,6 +545,9 @@ class PizzaBoxAnalogFS(Device):
 
 
 pba1 = PizzaBoxAnalogFS('XF:07BMB-CT{GP1-', name = 'pba1')
+# set the PV's that are 'i0', 'it' and 'ir' (if any)
+pba1.adc6.dev_name.put('i0')
+pba1.adc7.dev_name.put('it')
 
 
 # TODO : move upstream
