@@ -1,9 +1,6 @@
 import nslsii
 
-nslsii.configure_base(get_ipython().user_ns, 'qas')
-
-bec.disable_plots()
-bec.disable_table()
+nslsii.configure_base(get_ipython().user_ns, 'qas', bec=False)
 
 
 # At the end of every run, verify that files were saved and

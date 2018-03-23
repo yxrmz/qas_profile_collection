@@ -108,6 +108,7 @@ class EncoderFS(Encoder):
         "Set the filename and record it in a 'resource' document in the filestore database."
 
         if(self.connected):
+        #if True:
             print(self.name, 'stage')
             DIRECTORY = datetime.now().strftime(self.write_path_template)
             #DIRECTORY = "/nsls2/xf07bm/data/pb_data"
@@ -426,6 +427,7 @@ class AdcFS(Adc):
 
 
         if(self.connected):
+        #if True:
             print(self.name, 'stage')
             DIRECTORY = datetime.now().strftime(self.write_path_template)
             #DIRECTORY = "/nsls2/xf07bm/data/pb_data"
@@ -441,6 +443,8 @@ class AdcFS(Adc):
                 {'chunk_size': self.chunk_size})
 
             super().stage()
+        else:
+            print("{} not staged".format(self.name))
 
     def unstage(self):
         if(self.connected):
