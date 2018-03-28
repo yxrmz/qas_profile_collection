@@ -66,14 +66,17 @@ class PostProcessingCallback(CallbackBase):
     def start(self, doc):
         self.plan_name = doc['plan_name']
         self.start_uid = doc['uid']
+        self.md = dict(doc)
 
     def stop(self, doc):
         # start the post processing
         if self.plan_name == 'execute_trajectory':
             print("(PostProcessingCallback) Processing data uid : {}".format(self.start_uid))
             print("Sending request to dask scheduler...")
+            if 'e0' not in self.md:
+                print("Warning E0 not in metadata. This may lead to a bad plot.")
             future = self.client.submit(interpolate_and_save,'qas', 'qas-analysis',
-                            self.start_uid, mono_name='mono1_enc', pulses_per_degree=None, e0=8979)
+                            self.start_uid, mono_name='mono1_enc', pulses_per_degree=None)
             self.futures_queue.append(future)
             #fire_and_forget(future)
             print("Done")

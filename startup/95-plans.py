@@ -119,7 +119,8 @@ def execute_trajectory(name, **metadata):
               'angle_offset': str(mono1.angle_offset.value),
               'trajectory_name': mono1.trajectory_name.value,
               'element': curr_traj.elem.value,
-              'edge': curr_traj.edge.value}
+              'edge': curr_traj.edge.value,
+              'e0': curr_traj.e0.value}
         for flyer in flyers:
             if hasattr(flyer, 'offset'):
                 md['{} offset'.format(flyer.name)] = flyer.offset.value
