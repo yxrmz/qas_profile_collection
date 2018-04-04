@@ -381,6 +381,7 @@ class Adc(Device):
     volt_array = Cpt(EpicsSignal, '}V-I')
     volt = Cpt(EpicsSignal, '}E-I')
     offset = Cpt(EpicsSignal, '}Offset')
+    ADCOffset = Cpt(EpicsSignal, '}ADCOffset')
     dev_name = Cpt(EpicsSignal, '}DevName')
     dev_saturation = Cpt(EpicsSignal, '}DevSat')
     polarity = 'neg'

@@ -119,7 +119,9 @@ def get_offsets(num:int = 20, *args, **kwargs):
     for index, adc in enumerate(adcs):
         key = '{}_volt'.format(adc.name)
         array = df[key]
-        offset = np.mean(df[key][2:int(num)])
+        # TODO : Remove the ADCOffset component once offset issue fixed with pizza box
+        #offset = np.mean(df[key][2:int(num)])
+        offset = np.mean(df[key][2:int(num)]) + adc.ADCOffset.value
 
         arrays.append(array)
         offsets.append(offset)

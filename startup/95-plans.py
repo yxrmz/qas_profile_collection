@@ -197,6 +197,9 @@ def get_offsets_plan(detectors, num = 1, name = '', **metadata):
     def set_offsets():
         for flyer in flyers:
             ret = flyer.volt.value
-            yield from bps.abs_set(flyer.offset, ret, wait=True)
+            # TODO : REMOVE THIS. This is not the proper way to write plan
+            # temporary fix
+            ret2 = flyer.ADCOffset.value
+            yield from bps.abs_set(flyer.offset, ret + ret2, wait=True)
 
     yield from bpp.fly_during_wrapper(bpp.finalize_wrapper(plan, set_offsets()), flyers)
