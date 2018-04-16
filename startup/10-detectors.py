@@ -520,36 +520,40 @@ class AdcFS(Adc):
 
 class DualAdcFS(Adc):
     "Adc Device, when read, returns references to data in filestore.
-
-    Mixin interactions:
-        self.enable_pv: pv
-        self.column : number
-        self.filepath_pv : pv
-            optional parameter to specify what the enable-sel is for the channel
-
+        This is for a dual device. It defines one ADC which
+            uses a shared triggering mechanism for file writing.
+        The adc is either a 'master' or 'slave'. If 'master', then kickoff()
+            should trigger the 'Ena-Sel' PV (which starts collecting data to file).
+        If 'slave', then it should check that the 'Ena-Sel' PV is set.
+        TODO : Need to add a good waiting mechanism for this.
     "
     # these are for the dual ADC FS
     # column is the column and enable_sel is what triggers the collection
-    enable_sel = FC(EpicsSignal, '{self._enable_sel}')
-    filepath = FC(EpicsSignal, '{self._filepath}')
+    enable_sel = FC(EpicsSignal, '{self._adc_trigger}}}Ena-Sel')
+    filepath = FC(EpicsSignal, '{self._adc_trigger}}}ID:File.VAL')
     chunk_size = 1024
     write_path_template = '/nsls2/xf07bm/data/pizza_box_data/%Y/%m/%d/'
 
-    def __init__(self, *args, adc_column, adc_enable_sel, mode='master', reg,
+    def __init__(self, *args, adc_column, adc_trigger_name, mode='master', reg,
                  **kwargs):
         '''
             This is for a dual ADC system.
             adc_column : the column
-            adc_enable_sel : the enable_sel pv (triggers the scan) for this dual channel
+            adc_trigger: the adc pv used for triggering for this dual channel
             mode : {'master', 'slave'}
                 The mode. Master will create a new file and resource during kickoff
                     Slave assumes the new file and resource are already created.
                     Slave should check if acquisition has been triggered first,
                     else return an error.
+
+            Notes:
+                The adc master and adc for triggering are not necessarily the same
+                    (for ex, adc6 and adc7 triggered using adc1, but adc6 is
+                     what will put to adc1's trigger)
         '''
         self._reg = reg
         self._column = adc_column
-        self._enable_sel = adc_enable_sel
+        self._adc_trigger = adc_trigger_name
         self._mode = mode
         super().__init__(*args, **kwargs)
 
@@ -718,27 +722,27 @@ class PizzaBoxDualAnalogFS(Device):
 
     # first pair
     adc3 = Cpt(DualAdcFS, 'ADC:3', reg=db.reg,
-               adc_column=0, adc_enable_sel="XF:07BMB-CT{GP1-ADC1}Enable-Sel",
+               adc_column=0, adc_trigger_name="XF:07BMB-CT{GP1-ADC1",
                mode='master')
     adc4 = Cpt(DualAdcFS, 'ADC:4', reg=db.reg,
-               adc_column=1, "XF:07BMB-CT{GP1-ADC1}Enable-Sel",
+               adc_column=1, adc_trigger_name"XF:07BMB-CT{GP1-ADC1",
                mode='master')
 
     # second pair
     adc5 = Cpt(DualAdcFS, 'ADC:5', reg=db.reg,
-               adc_column=0, "XF:07BMB-CT{GP1-ADC6}Enable-Sel",
+               adc_column=0, adc_trigger_name="XF:07BMB-CT{GP1-ADC6",
                mode='master')
     adc6 = Cpt(DualAdcFS, 'ADC:6', reg=db.reg,
-               adc_column=1, "XF:07BMB-CT{GP1-ADC6}Enable-Sel",
+               adc_column=1, adc_trigger_name="XF:07BMB-CT{GP1-ADC6",
                mode='master')
 
     # third pair
     adc7 = Cpt(DualAdcFS, 'ADC:7', reg=db.reg,
-               adc_column=0, "XF:07BMB-CT{GP1-ADC7}Enable-Sel",
+               adc_column=0, adc_trigger_name="XF:07BMB-CT{GP1-ADC7",
                mode='master')
 
     adc8 = Cpt(DualAdcFS, 'ADC:8', reg=db.reg,
-               adc_column=1, "XF:07BMB-CT{GP1-ADC7}Enable-Sel",
+               adc_column=1, adc_trigger_name="XF:07BMB-CT{GP1-ADC7",
                mode='master')
 
 
