@@ -9,6 +9,7 @@ from ophyd import DeviceStatus, set_and_wait
 from bluesky.examples import NullStatus
 
 from databroker.assets.handlers_base import HandlerBase
+from ophyd import (Component as C, FormattedComponent as FC)
 
 from datetime import datetime
 
@@ -414,7 +415,9 @@ class Adc(Device):
 
 
 class AdcFS(Adc):
-    "Adc Device, when read, returns references to data in filestore."
+    "Adc Device, when read, returns references to data in filestore.
+
+    "
     chunk_size = 1024
     write_path_template = '/nsls2/xf07bm/data/pizza_box_data/%Y/%m/%d/'
 
@@ -515,6 +518,166 @@ class AdcFS(Adc):
                       'dtype': 'array'}}}
 
 
+class DualAdcFS(Adc):
+    "Adc Device, when read, returns references to data in filestore.
+
+    Mixin interactions:
+        self.enable_pv: pv
+        self.column : number
+        self.filepath_pv : pv
+            optional parameter to specify what the enable-sel is for the channel
+
+    "
+    # these are for the dual ADC FS
+    # column is the column and enable_sel is what triggers the collection
+    enable_sel = FC(EpicsSignal, '{self._enable_sel}')
+    filepath = FC(EpicsSignal, '{self._filepath}')
+    chunk_size = 1024
+    write_path_template = '/nsls2/xf07bm/data/pizza_box_data/%Y/%m/%d/'
+
+    def __init__(self, *args, adc_column, adc_enable_sel, mode='master', reg,
+                 **kwargs):
+        '''
+            This is for a dual ADC system.
+            adc_column : the column
+            adc_enable_sel : the enable_sel pv (triggers the scan) for this dual channel
+            mode : {'master', 'slave'}
+                The mode. Master will create a new file and resource during kickoff
+                    Slave assumes the new file and resource are already created.
+                    Slave should check if acquisition has been triggered first,
+                    else return an error.
+        '''
+        self._reg = reg
+        self._column = adc_column
+        self._enable_sel = adc_enable_sel
+        self._mode = mode
+        super().__init__(*args, **kwargs)
+
+    def stage(self):
+        "Set the filename and record it in a 'resource' document in the filestore database."
+
+
+        if(self.connected and self.mode == 'master'):
+        #if True:
+            print(self.name, 'stage')
+            DIRECTORY = datetime.now().strftime(self.write_path_template)
+            #DIRECTORY = "/nsls2/xf07bm/data/pb_data"
+
+            filename = 'an_' + str(uuid.uuid4())[:6]
+            self._full_path = os.path.join(DIRECTORY, filename)  # stash for future reference
+            print("writing to {}".format(self._full_path))
+
+            self.filepath.put(self._full_path)
+            self.resource_uid = self._reg.register_resource(
+                'PIZZABOX_AN_FILE_TXT',
+                DIRECTORY, self._full_path,
+                {'chunk_size': self.chunk_size})
+
+            self._adc_staged = True
+            super().stage()
+        else:
+            if not self._adc_staged:
+                msg = "Error, adc {} not ready for acquiring\n".format(self.name)
+                msg += "Mode : {}\n Connected? {}".format(self._mode, self.connected)
+            else:
+                print("{} already staged by master (not an error :-) ).");
+
+    def unstage(self):
+        if(self.connected):
+            set_and_wait(self.enable_sel, 1)
+            # either master or slave can unstage if needed, safer
+            self._adc_staged = False
+            return super().unstage()
+
+    def kickoff(self):
+        if self._mode == 'master':
+            print('kickoff', self.name)
+            self._ready_to_collect = True
+            "Start writing data into the file."
+   
+            # set_and_wait(self.enable_sel, 0)
+            st = self.enable_sel.set(0)
+           
+   
+            # Return a 'status object' that immediately reports we are 'done' ---
+            # ready to collect at any time.
+            # return NullStatus()
+            return st
+        else:
+            # TODO : clean up this logic
+            # the main issue is I want the slave adc to appear as a normal adc
+            # so that it is backwards compat with Bruno's code
+            # (and we can just fly([flyer1, flyer2, ...]) etc without
+            # additional complications)
+            enable_sel = self.enable_sel.get()
+            if enable_sel != 1:
+                cnt = 0
+                while True:
+                    # current attempt for waiting
+                    print("Enable-sel from master not set. Waiting...")
+                    # wait a little bit
+                    if enable_sel == 1:
+                        st = Status()
+                        st._finished(success=False)
+                        # return unhappy status object
+                        return st
+                    cnt +=1
+                    time.sleep(.1)
+            st = Status()
+            st._finished()
+            return st
+
+    def complete(self):
+        print('complete', self.name, '| filepath', self._full_path)
+        if not self._ready_to_collect:
+            raise RuntimeError("must called kickoff() method before calling complete()")
+        # Stop adding new data to the file.
+        set_and_wait(self.enable_sel, 1)
+        return NullStatus()
+
+    def collect(self):
+        """
+        Record a 'datum' document in the filestore database for each encoder.
+
+        Return a dictionary with references to these documents.
+        """
+        print('collect', self.name)
+        self._ready_to_collect = False
+
+        # Create an Event document and a datum record in filestore for each line
+        # in the text file.
+        now = ttime.time()
+        ttime.sleep(1)  # wait for file to be written by pizza box
+        if os.path.isfile(self._full_path):
+            with open(self._full_path, 'r') as f:
+                linecount = 0
+                for ln in f:
+                    linecount += 1
+
+            chunk_count = linecount // self.chunk_size + int(linecount % self.chunk_size != 0)
+            for chunk_num in range(chunk_count):
+                datum_uid = self._reg.register_datum(self.resource_uid,
+                                                     {'chunk_num': chunk_num,
+                                                      'column' : self._column})
+                data = {self.name: datum_uid}
+
+                yield {'data': data,
+                       'timestamps': {key: now for key in data}, 'time': now}
+        else:
+            print('collect {}: File was not created'.format(self.name))
+            print("filename : {}".format(self._full_path))
+
+    def describe_collect(self):
+        # TODO Return correct shape (array dims)
+        now = ttime.time()
+        return {self.name: {self.name:
+                     {'filename': self._full_path,
+                      'devname': self.dev_name.value,
+                      'source': 'pizzabox-adc-file',
+                      'external': 'FILESTORE:',
+                      'shape': [5,],
+                      'dtype': 'array'}}}
+
 class PizzaBoxAnalogFS(Device):
     #internal_ts_sel = Cpt(EpicsSignal, 'Gen}T:Internal-Sel')
 
@@ -546,6 +709,63 @@ class PizzaBoxAnalogFS(Device):
 
 # the 2 channel pizza box, uncomment to use (and comment out 6 channel)
 pba1 = PizzaBoxAnalogFS('XF:07BMB-CT{GP1-', name = 'pba1')
+# set the PV's that are 'i0', 'it' and 'ir' (if any)
+pba1.adc6.dev_name.put('i0')
+pba1.adc7.dev_name.put('it')
+
+class PizzaBoxDualAnalogFS(Device):
+    #internal_ts_sel = Cpt(EpicsSignal, 'Gen}T:Internal-Sel')
+
+    # first pair
+    adc3 = Cpt(DualAdcFS, 'ADC:3', reg=db.reg,
+               adc_column=0, adc_enable_sel="XF:07BMB-CT{GP1-ADC1}Enable-Sel",
+               mode='master')
+    adc4 = Cpt(DualAdcFS, 'ADC:4', reg=db.reg,
+               adc_column=1, "XF:07BMB-CT{GP1-ADC1}Enable-Sel",
+               mode='master')
+
+    # second pair
+    adc5 = Cpt(DualAdcFS, 'ADC:5', reg=db.reg,
+               adc_column=0, "XF:07BMB-CT{GP1-ADC6}Enable-Sel",
+               mode='master')
+    adc6 = Cpt(DualAdcFS, 'ADC:6', reg=db.reg,
+               adc_column=1, "XF:07BMB-CT{GP1-ADC6}Enable-Sel",
+               mode='master')
+
+    # third pair
+    adc7 = Cpt(DualAdcFS, 'ADC:7', reg=db.reg,
+               adc_column=0, "XF:07BMB-CT{GP1-ADC7}Enable-Sel",
+               mode='master')
+
+    adc8 = Cpt(DualAdcFS, 'ADC:8', reg=db.reg,
+               adc_column=1, "XF:07BMB-CT{GP1-ADC7}Enable-Sel",
+               mode='master')
+
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # must use internal timestamps or no bytes are written
+        # self.stage_sigs[self.internal_ts_sel] = 1
+
+    def kickoff(self):
+        "Call encoder.kickoff() for every encoder."
+        for attr_name in ['adc1']: #, 'adc2', 'adc3', 'adc4']:
+            status = getattr(self, attr_name).kickoff()
+        # it's fine to just return one of the status objects
+        return status
+
+    def collect(self):
+        "Call adc.collect() for every encoder."
+        # Stop writing data to the file in all encoders.
+        for attr_name in ['adc1']: #, 'adc2', 'adc3', 'adc4']:
+            set_and_wait(getattr(self, attr_name).enable_sel, 0)
+        # Now collect the data accumulated by all encoders.
+        for attr_name in ['adc1']: #, 'adc2', 'adc3', 'adc4']:
+            yield from getattr(self, attr_name).collect()
+
+
+# the 2 channel pizza box, uncomment to use (and comment out 6 channel)
+pba1 = PizzaBoxDualAnalogFS('XF:07BMB-CT{GP1-', name = 'pba1')
 # set the PV's that are 'i0', 'it' and 'ir' (if any)
 pba1.adc6.dev_name.put('i0')
 pba1.adc7.dev_name.put('it')

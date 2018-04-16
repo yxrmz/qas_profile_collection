@@ -27,13 +27,6 @@ class PizzaBoxAnHandlerTxt(HandlerBase):
         print("number of columns is {}".format(self.ncols))
         self.cols = ['ts_s', 'ts_ns', 'index', 'adc']
         self.bases = [10, 10, 10, 16]
-        #if self.ncols > 4:
-            #for i in range(self.ncols-4):
-                ## adc2, adc3 etc...
-                #self.cols = self.cols + ['adc' + str(i+2)]
-                #self.bases = self.bases + [16]
-        #self.bases = tuple(self.bases)
-        
         self.encoder_row = namedtuple('encoder_row', self.cols)
 
     def __call__(self, chunk_num, column_number=0):
@@ -41,6 +34,7 @@ class PizzaBoxAnHandlerTxt(HandlerBase):
         cs = self.chunk_size
         col_index = column_number + 3
         # TODO : clean up this logic, maybe use pandas?
+        # need to first look at how isstools parses this
         return [self.encoder_row(*(int(v, base=b) for v, b in zip((ln.split()[i] for i in [0,1,2,col_index]), self.bases)))
                 for ln in self.lines[chunk_num*cs:(chunk_num+1)*cs]]
 
