@@ -561,36 +561,35 @@ class DualAdcFS(Adc):
         "Set the filename and record it in a 'resource' document in the filestore database."
 
 
-        if(self.connected and self.mode == 'master'):
+        if self.connected:
+            if self.mode == 'master':
         #if True:
-            print(self.name, 'stage')
-            DIRECTORY = datetime.now().strftime(self.write_path_template)
-            #DIRECTORY = "/nsls2/xf07bm/data/pb_data"
+                print(self.name, 'stage')
+                DIRECTORY = datetime.now().strftime(self.write_path_template)
+                #DIRECTORY = "/nsls2/xf07bm/data/pb_data"
 
-            filename = 'an_' + str(uuid.uuid4())[:6]
-            self._full_path = os.path.join(DIRECTORY, filename)  # stash for future reference
-            print("writing to {}".format(self._full_path))
+                filename = 'an_' + str(uuid.uuid4())[:6]
+                self._full_path = os.path.join(DIRECTORY, filename)  # stash for future reference
+                print("writing to {}".format(self._full_path))
 
-            self.filepath.put(self._full_path)
-            self.resource_uid = self._reg.register_resource(
-                'PIZZABOX_AN_FILE_TXT',
-                DIRECTORY, self._full_path,
-                {'chunk_size': self.chunk_size})
+                self.filepath.put(self._full_path)
+                self.resource_uid = self._reg.register_resource(
+                    'PIZZABOX_AN_FILE_TXT',
+                    DIRECTORY, self._full_path,
+                    {'chunk_size': self.chunk_size})
 
-            self._adc_staged = True
-            super().stage()
-        else:
-            if not self._adc_staged:
-                msg = "Error, adc {} not ready for acquiring\n".format(self.name)
-                msg += "Mode : {}\n Connected? {}".format(self._mode, self.connected)
+                super().stage()
             else:
-                print("{} already staged by master (not an error :-) ).");
+                print("This is a slave ADC. File path already set to {}".format(self.filepath.get()))
+        else:
+            msg = "Error, adc {} not ready for acquiring\n".format(self.name)
+            raise ValueError(msg)
+
 
     def unstage(self):
         if(self.connected):
             set_and_wait(self.enable_sel, 1)
             # either master or slave can unstage if needed, safer
-            self._adc_staged = False
             return super().unstage()
 
     def kickoff(self):
