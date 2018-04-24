@@ -545,7 +545,8 @@ class PizzaBoxAnalogFS(Device):
 
 
 # the 2 channel pizza box, uncomment to use (and comment out 6 channel)
-pba1 = PizzaBoxAnalogFS('XF:07BMB-CT{GP1-', name = 'pba1')
+#pba1 = PizzaBoxAnalogFS('XF:07BMB-CT{GP1-', name = 'pba1')
+pba1 = PizzaBoxAnalogFS('XF:07BMB-CT{GP2-', name = 'pba1')
 # set the PV's that are 'i0', 'it' and 'ir' (if any)
 pba1.adc6.dev_name.put('i0')
 pba1.adc7.dev_name.put('it')
@@ -561,6 +562,9 @@ pba1.adc7.dev_name.put('it')
 # set the PV's that are 'i0', 'it' and 'ir' (if any)
 #pba1.adc6.dev_name.put('i0')
 #pba1.adc7.dev_name.put('it')
+
+# cludge for now
+
 
 # TODO : move upstream
 class PizzaBoxEncHandlerTxt(HandlerBase):

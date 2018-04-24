@@ -86,5 +86,5 @@ class PostProcessingCallback(CallbackBase):
         self.start_uid = None
         
 
-if client is not None:
-    RE.subscribe(PostProcessingCallback(client, futures_queue))
+#if client is not None:
+    #RE.subscribe(PostProcessingCallback(client, futures_queue))

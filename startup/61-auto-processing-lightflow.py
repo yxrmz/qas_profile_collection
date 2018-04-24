@@ -22,9 +22,10 @@ def submit_lightflow_job(uid):
 
     store_args = dict()
     store_args['uid'] = uid
+    # not necessary
     store_args['requester'] = socket.gethostname()
     job_id = start_workflow(name='interpolation', config=config,
-                            store_args=store_args)
+                            store_args=store_args, queue="qas-workflow")
     print('Started workflow with ID', job_id)
 
 class InterpolationRequester(CallbackBase):
@@ -38,5 +39,5 @@ class InterpolationRequester(CallbackBase):
         submit_lightflow_job(uid)
 
 
-#interpolator = InterpolationRequester()
-#interpolation_subscribe_id = RE.subscribe(interpolator)
+interpolator = InterpolationRequester()
+interpolation_subscribe_id = RE.subscribe(interpolator)
