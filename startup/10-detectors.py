@@ -722,6 +722,29 @@ class PizzaBoxDualAnalogFS(Device):
     # for these, you need a master and a slave
     # set the PV that will always trigger to master and any additional to slave
     # first pair
+    '''
+        Some comments about defining these adc's for the pizza boxes:
+            adc_column: int
+                this is the column in the file that the data is written
+                0, being the first column with encoder data
+            adc_trigger_name : str
+                This is the PV string for the Epics PV we must talk to 
+                to begin the triggering
+            mode: {'master', 'slave'}
+                This is the mode.
+                In slave mode, the adc won't trigger the collection.
+                In master mode, the adc will trigger the collection of data.
+                If you use just one PV in a pair, make sure it is in 'master' mode.
+                If you use both PV's in a pair, make sure only one is set to "master"
+                Another option is we could remove this option and just have
+                each PV check if the collection has been triggered and trigger
+                otherwise.
+
+        An alternative to defining these is to create an object per pair of ADC's.
+        However, this is not backwards compatible with the way iss runs on the
+        pizza boxes. Some care must be taken to modify the plans and the GUI if
+        doing this.
+    '''
     adc3 = Cpt(DualAdcFS, 'ADC:3', reg=db.reg,
                adc_column=0, adc_trigger_name="XF:07BMB-CT{GP2-ADC:1",
                mode='master')
@@ -730,6 +753,7 @@ class PizzaBoxDualAnalogFS(Device):
                mode='master')
 
     # second pair
+    # if using both, one must be master, the other slave
     adc5 = Cpt(DualAdcFS, 'ADC:5', reg=db.reg,
                adc_column=0, adc_trigger_name="XF:07BMB-CT{GP2-ADC:6",
                mode='master')
