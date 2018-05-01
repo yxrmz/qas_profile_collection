@@ -44,6 +44,7 @@ db.reg.register_handler('PIZZABOX_AN_FILE_TXT',
                         PizzaBoxAnHandlerTxt, overwrite=True)
 
 # test previous data 
+'''
 uid = "ecf9deed-daed-4d5d-a164-56ab9b9bb42a"
 hdr = db[uid]
 
@@ -63,3 +64,4 @@ res2 = new_han(chunk_num=chunk_num, column_number=1)
 
 print(res1[0].adc)
 print(res2[0].adc)
+'''

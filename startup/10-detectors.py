@@ -415,9 +415,7 @@ class Adc(Device):
 
 
 class AdcFS(Adc):
-    "Adc Device, when read, returns references to data in filestore.
-
-    "
+    "Adc Device, when read, returns references to data in filestore."
     chunk_size = 1024
     write_path_template = '/nsls2/xf07bm/data/pizza_box_data/%Y/%m/%d/'
 
@@ -519,18 +517,20 @@ class AdcFS(Adc):
 
 
 class DualAdcFS(Adc):
-    "Adc Device, when read, returns references to data in filestore.
+    '''
+    Adc Device, when read, returns references to data in filestore.
         This is for a dual device. It defines one ADC which
             uses a shared triggering mechanism for file writing.
         The adc is either a 'master' or 'slave'. If 'master', then kickoff()
             should trigger the 'Ena-Sel' PV (which starts collecting data to file).
         If 'slave', then it should check that the 'Ena-Sel' PV is set.
         TODO : Need to add a good waiting mechanism for this.
-    "
+    '''
     # these are for the dual ADC FS
     # column is the column and enable_sel is what triggers the collection
-    enable_sel = FC(EpicsSignal, '{self._adc_trigger}}}Ena-Sel')
-    filepath = FC(EpicsSignal, '{self._adc_trigger}}}ID:File.VAL')
+    # rename because of existing children pv's
+    dual_enable_sel = FC(EpicsSignal, '{self._adc_trigger}}}Ena-Sel')
+    dual_filepath = FC(EpicsSignal, '{self._adc_trigger}}}ID:File.VAL', string=True)
     chunk_size = 1024
     write_path_template = '/nsls2/xf07bm/data/pizza_box_data/%Y/%m/%d/'
 
@@ -562,7 +562,7 @@ class DualAdcFS(Adc):
 
 
         if self.connected:
-            if self.mode == 'master':
+            if self._mode == 'master':
         #if True:
                 print(self.name, 'stage')
                 DIRECTORY = datetime.now().strftime(self.write_path_template)
@@ -572,7 +572,7 @@ class DualAdcFS(Adc):
                 self._full_path = os.path.join(DIRECTORY, filename)  # stash for future reference
                 print("writing to {}".format(self._full_path))
 
-                self.filepath.put(self._full_path)
+                self.dual_filepath.put(self._full_path)
                 self.resource_uid = self._reg.register_resource(
                     'PIZZABOX_AN_FILE_TXT',
                     DIRECTORY, self._full_path,
@@ -580,7 +580,7 @@ class DualAdcFS(Adc):
 
                 super().stage()
             else:
-                print("This is a slave ADC. File path already set to {}".format(self.filepath.get()))
+                print("This is a slave ADC. File path already set to {}".format(self.dual_filepath.get()))
         else:
             msg = "Error, adc {} not ready for acquiring\n".format(self.name)
             raise ValueError(msg)
@@ -588,7 +588,7 @@ class DualAdcFS(Adc):
 
     def unstage(self):
         if(self.connected):
-            set_and_wait(self.enable_sel, 1)
+            set_and_wait(self.dual_enable_sel, 1)
             # either master or slave can unstage if needed, safer
             return super().unstage()
 
@@ -599,7 +599,7 @@ class DualAdcFS(Adc):
             "Start writing data into the file."
    
             # set_and_wait(self.enable_sel, 0)
-            st = self.enable_sel.set(0)
+            st = self.dual_enable_sel.set(0)
            
    
             # Return a 'status object' that immediately reports we are 'done' ---
@@ -612,14 +612,14 @@ class DualAdcFS(Adc):
             # so that it is backwards compat with Bruno's code
             # (and we can just fly([flyer1, flyer2, ...]) etc without
             # additional complications)
-            enable_sel = self.enable_sel.get()
-            if enable_sel != 1:
+            dual_enable_sel = self.dual_enable_sel.get()
+            if dual_enable_sel != 1:
                 cnt = 0
                 while True:
                     # current attempt for waiting
                     print("Enable-sel from master not set. Waiting...")
                     # wait a little bit
-                    if enable_sel == 1:
+                    if dual_enable_sel == 1:
                         st = Status()
                         st._finished(success=False)
                         # return unhappy status object
@@ -635,7 +635,7 @@ class DualAdcFS(Adc):
         if not self._ready_to_collect:
             raise RuntimeError("must called kickoff() method before calling complete()")
         # Stop adding new data to the file.
-        set_and_wait(self.enable_sel, 1)
+        set_and_wait(self.dual_enable_sel, 1)
         return NullStatus()
 
     def collect(self):
@@ -711,37 +711,39 @@ class PizzaBoxAnalogFS(Device):
 
 
 # the 2 channel pizza box, uncomment to use (and comment out 6 channel)
-pba1 = PizzaBoxAnalogFS('XF:07BMB-CT{GP1-', name = 'pba1')
+#pba1 = PizzaBoxAnalogFS('XF:07BMB-CT{GP1-', name = 'pba1')
 # set the PV's that are 'i0', 'it' and 'ir' (if any)
-pba1.adc6.dev_name.put('i0')
-pba1.adc7.dev_name.put('it')
+#pba1.adc6.dev_name.put('i0')
+#pba1.adc7.dev_name.put('it')
 
 class PizzaBoxDualAnalogFS(Device):
     #internal_ts_sel = Cpt(EpicsSignal, 'Gen}T:Internal-Sel')
 
+    # for these, you need a master and a slave
+    # set the PV that will always trigger to master and any additional to slave
     # first pair
     adc3 = Cpt(DualAdcFS, 'ADC:3', reg=db.reg,
-               adc_column=0, adc_trigger_name="XF:07BMB-CT{GP1-ADC1",
+               adc_column=0, adc_trigger_name="XF:07BMB-CT{GP2-ADC:1",
                mode='master')
     adc4 = Cpt(DualAdcFS, 'ADC:4', reg=db.reg,
-               adc_column=1, adc_trigger_name"XF:07BMB-CT{GP1-ADC1",
+               adc_column=1, adc_trigger_name="XF:07BMB-CT{GP2-ADC:1",
                mode='master')
 
     # second pair
     adc5 = Cpt(DualAdcFS, 'ADC:5', reg=db.reg,
-               adc_column=0, adc_trigger_name="XF:07BMB-CT{GP1-ADC6",
+               adc_column=0, adc_trigger_name="XF:07BMB-CT{GP2-ADC:6",
                mode='master')
     adc6 = Cpt(DualAdcFS, 'ADC:6', reg=db.reg,
-               adc_column=1, adc_trigger_name="XF:07BMB-CT{GP1-ADC6",
+               adc_column=1, adc_trigger_name="XF:07BMB-CT{GP2-ADC:6",
                mode='master')
 
     # third pair
     adc7 = Cpt(DualAdcFS, 'ADC:7', reg=db.reg,
-               adc_column=0, adc_trigger_name="XF:07BMB-CT{GP1-ADC7",
+               adc_column=0, adc_trigger_name="XF:07BMB-CT{GP2-ADC:7",
                mode='master')
 
     adc8 = Cpt(DualAdcFS, 'ADC:8', reg=db.reg,
-               adc_column=1, adc_trigger_name="XF:07BMB-CT{GP1-ADC7",
+               adc_column=1, adc_trigger_name="XF:07BMB-CT{GP2-ADC:7",
                mode='master')
 
 
@@ -767,8 +769,8 @@ class PizzaBoxDualAnalogFS(Device):
             yield from getattr(self, attr_name).collect()
 
 
-# the 2 channel pizza box, uncomment to use (and comment out 6 channel)
-pba1 = PizzaBoxDualAnalogFS('XF:07BMB-CT{GP1-', name = 'pba1')
+# the 6 channel pizza box
+pba1 = PizzaBoxDualAnalogFS('XF:07BMB-CT{GP2-', name = 'pba1')
 # set the PV's that are 'i0', 'it' and 'ir' (if any)
 pba1.adc6.dev_name.put('i0')
 pba1.adc7.dev_name.put('it')
@@ -816,19 +818,29 @@ class PizzaBoxDIHandlerTxt(HandlerBase):
 
 
 class PizzaBoxAnHandlerTxt(HandlerBase):
-    encoder_row = namedtuple('encoder_row', ['ts_s', 'ts_ns', 'index', 'adc'])
+    ''' Like pizza box handler except each file has two columns
+    '''
     "Read PizzaBox text files using info from filestore."
 
-    bases = (10, 10, 10, 16)
     def __init__(self, fpath, chunk_size):
         self.chunk_size = chunk_size
+        print("chunk size : {}".format(chunk_size))
         with open(fpath, 'r') as f:
             self.lines = list(f)
+        print(fpath)
+        self.ncols = len(self.lines[0].split())
+        print("number of columns is {}".format(self.ncols))
+        self.cols = ['ts_s', 'ts_ns', 'index', 'adc']
+        self.bases = [10, 10, 10, 16]
+        self.encoder_row = namedtuple('encoder_row', self.cols)
 
-    def __call__(self, chunk_num):
+    def __call__(self, chunk_num, column=0):
 
         cs = self.chunk_size
-        return [self.encoder_row(*(int(v, base=b) for v, b in zip(ln.split(), self.bases)))
+        col_index = column + 3
+        # TODO : clean up this logic, maybe use pandas?
+        # need to first look at how isstools parses this
+        return [self.encoder_row(*(int(v, base=b) for v, b in zip((ln.split()[i] for i in [0,1,2,col_index]), self.bases)))
                 for ln in self.lines[chunk_num*cs:(chunk_num+1)*cs]]
 
 
