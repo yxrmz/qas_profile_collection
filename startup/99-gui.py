@@ -1,8 +1,15 @@
+import functools
 import isstools.gui
 import collections
 import atexit
 from bluesky.examples import motor
 motor.move = motor.set
+
+# TODO : replace with message broker
+# Needs the lightflow environment
+from lightflow.config import Config
+from lightflow.workflows import start_workflow
+
 
 
 detector_dictionary = {colmirror_diag.name: {'obj': colmirror_diag, 'elements': [colmirror_diag.stats1.total.name, colmirror_diag.stats2.total.name]},
@@ -74,6 +81,7 @@ xlive_gui = isstools.gui.ScanGui(plan_funcs=[tscan, get_offsets],
                                  motors_dict=motors_dictionary,
                                  general_scan_func=general_scan,
                                  sample_stages = sample_stages,
+                                 job_submitter=job_submitter
                                  )
 
 def xlive():

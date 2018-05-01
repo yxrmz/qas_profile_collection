@@ -11,14 +11,15 @@ from lightflow.workflows import start_workflow
 # set where the lightflow config file is
 lightflow_config_file = "/home/xf07bm/.config/lightflow/lightflow.cfg"
 
-def submit_lightflow_job(uid):
+def submit_lightflow_job(uid, lightflow_config):
     '''
         Submit an interpolation job to lightflow
         
         uid : the uid of the data set
+        lightflow_config : the lightflow config filename
     '''
     config = Config()
-    config.load_from_file(lightflow_config_file)
+    config.load_from_file(lightflow_config)
 
     store_args = dict()
     store_args['uid'] = uid
@@ -28,6 +29,10 @@ def submit_lightflow_job(uid):
                             store_args=store_args, queue="qas-workflow")
     print('Started workflow with ID', job_id)
 
+# the job submitter for the GUI
+job_submitter= functools.partial(submit_lightflow_job,
+                                 lightflow_config=lightflow_config_file)
+
 class InterpolationRequester(CallbackBase):
     '''
         The interpolation requester
@@ -36,7 +41,7 @@ class InterpolationRequester(CallbackBase):
     '''
     def stop(self, doc):
         uid = doc['run_start']
-        submit_lightflow_job(uid)
+        job_submitter(uid)
 
 
 interpolator = InterpolationRequester()
