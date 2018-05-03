@@ -730,9 +730,11 @@ class PizzaBoxDualAnalogFS(Device):
             adc_trigger_name : str
                 This is the PV string for the Epics PV we must talk to 
                 to begin the triggering
-            mode: {'master', 'slave'}
+            mode: {'master', 'slave', 'disabled'}
                 This is the mode.
                 In slave mode, the adc won't trigger the collection.
+                In disabled mode, the adc won't stage when the parent stage() method
+                    is called.
                 In master mode, the adc will trigger the collection of data.
                 If you use just one PV in a pair, make sure it is in 'master' mode.
                 If you use both PV's in a pair, make sure only one is set to "master"
@@ -747,16 +749,16 @@ class PizzaBoxDualAnalogFS(Device):
     '''
     adc3 = Cpt(DualAdcFS, 'ADC:3', reg=db.reg,
                adc_column=0, adc_trigger_name="XF:07BMB-CT{GP2-ADC:1",
-               mode='master')
+               mode='disabled')
     adc4 = Cpt(DualAdcFS, 'ADC:4', reg=db.reg,
                adc_column=1, adc_trigger_name="XF:07BMB-CT{GP2-ADC:1",
-               mode='master')
+               mode='disabled')
 
     # second pair
     # if using both, one must be master, the other slave
     adc5 = Cpt(DualAdcFS, 'ADC:5', reg=db.reg,
                adc_column=0, adc_trigger_name="XF:07BMB-CT{GP2-ADC:6",
-               mode='master')
+               mode='disabled')
     adc6 = Cpt(DualAdcFS, 'ADC:6', reg=db.reg,
                adc_column=1, adc_trigger_name="XF:07BMB-CT{GP2-ADC:6",
                mode='master')
@@ -768,13 +770,28 @@ class PizzaBoxDualAnalogFS(Device):
 
     adc8 = Cpt(DualAdcFS, 'ADC:8', reg=db.reg,
                adc_column=1, adc_trigger_name="XF:07BMB-CT{GP2-ADC:7",
-               mode='master')
+               mode='disabled')
 
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # must use internal timestamps or no bytes are written
         # self.stage_sigs[self.internal_ts_sel] = 1
+
+    def _get_active_devices(self):
+        devices = [getattr(self, name) for name in self.component_names]
+        devices = [device for device in devices if device._mode != 'disabled']
+        return devices
+
+    def stage(self):
+        devices = self._get_active_devices()
+        for device in devices:
+            device.stage()
+
+    def unstage(self):
+        devices = self._get_active_devices()
+        for device in devices:
+            device.unstage()
 
     def kickoff(self):
         "Call encoder.kickoff() for every encoder."
