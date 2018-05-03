@@ -794,20 +794,42 @@ class PizzaBoxDualAnalogFS(Device):
             device.unstage()
 
     def kickoff(self):
-        "Call encoder.kickoff() for every encoder."
-        for attr_name in ['adc1']: #, 'adc2', 'adc3', 'adc4']:
-            status = getattr(self, attr_name).kickoff()
-        # it's fine to just return one of the status objects
-        return status
+        '''Call encoder.kickoff() for every encoder.
+
+            This is untested. Currently isstools uses the underlying adc
+                children.
+        '''
+        devices = self._get_active_devices()
+        compound_status = None
+        for device in devices:
+            new_status = device.kickoff()
+            if compound_status is None:
+                new_status = compound_status
+            else:
+                new_status = ophyd.AndStatus(compound_status, new_status)
+        return new_status
+
+    def complete(self):
+        '''Call encoder.complete() for every encoder.
+
+            This is untested. Currently isstools uses the underlying adc
+                children.
+        '''
+        devices = self._get_active_devices()
+        compound_status = None
+        for device in devices:
+            new_status = device.complete()
+            if compound_status is None:
+                new_status = compound_status
+            else:
+                new_status = ophyd.AndStatus(compound_status, new_status)
+        return new_status
 
     def collect(self):
         "Call adc.collect() for every encoder."
-        # Stop writing data to the file in all encoders.
-        for attr_name in ['adc1']: #, 'adc2', 'adc3', 'adc4']:
-            set_and_wait(getattr(self, attr_name).enable_sel, 0)
-        # Now collect the data accumulated by all encoders.
-        for attr_name in ['adc1']: #, 'adc2', 'adc3', 'adc4']:
-            yield from getattr(self, attr_name).collect()
+        devices = self._get_active_devices()
+        for device in devices:
+            yield from device.collect()
 
 
 # the 6 channel pizza box
