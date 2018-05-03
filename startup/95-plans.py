@@ -100,12 +100,15 @@ def prep_traj_plan(delay = 0.1):
         yield from bps.mv(mono1.energy, curr_energy)
 
 
-def execute_trajectory(name, **metadata):
+def execute_trajectory(name, ignore_shutter=True, **metadata):
     ''' Execute a trajectory on the flyers given:
             flyers : list of flyers to fly on
 
         scans on 'mono1' by default
 
+        ignore_shutter : bool, optional
+            If True, ignore the shutter
+            (suspenders on shutter and ring current will be installed if not)
         ex:
             execute_trajectory(**md)
     '''
@@ -180,8 +183,14 @@ def execute_trajectory(name, **metadata):
 
     yield from bps.stage(mono1)
 
-    return (yield from bpp.fly_during_wrapper(bpp.finalize_wrapper(inner(), final_plan()),
-                                              flyers))
+    fly_plan = bpp.fly_during_wrapper(bpp.finalize_wrapper(inner(), final_plan()),
+                                              flyers)
+    # TODO : Add in when suspend_wrapper is avaialable
+    #if not ignore_shutter:
+        # this will use suspenders defined in 23-suspenders.py
+        #fly_plan = bpp.suspend_wrapper(fly_plan, suspenders)
+
+    yield from fly_plan
 
 
 def get_offsets_plan(detectors, num = 1, name = '', **metadata):
