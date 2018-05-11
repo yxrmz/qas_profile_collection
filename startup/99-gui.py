@@ -1,5 +1,5 @@
 import functools
-import isstools.gui
+import isstools.xlive
 import collections
 import atexit
 from bluesky.examples import motor
@@ -70,7 +70,7 @@ shutters_dictionary = collections.OrderedDict([(shutter_fe.name, shutter_fe),
 sample_stages = [{'x': sample_stage1.x.name, 'y': sample_stage1.y.name}]
 
 print(mono1)
-xlive_gui = isstools.gui.ScanGui(plan_funcs=[tscan, get_offsets], 
+xlive_gui = isstools.xlive.XliveGui(plan_funcs=[tscan, get_offsets], 
                                  prep_traj_plan=prep_traj_plan, 
                                  RE=RE,
                                  db=db, 
@@ -81,7 +81,10 @@ xlive_gui = isstools.gui.ScanGui(plan_funcs=[tscan, get_offsets],
                                  motors_dict=motors_dictionary,
                                  general_scan_func=general_scan,
                                  sample_stages = sample_stages,
-                                 job_submitter=job_submitter
+                                 job_submitter=submit_lightflow_job,
+                                 bootstrap_servers=['cmb01:9092', 'cmb02:9092'],
+                                 kafka_topic="qas-processing", 
+                                 window_title="XLive @QAS/11-BMNSLS-II",
                                  )
 
 def xlive():

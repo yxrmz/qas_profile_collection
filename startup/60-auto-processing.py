@@ -10,8 +10,29 @@ from lightflow.workflows import start_workflow
 
 # set where the lightflow config file is
 lightflow_config_file = "/home/xf07bm/.config/lightflow/lightflow.cfg"
+import socket
 
-def submit_lightflow_job(uid, lightflow_config):
+def create_interp_request(uid):
+    '''
+        Create an interpolation request.
+
+    '''
+    data = dict()
+    requester = str(socket.gethostname())
+    request = {
+            'uid': uid,
+            'requester': requester,
+            'type': 'spectroscopy',
+            'processing_info': {
+                'type': 'interpolate',
+                'interp_base': 'i0'
+            }
+        }
+    return request 
+
+
+
+def submit_lightflow_job(req):
     '''
         Submit an interpolation job to lightflow
         
@@ -19,19 +40,13 @@ def submit_lightflow_job(uid, lightflow_config):
         lightflow_config : the lightflow config filename
     '''
     config = Config()
-    config.load_from_file(lightflow_config)
+    config.load_from_file(lightflow_config_file)
 
     store_args = dict()
-    store_args['uid'] = uid
-    # not necessary
-    store_args['requester'] = socket.gethostname()
+    store_args['request'] = req
     job_id = start_workflow(name='interpolation', config=config,
                             store_args=store_args, queue="qas-workflow")
     print('Started workflow with ID', job_id)
-
-# the job submitter for the GUI
-job_submitter= functools.partial(submit_lightflow_job,
-                                 lightflow_config=lightflow_config_file)
 
 class InterpolationRequester(CallbackBase):
     '''
@@ -41,7 +56,8 @@ class InterpolationRequester(CallbackBase):
     '''
     def stop(self, doc):
         uid = doc['run_start']
-        job_submitter(uid)
+        req = create_interp_request(uid)
+        submit_lightflow_job(req)
 
 
 interpolator = InterpolationRequester()
