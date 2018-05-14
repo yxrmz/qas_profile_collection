@@ -1,3 +1,4 @@
+print(__file__)
 import nslsii
 
 nslsii.configure_base(get_ipython().user_ns, 'qas', bec=False)

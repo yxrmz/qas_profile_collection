@@ -1,3 +1,4 @@
+print(__file__)
 from ophyd import (EpicsMotor, Device, Component as Cpt,
                    EpicsSignal)
 
@@ -72,7 +73,8 @@ class Monochromator(Device):
         self.enc = enc
 
 mono1 = Monochromator('XF:07BMA-OP{', enc = pb1.enc1, name='mono1')
-mono1.hints = {'fields': ['mono_energy', 'mono_bragg']}
+mono1.energy.kind = 'hinted'
+mono1.bragg.kind = 'hinted'
 
 
 class Mirror(Device):

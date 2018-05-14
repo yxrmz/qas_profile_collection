@@ -1,3 +1,4 @@
+print(__file__)
 import uuid
 from collections import namedtuple
 import os
@@ -14,6 +15,7 @@ from ophyd import (Component as C, FormattedComponent as FC)
 from datetime import datetime
 
 
+print("init bpm")
 class BPM(ProsilicaDetector, SingleTrigger):
     image = Cpt(ImagePlugin, 'image1:')
     stats1 = Cpt(StatsPlugin, 'Stats1:')
@@ -38,6 +40,7 @@ class BPM(ProsilicaDetector, SingleTrigger):
         super().__init__(*args, **kwargs)
         self.stage_sigs.clear()  # default stage sigs do not apply
 
+print("init CAMERA")
 class CAMERA(ProsilicaDetector, SingleTrigger):
     image = Cpt(ImagePlugin, 'image1:')
     stats1 = Cpt(StatsPlugin, 'Stats1:')
@@ -61,14 +64,18 @@ hutchb_diag = CAMERA('XF:07BMB-BI{Diag:1}', name='hutchb_diag')
 
 
 for camera in [colmirror_diag, screen_diag, mono_diag, dcr_diag, hutchb_diag]:
-    camera.read_attrs = ['stats1', 'stats2']
-    camera.image.read_attrs = ['array_data']
-    camera.stats1.read_attrs = ['total', 'centroid']
-    camera.stats2.read_attrs = ['total', 'centroid']
-    camera.hints = {'fields' : [camera.stats1.total.name,
-                                camera.stats2.total.name]} 
+    #camera.read_attrs = ['stats1', 'stats2']
+    #camera.image.read_attrs = ['array_data']
+    camera.image.array_data.kind = 'normal'
+    camera.stats1.total.kind = 'normal'
+    camera.stats1.centroid.kind = 'normal'
+    camera.stats2.total.kind = 'normal'
+    camera.stats2.centroid.kind = 'normal'
+    camera.stats1.total.kind = 'hinted'
+    camera.stats2.total.kind = 'hinted'
 
 
+print("init Encoder")
 class Encoder(Device):
     """This class defines components but does not implement actual reading.
     See EncoderFS and EncoderParser"""
@@ -100,6 +107,7 @@ class Encoder(Device):
             # self.filter_dt.put(10000)
 
 
+print("init EncoderFS")
 class EncoderFS(Encoder):
     "Encoder Device, when read, returns references to data in filestore."
     chunk_size = 1024
@@ -360,10 +368,11 @@ class PizzaBoxFS(Device):
         for attr_name in ['enc1', 'enc2', 'enc3', 'enc4']:
             yield from getattr(self, attr_name).collect()
 
-
+print("init pizza box")
 pb1 = PizzaBoxFS('XF:07BM-CT{Enc01', name = 'pb1')
 #pb1.enc1.pulses_per_deg = 9400000/360
 pb1.enc1.pulses_per_deg=23600*400/360
+print('done')
 
 
 class Adc(Device):
@@ -832,11 +841,13 @@ class PizzaBoxDualAnalogFS(Device):
             yield from device.collect()
 
 
+print("init 6 chan pizza box")
 # the 6 channel pizza box
 pba1 = PizzaBoxDualAnalogFS('XF:07BMB-CT{GP2-', name = 'pba1')
 # set the PV's that are 'i0', 'it' and 'ir' (if any)
 pba1.adc6.dev_name.put('i0')
 pba1.adc7.dev_name.put('it')
+print("done")
 
 # the 6 channel pizza box
 #pba1_6chan = PizzaBoxAnalogFS('XF:07BMB-CT{GP2-', name = 'pba1_6chan')

@@ -1,3 +1,4 @@
+print(__file__)
 from ophyd import (EpicsMotor, Device, Component as Cpt,
                    EpicsSignal)
 #import numpy as np

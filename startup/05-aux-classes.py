@@ -1,3 +1,4 @@
+print(__file__)
 from bluesky.callbacks import LivePlot
 
 class NormPlot(LivePlot):

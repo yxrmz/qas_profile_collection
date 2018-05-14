@@ -1,3 +1,4 @@
+print(__file__)
 import bluesky.plans as bp
 import os
 

@@ -1,3 +1,4 @@
+print(__file__)
 # Things for the ZMQ communication
 import socket
 

@@ -1,3 +1,6 @@
+print(__file__)
+print("Loading isstools, preparing GUI...")
+
 import functools
 import isstools.xlive
 import collections
@@ -17,8 +20,8 @@ detector_dictionary = {colmirror_diag.name: {'obj': colmirror_diag, 'elements': 
                        mono_diag.name: {'obj': mono_diag, 'elements': [mono_diag.stats1.total.name, mono_diag.stats2.total.name]},
                        dcr_diag.name: {'obj': dcr_diag, 'elements': [dcr_diag.stats1.total.name, dcr_diag.stats2.total.name]},
                        #pba1.adc1.name: {'obj': pba1.adc1, 'elements': ['pba1_adc1_volt']},
-                       pba1.adc6.name: {'obj': pba1.adc6, 'elements': ['pba1_adc6_volt']},
-                       pba1.adc7.name: {'obj': pba1.adc7, 'elements': ['pba1_adc7_volt']},
+                       i0.name: {'obj': pba1.adc6, 'elements': ['pba1_adc6_volt']},
+                       it.name: {'obj': pba1.adc7, 'elements': ['pba1_adc7_volt']},
                        pb1.enc1.name: {'obj': pb1.enc1, 'elements': ['pb1_enc1_pos_I']},
                       }
 
