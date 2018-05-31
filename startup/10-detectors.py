@@ -758,19 +758,19 @@ class PizzaBoxDualAnalogFS(Device):
     '''
     adc3 = Cpt(DualAdcFS, 'ADC:3', reg=db.reg,
                adc_column=0, adc_trigger_name="XF:07BMB-CT{GP2-ADC:1",
-               mode='disabled')
+               mode='master')
     adc4 = Cpt(DualAdcFS, 'ADC:4', reg=db.reg,
                adc_column=1, adc_trigger_name="XF:07BMB-CT{GP2-ADC:1",
-               mode='disabled')
+               mode='slave')
 
     # second pair
     # if using both, one must be master, the other slave
     adc5 = Cpt(DualAdcFS, 'ADC:5', reg=db.reg,
                adc_column=0, adc_trigger_name="XF:07BMB-CT{GP2-ADC:6",
-               mode='disabled')
+               mode='master')
     adc6 = Cpt(DualAdcFS, 'ADC:6', reg=db.reg,
                adc_column=1, adc_trigger_name="XF:07BMB-CT{GP2-ADC:6",
-               mode='master')
+               mode='slave')
 
     # third pair
     adc7 = Cpt(DualAdcFS, 'ADC:7', reg=db.reg,
@@ -779,7 +779,7 @@ class PizzaBoxDualAnalogFS(Device):
 
     adc8 = Cpt(DualAdcFS, 'ADC:8', reg=db.reg,
                adc_column=1, adc_trigger_name="XF:07BMB-CT{GP2-ADC:7",
-               mode='disabled')
+               mode='slave')
 
 
     def __init__(self, *args, **kwargs):
