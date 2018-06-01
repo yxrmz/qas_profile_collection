@@ -34,6 +34,7 @@ shutter_ph.shutter_type = 'PH'
 
 
 
+
 '''
 Here is the amplifier definitionir_
 

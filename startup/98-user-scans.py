@@ -1,6 +1,7 @@
 print(__file__)
 import bluesky.plans as bp
 import os
+import sys
 
 
 def tscan(name:str, comment:str, n_cycles:int=1, delay:float=0, **kwargs):
@@ -22,6 +23,7 @@ def tscan(name:str, comment:str, n_cycles:int=1, delay:float=0, **kwargs):
     --------
     :func:`tscanxia`
     """
+    sys.stdout = kwargs.pop('stdout', sys.stdout)
 
     #uids = []
     RE.is_aborted = False
@@ -43,6 +45,7 @@ def tscan(name:str, comment:str, n_cycles:int=1, delay:float=0, **kwargs):
 
 
 def general_scan(detectors, num_name, den_name, result_name, motor, rel_start, rel_stop, num, find_min_max, retries, **kwargs):
+    sys.stdout = kwargs.pop('stdout', sys.stdout)
     for index, detector in enumerate(detectors):
         if type(detector) == str:
             detectors[index] = eval(detector)
@@ -99,6 +102,7 @@ def get_offsets(num:int = 20, *args, **kwargs):
     --------
     :func:`tscan`
     """
+    sys.stdout = kwargs.pop('stdout', sys.stdout)
 
     adcs = list(args)
     if not len(adcs):
@@ -152,6 +156,7 @@ def get_offsets(num:int = 20, *args, **kwargs):
         print(print_message[:-1])
         print('-' * 30)
 
+    sys.stdout = kwargs.pop('stdout', sys.stdout)
     print(uid)
     print('Done!')
     yield uid

@@ -6,6 +6,7 @@ import time as ttime
 from ophyd import (ProsilicaDetector, SingleTrigger, Component as Cpt, Device,
                    EpicsSignal, EpicsSignalRO, ImagePlugin, StatsPlugin, ROIPlugin,
                    DeviceStatus)
+from ophyd.status import Status
 from ophyd import DeviceStatus, set_and_wait
 from bluesky.examples import NullStatus
 
@@ -375,7 +376,7 @@ pb1.enc1.pulses_per_deg=23600*400/360
 print('done')
 
 
-class Adc(Device):
+class TriggerAdc(Device):
     file_size = Cpt(EpicsSignal, '}FileSize')
     reset = Cpt(EpicsSignal, '}Rst-Cmd')
     filepath = Cpt(EpicsSignal, '}ID:File.VAL', string=True)
@@ -388,12 +389,9 @@ class Adc(Device):
     enable_averaging = Cpt(EpicsSignal, '}Avrg-Sts', write_pv='}Avrg-Sel')
     averaging_points = Cpt(EpicsSignal, '}Avrg-SP')
     averaging_points_rbv = Cpt(EpicsSignal, '}GP-ADC:Reg0-RB_')
-    volt_array = Cpt(EpicsSignal, '}V-I')
-    volt = Cpt(EpicsSignal, '}E-I')
-    offset = Cpt(EpicsSignal, '}Offset')
-    dev_name = Cpt(EpicsSignal, '}DevName')
     dev_saturation = Cpt(EpicsSignal, '}DevSat')
     polarity = 'neg'
+    offset = Cpt(EpicsSignal, '}Offset')
 
     enable_sel = Cpt(EpicsSignal, '}Ena-Sel')
     enable_rb = Cpt(EpicsSignal, '}Ena-Sts')
@@ -421,6 +419,11 @@ class Adc(Device):
         #    pass
         #signal.alarm(0)
 
+# needed for dual adc fs, this is the triggering Adc (missing volt and offset)
+class Adc(TriggerAdc):
+    volt = Cpt(EpicsSignal, '}E-I')
+    dev_name = Cpt(EpicsSignal, '}DevName')
+    volt_array = Cpt(EpicsSignal, '}V-I')
 
 
 class AdcFS(Adc):
@@ -434,10 +437,7 @@ class AdcFS(Adc):
 
     def stage(self):
         "Set the filename and record it in a 'resource' document in the filestore database."
-
-
         if(self.connected):
-        #if True:
             print(self.name, 'stage')
             DIRECTORY = datetime.now().strftime(self.write_path_template)
             #DIRECTORY = "/nsls2/xf07bm/data/pb_data"
@@ -525,7 +525,7 @@ class AdcFS(Adc):
                       'dtype': 'array'}}}
 
 
-class DualAdcFS(Adc):
+class DualAdcFS(TriggerAdc):
     '''
     Adc Device, when read, returns references to data in filestore.
         This is for a dual device. It defines one ADC which
@@ -538,12 +538,13 @@ class DualAdcFS(Adc):
     # these are for the dual ADC FS
     # column is the column and enable_sel is what triggers the collection
     # rename because of existing children pv's
-    dual_enable_sel = FC(EpicsSignal, '{self._adc_trigger}}}Ena-Sel')
-    dual_filepath = FC(EpicsSignal, '{self._adc_trigger}}}ID:File.VAL', string=True)
     chunk_size = 1024
     write_path_template = '/nsls2/xf07bm/data/pizza_box_data/%Y/%m/%d/'
+    volt = FC(EpicsSignal, '{self._adc_read}}}E-I')
+    #offset = FC(EpicsSignal, '{self._adc_read}}}Offset')
+    dev_name = FC(EpicsSignal, '{self._adc_read}}}DevName')
 
-    def __init__(self, *args, adc_column, adc_trigger_name, mode='master', reg,
+    def __init__(self, *args, adc_column, adc_read_name, twin_adc=None, reg,
                  **kwargs):
         '''
             This is for a dual ADC system.
@@ -560,10 +561,13 @@ class DualAdcFS(Adc):
                     (for ex, adc6 and adc7 triggered using adc1, but adc6 is
                      what will put to adc1's trigger)
         '''
+        self._twin_adc = twin_adc
         self._reg = reg
         self._column = adc_column
-        self._adc_trigger = adc_trigger_name
-        self._mode = mode
+        self._adc_read = adc_read_name
+        self._staged_adc = False
+        self._kickoff_adc = False
+        self._complete_adc = False
         super().__init__(*args, **kwargs)
 
     def stage(self):
@@ -571,8 +575,14 @@ class DualAdcFS(Adc):
 
 
         if self.connected:
-            if self._mode == 'master':
-        #if True:
+            # NOTE: master MUST be done before slave. need to fix this later
+            if self._twin_adc is None:
+                raise ValueError("Error a twin ADC must be given")
+
+            # if twin didnt stage yet, stage
+            if not self._twin_adc._staged_adc:
+                self._staged_adc = True
+
                 print(self.name, 'stage')
                 DIRECTORY = datetime.now().strftime(self.write_path_template)
                 #DIRECTORY = "/nsls2/xf07bm/data/pb_data"
@@ -581,7 +591,7 @@ class DualAdcFS(Adc):
                 self._full_path = os.path.join(DIRECTORY, filename)  # stash for future reference
                 print("writing to {}".format(self._full_path))
 
-                self.dual_filepath.put(self._full_path)
+                self.filepath.put(self._full_path)
                 self.resource_uid = self._reg.register_resource(
                     'PIZZABOX_AN_FILE_TXT',
                     DIRECTORY, self._full_path,
@@ -589,62 +599,67 @@ class DualAdcFS(Adc):
 
                 super().stage()
             else:
-                print("This is a slave ADC. File path already set to {}".format(self.dual_filepath.get()))
+                # don't stage, use twin's info
+                self.resource_uid = self._twin_adc.resource_uid
+                self._full_path = self._twin_adc._full_path
+                # reset twin
+                self._twin_adc._staged_adc = False
+                print("This ADC's twin {} already staged. File path already set to {}".format(self._twin_adc.name, self.filepath.get()))
         else:
             msg = "Error, adc {} not ready for acquiring\n".format(self.name)
             raise ValueError(msg)
+        time.sleep(.1)
 
 
     def unstage(self):
         if(self.connected):
-            set_and_wait(self.dual_enable_sel, 1)
+            set_and_wait(self.enable_sel, 1)
             # either master or slave can unstage if needed, safer
+            self._staged_adc = False
+            self._kickoff_adc = False
+            self._complete_adc = False
             return super().unstage()
 
     def kickoff(self):
-        if self._mode == 'master':
-            print('kickoff', self.name)
+        print('kickoff', self.name)
+        if self._twin_adc is None:
+            raise ValueError("ADC must have a twin")
+
+        print(self._twin_adc._kickoff_adc)
+        if self._twin_adc._kickoff_adc is False:
             self._ready_to_collect = True
             "Start writing data into the file."
-   
+       
             # set_and_wait(self.enable_sel, 0)
-            st = self.dual_enable_sel.set(0)
-           
-   
-            # Return a 'status object' that immediately reports we are 'done' ---
-            # ready to collect at any time.
-            # return NullStatus()
+            st = self.enable_sel.set(0)
+            self._kickoff_adc = True
             return st
         else:
-            # TODO : clean up this logic
-            # the main issue is I want the slave adc to appear as a normal adc
-            # so that it is backwards compat with Bruno's code
-            # (and we can just fly([flyer1, flyer2, ...]) etc without
-            # additional complications)
-            dual_enable_sel = self.dual_enable_sel.get()
-            if dual_enable_sel != 1:
-                cnt = 0
-                while True:
-                    # current attempt for waiting
-                    print("Enable-sel from master not set. Waiting...")
-                    # wait a little bit
-                    if dual_enable_sel == 1:
-                        st = Status()
-                        st._finished(success=False)
-                        # return unhappy status object
-                        return st
-                    cnt +=1
-                    time.sleep(.1)
+            print("ADC {} was kicked off by {} already".format(self.name, self._twin_adc.name))
+            self._ready_to_collect = True
+            #reset kickoff
+            self._kickoff_adc = False
+            #reset twin
+            self._twin_adc._kickoff_adc = False
             st = Status()
             st._finished()
             return st
+       
 
     def complete(self):
         print('complete', self.name, '| filepath', self._full_path)
         if not self._ready_to_collect:
             raise RuntimeError("must called kickoff() method before calling complete()")
-        # Stop adding new data to the file.
-        set_and_wait(self.dual_enable_sel, 1)
+        if self._twin_adc._complete_adc is False:
+            # Stop adding new data to the file.
+            #set_and_wait(self.enable_sel, 1)
+            self.enable_sel.put(1)
+            self._complete_adc = True
+        else:
+            print("Device already stopped by {}".format(self._twin_adc.name))
+            self._twin_adc._complete_adc = False
+            self._complete_adc = False
+
         return NullStatus()
 
     def collect(self):
@@ -736,9 +751,8 @@ class PizzaBoxDualAnalogFS(Device):
             adc_column: int
                 this is the column in the file that the data is written
                 0, being the first column with encoder data
-            adc_trigger_name : str
-                This is the PV string for the Epics PV we must talk to 
-                to begin the triggering
+            adc_read_name : str
+                This is the PV string for the Epics PV we must read from 
             mode: {'master', 'slave', 'disabled'}
                 This is the mode.
                 In slave mode, the adc won't trigger the collection.
@@ -756,30 +770,24 @@ class PizzaBoxDualAnalogFS(Device):
         pizza boxes. Some care must be taken to modify the plans and the GUI if
         doing this.
     '''
-    adc3 = Cpt(DualAdcFS, 'ADC:3', reg=db.reg,
-               adc_column=0, adc_trigger_name="XF:07BMB-CT{GP2-ADC:1",
-               mode='master')
-    adc4 = Cpt(DualAdcFS, 'ADC:4', reg=db.reg,
-               adc_column=1, adc_trigger_name="XF:07BMB-CT{GP2-ADC:1",
-               mode='slave')
+    adc3 = Cpt(DualAdcFS, 'ADC:1', reg=db.reg,
+               adc_column=0, adc_read_name="XF:07BMB-CT{GP2-ADC:3")
+    adc4 = Cpt(DualAdcFS, 'ADC:1', reg=db.reg,
+               adc_column=1, adc_read_name="XF:07BMB-CT{GP2-ADC:4")
 
     # second pair
     # if using both, one must be master, the other slave
-    adc5 = Cpt(DualAdcFS, 'ADC:5', reg=db.reg,
-               adc_column=0, adc_trigger_name="XF:07BMB-CT{GP2-ADC:6",
-               mode='master')
+    adc5 = Cpt(DualAdcFS, 'ADC:6', reg=db.reg,
+               adc_column=0, adc_read_name="XF:07BMB-CT{GP2-ADC:5")
     adc6 = Cpt(DualAdcFS, 'ADC:6', reg=db.reg,
-               adc_column=1, adc_trigger_name="XF:07BMB-CT{GP2-ADC:6",
-               mode='slave')
+               adc_column=1, adc_read_name="XF:07BMB-CT{GP2-ADC:6")
 
     # third pair
     adc7 = Cpt(DualAdcFS, 'ADC:7', reg=db.reg,
-               adc_column=0, adc_trigger_name="XF:07BMB-CT{GP2-ADC:7",
-               mode='master')
+               adc_column=0, adc_read_name="XF:07BMB-CT{GP2-ADC:7")
+    adc8 = Cpt(DualAdcFS, 'ADC:7', reg=db.reg,
+               adc_column=1, adc_read_name="XF:07BMB-CT{GP2-ADC:8")
 
-    adc8 = Cpt(DualAdcFS, 'ADC:8', reg=db.reg,
-               adc_column=1, adc_trigger_name="XF:07BMB-CT{GP2-ADC:7",
-               mode='slave')
 
 
     def __init__(self, *args, **kwargs):
@@ -844,9 +852,33 @@ class PizzaBoxDualAnalogFS(Device):
 print("init 6 chan pizza box")
 # the 6 channel pizza box
 pba1 = PizzaBoxDualAnalogFS('XF:07BMB-CT{GP2-', name = 'pba1')
+
+# twin adc is the other adc
+pba1.adc3._twin_adc = pba1.adc4
+pba1.adc3._mode = "enabled"
+
+pba1.adc4._twin_adc = pba1.adc3
+pba1.adc4._mode = "enabled"
+
+pba1.adc5._twin_adc = pba1.adc6
+pba1.adc5._mode = "enabled"
+
+pba1.adc6._twin_adc = pba1.adc5
+pba1.adc6._mode = "enabled"
+
+pba1.adc7._twin_adc = pba1.adc8
+pba1.adc7._mode = "enabled"
+
+pba1.adc8._twin_adc = pba1.adc7
+pba1.adc8._mode = "enabled"
+
 # set the PV's that are 'i0', 'it' and 'ir' (if any)
+pba1.adc3.dev_name.put('adc3')
+pba1.adc4.dev_name.put('adc4')
+pba1.adc5.dev_name.put('adc5')
 pba1.adc6.dev_name.put('i0')
 pba1.adc7.dev_name.put('it')
+pba1.adc8.dev_name.put('adc8')
 print("done")
 
 # the 6 channel pizza box
