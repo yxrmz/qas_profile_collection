@@ -604,7 +604,7 @@ class DualAdcFS(TriggerAdc):
                 self._full_path = self._twin_adc._full_path
                 # reset twin
                 self._twin_adc._staged_adc = False
-                print("This ADC's twin {} already staged. File path already set to {}".format(self._twin_adc.name, self.filepath.get()))
+                print("ACD {}'s twin {} already staged. File path already set to {}".format(self.name, self._twin_adc.name, self.filepath.get()))
         else:
             msg = "Error, adc {} not ready for acquiring\n".format(self.name)
             raise ValueError(msg)
@@ -625,7 +625,6 @@ class DualAdcFS(TriggerAdc):
         if self._twin_adc is None:
             raise ValueError("ADC must have a twin")
 
-        print(self._twin_adc._kickoff_adc)
         if self._twin_adc._kickoff_adc is False:
             self._ready_to_collect = True
             "Start writing data into the file."
