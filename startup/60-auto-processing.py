@@ -22,6 +22,7 @@ def create_interp_request(uid):
     requester = str(socket.gethostname())
     request = {
             'uid': uid,
+            'pulses_per_deg': mono1.pulses_per_deg,
             'requester': requester,
             'type': 'spectroscopy',
             'processing_info': {
