@@ -94,7 +94,9 @@ xlive_gui = isstools.xlive.XliveGui(plan_funcs=[tscan, get_offsets],
                                  window_title="XLive @QAS/11-BMNSLS-II",
                                  )
 
+sys.stdout = xlive_gui.emitstream_out
+
 def xlive():
     xlive_gui.show()
 
-xlive()
+#xlive()

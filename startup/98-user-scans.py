@@ -111,7 +111,8 @@ def get_offsets(num:int = 20, *args, **kwargs):
     old_avers = []
     for adc in adcs:
         old_avers.append(adc.averaging_points.get())
-        adc.averaging_points.put(15)
+        adc.averaging_points.put(4)
+        #adc.averaging_points.put(15)
     
     uid, = RE(get_offsets_plan(adcs, num = int(num)))
 
