@@ -2,6 +2,7 @@ print(__file__)
 # Things for the ZMQ communication
 import socket
 
+PB_PULSES_PER_DEGREE = 23600*400/360
 
 from bluesky.callbacks import CallbackBase
 
@@ -22,7 +23,7 @@ def create_interp_request(uid):
     requester = str(socket.gethostname())
     request = {
             'uid': uid,
-            'pulses_per_deg': mono1.pulses_per_deg,
+            'pulses_per_deg': PB_PULSES_PER_DEGREE,
             'requester': requester,
             'type': 'spectroscopy',
             'processing_info': {
