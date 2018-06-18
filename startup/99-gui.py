@@ -23,8 +23,8 @@ detector_dictionary = {colmirror_diag.name: {'obj': colmirror_diag, 'elements': 
                        pba1.adc3.name: {'obj': pba1.adc3, 'elements': ['pba1_adc3_volt']},
                        pba1.adc4.name: {'obj': pba1.adc4, 'elements': ['pba1_adc4_volt']},
                        pba1.adc5.name: {'obj': pba1.adc5, 'elements': ['pba1_adc5_volt']},
-                       i0.name: {'obj': pba1.adc6, 'elements': ['pba1_adc6_volt']},
-                       it.name: {'obj': pba1.adc7, 'elements': ['pba1_adc7_volt']},
+                       pba1.adc6.name: {'obj': pba1.adc6, 'elements': ['pba1_adc6_volt']},
+                       pba1.adc7.name: {'obj': pba1.adc7, 'elements': ['pba1_adc7_volt']},
                        pba1.adc8.name: {'obj': pba1.adc8, 'elements': ['pba1_adc8_volt']},
                        pb1.enc1.name: {'obj': pb1.enc1, 'elements': ['pb1_enc1_pos_I']},
                       }

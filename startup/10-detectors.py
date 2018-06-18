@@ -872,11 +872,11 @@ pba1.adc8._twin_adc = pba1.adc7
 pba1.adc8._mode = "enabled"
 
 # set the PV's that are 'i0', 'it' and 'ir' (if any)
-pba1.adc3.dev_name.put('adc3')
-pba1.adc4.dev_name.put('adc4')
-pba1.adc5.dev_name.put('adc5')
-pba1.adc6.dev_name.put('i0')
-pba1.adc7.dev_name.put('it')
+pba1.adc3.dev_name.put('i0')
+pba1.adc4.dev_name.put('it')
+pba1.adc5.dev_name.put('ir')
+pba1.adc6.dev_name.put('pips')
+pba1.adc7.dev_name.put('adc7')
 pba1.adc8.dev_name.put('adc8')
 print("done")
 
