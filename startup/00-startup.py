@@ -10,15 +10,21 @@ from bluesky.callbacks.broker import verify_files_saved
 # RE.subscribe(post_run(verify_files_saved), 'stop')
 
 # Optional: set any metadata that rarely changes.
+
+# these should *always* be QAS
 RE.md['group'] = 'qas'
 RE.md['beamline_id'] = 'QAS'
-RE.md['proposal_id'] = None
 # isstools reads these
-RE.md['PI'] = "No PI"
-RE.md['PROPOSAL'] = None
-RE.md['SAF'] = None
-RE.md['year'] = 2018
-RE.md['cycle'] = 1
+
+# check these keys exist, if not set to default
+keys = ["PI", "PROPOSAL", "SAF", "year", "cycle", "proposal_id"]
+defaults = ["No PI", None, None, 2018, 1, None]
+for key, default in zip(keys, defaults):
+    if key not in RE.md:
+        print("Warning {} not in RE.md.".format(key))
+        print("Set to default : {}".format(default))
+        RE.md[key] = default
+
 RE.is_aborted = False
 
 

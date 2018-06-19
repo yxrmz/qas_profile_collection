@@ -943,7 +943,7 @@ class PizzaBoxAnHandlerTxt(HandlerBase):
         self.encoder_row = namedtuple('encoder_row', self.cols)
 
     def __call__(self, chunk_num, column=0):
-
+        print("column : {}".format(column))
         cs = self.chunk_size
         col_index = column + 3
         # TODO : clean up this logic, maybe use pandas?

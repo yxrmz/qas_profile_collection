@@ -63,5 +63,28 @@ class InterpolationRequester(CallbackBase):
         submit_lightflow_job(req)
 
 
+import sys
+sys.path.append("/home/xf07bm/Repos/workflows")
+class InterpolationRequesterNoLightFlow(CallbackBase):
+    '''
+        The interpolation requester
+
+        On a stop doc, submits request to lightflow
+    '''
+    # NOTE : for testing ONLY
+    def stop(self, doc):
+        uid = doc['run_start']
+        request = create_interp_request(uid)
+        #submit_lightflow_job(request)
+        store = dict()
+        store['request'] = request
+        data = dict()
+        import interpolation
+        interpolation.process_run_func(data, store, None, None)
+
+
+
+
 interpolator = InterpolationRequester()
+#interpolator = InterpolationRequesterNoLightFlow()
 interpolation_subscribe_id = RE.subscribe(interpolator)
