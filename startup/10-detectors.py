@@ -932,7 +932,7 @@ class PizzaBoxAnHandlerTxt(HandlerBase):
 
     def __init__(self, fpath, chunk_size):
         self.chunk_size = chunk_size
-        print("chunk size : {}".format(chunk_size))
+        #print("chunk size : {}".format(chunk_size))
         with open(fpath, 'r') as f:
             self.lines = list(f)
         print(fpath)
@@ -943,7 +943,6 @@ class PizzaBoxAnHandlerTxt(HandlerBase):
         self.encoder_row = namedtuple('encoder_row', self.cols)
 
     def __call__(self, chunk_num, column=0):
-        print("column : {}".format(column))
         cs = self.chunk_size
         col_index = column + 3
         # TODO : clean up this logic, maybe use pandas?

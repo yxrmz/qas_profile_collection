@@ -102,8 +102,5 @@ def xlive():
 from isstools.xview import XviewGui
 xview_gui = XviewGui(PB_PULSES_PER_DEGREE)
 
-def xview():
-    xview_gui.show()
 
 xlive()
-xview()
