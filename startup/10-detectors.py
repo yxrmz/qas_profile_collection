@@ -111,7 +111,7 @@ class Encoder(Device):
 print("init EncoderFS")
 class EncoderFS(Encoder):
     "Encoder Device, when read, returns references to data in filestore."
-    chunk_size = 1024
+    chunk_size = 2**20
     write_path_template = '/nsls2/xf07bm/data/pizza_box_data/%Y/%m/%d/'
 
     def stage(self):
@@ -247,7 +247,7 @@ class DigitalInput(Device):
 
 class DIFS(DigitalInput):
     "Encoder Device, when read, returns references to data in filestore."
-    chunk_size = 1024
+    chunk_size = 2**20
     write_path_template = '/nsls2/xf07bm/data/pizza_box_data/%Y/%m/%d/'
 
     def stage(self):
@@ -428,7 +428,7 @@ class Adc(TriggerAdc):
 
 class AdcFS(Adc):
     "Adc Device, when read, returns references to data in filestore."
-    chunk_size = 1024
+    chunk_size = 2**20
     write_path_template = '/nsls2/xf07bm/data/pizza_box_data/%Y/%m/%d/'
 
     def __init__(self, *args, reg, **kwargs):
@@ -538,7 +538,7 @@ class DualAdcFS(TriggerAdc):
     # these are for the dual ADC FS
     # column is the column and enable_sel is what triggers the collection
     # rename because of existing children pv's
-    chunk_size = 1024
+    chunk_size = 2**20
     write_path_template = '/nsls2/xf07bm/data/pizza_box_data/%Y/%m/%d/'
     volt = FC(EpicsSignal, '{self._adc_read}}}E-I')
     #offset = FC(EpicsSignal, '{self._adc_read}}}Offset')
