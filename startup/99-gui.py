@@ -99,8 +99,8 @@ sys.stdout = xlive_gui.emitstream_out
 def xlive():
     xlive_gui.show()
 
-from isstools.xview import XviewGui
-xview_gui = XviewGui(PB_PULSES_PER_DEGREE)
+#from isstools.xview import XviewGui
+#xview_gui = XviewGui(PB_PULSES_PER_DEGREE)
 
 
 xlive()
