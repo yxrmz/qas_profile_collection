@@ -391,7 +391,7 @@ class TriggerAdc(Device):
     averaging_points_rbv = Cpt(EpicsSignal, '}GP-ADC:Reg0-RB_')
     dev_saturation = Cpt(EpicsSignal, '}DevSat')
     polarity = 'neg'
-    offset = Cpt(EpicsSignal, '}Offset')
+    # offset = Cpt(EpicsSignal, '}Offset')
 
     enable_sel = Cpt(EpicsSignal, '}Ena-Sel')
     enable_rb = Cpt(EpicsSignal, '}Ena-Sts')
@@ -541,7 +541,7 @@ class DualAdcFS(TriggerAdc):
     chunk_size = 2**20
     write_path_template = '/nsls2/xf07bm/data/pizza_box_data/%Y/%m/%d/'
     volt = FC(EpicsSignal, '{self._adc_read}}}E-I')
-    #offset = FC(EpicsSignal, '{self._adc_read}}}Offset')
+    offset = FC(EpicsSignal, '{self._adc_read}}}Offset')
     dev_name = FC(EpicsSignal, '{self._adc_read}}}DevName')
 
     def __init__(self, *args, adc_column, adc_read_name, twin_adc=None, reg,
