@@ -18,7 +18,7 @@ from ophyd import StatusBase
 #shctl1 = EpicsMotor('XF:28IDC-ES:1{Sh2:Exp-Ax:5}Mtr', name='shctl1')
 
 
-class PDFShutter(Device):
+class QASShutter(Device):
     cmd = C(EpicsSignal, 'Cmd-Cmd')
     close_sts = C(EpicsSignalRO, 'Sw:Cls1-Sts')
     open_sts = C(EpicsSignalRO, 'Sw:Opn1-Sts')
@@ -109,21 +109,21 @@ def take_dark(cam, light_field, dark_field_name):
 
 
 
-class XPDTIFFPlugin(TIFFPlugin, FileStoreTIFFSquashing,
+class QASTIFFPlugin(TIFFPlugin, FileStoreTIFFSquashing,
                     FileStoreIterativeWrite):
     pass
 
 
-class XPDHDF5Plugin(HDF5Plugin, FileStoreHDF5IterativeWrite):
+class QASHDF5Plugin(HDF5Plugin, FileStoreHDF5IterativeWrite):
     pass
 
 
-class XPDPerkinElmer(PerkinElmerDetector):
+class QASPerkinElmer(PerkinElmerDetector):
     image = C(ImagePlugin, 'image1:')
     _default_configuration_attrs = (
         PerkinElmerDetector._default_configuration_attrs +
         ('images_per_set', 'number_of_sets'))
-    tiff = C(XPDTIFFPlugin, 'TIFF1:',
+    tiff = C(QASTIFFPlugin, 'TIFF1:',
              write_path_template='Z:/img/%Y/%m/%d/',
              read_path_template='/SHARE/img/%Y/%m/%d/',
              root='/SHARE/img/',
@@ -235,26 +235,26 @@ class ContinuousAcquisitionTrigger(BlueskyInterface):
 
 
 
-class PerkinElmerContinuous(ContinuousAcquisitionTrigger, XPDPerkinElmer):
+class PerkinElmerContinuous(ContinuousAcquisitionTrigger, QASPerkinElmer):
     pass
 
 
-class PerkinElmerStandard(SingleTrigger, XPDPerkinElmer):
+class PerkinElmerStandard(SingleTrigger, QASPerkinElmer):
     pass
 
 
-class PerkinElmerMulti(MultiTrigger, XPDPerkinElmer):
-    shutter = C(EpicsSignal, 'XF:28IDC-ES:1{Sh:Exp}Cmd-Cmd')
+class PerkinElmerMulti(MultiTrigger, QASPerkinElmer):
+    shutter = C(EpicsSignal, 'XF:07BM-ES:1{Sh:Exp}Cmd-Cmd')
 
 
-pe1 = PerkinElmerStandard('XF:28ID1-ES{Det:PE1}', name='pe1', read_attrs=['tiff'])
+pe1 = PerkinElmerStandard('XF:07BM-ES{Det:PE1}', name='pe1', read_attrs=['tiff'])
 #pe1.stage_sigs.pop('cam.acquire')
 
 #pe1m = PerkinElmerMulti('XF:28IDC-ES:1{Det:PE1}', name='pe1', read_attrs=['tiff'],
                         #trigger_cycle=[[('image', {shctl1: 1}),
                                         #('dark_image', {shctl1: 0})]])
 
-pe1c = PerkinElmerContinuous('XF:28ID1-ES{Det:PE1}', name='pe1c',
+pe1c = PerkinElmerContinuous('XF:07BM-ES{Det:PE1}', name='pe1c',
                              read_attrs=['tiff', 'stats1.total'],
                              plugin_name='tiff')
 
