@@ -1,4 +1,5 @@
 import time as ttime
+import ophyd
 from ophyd.areadetector import (PerkinElmerDetector, ImagePlugin,
                                 TIFFPlugin, StatsPlugin, HDF5Plugin,
                                 ProcessPlugin, ROIPlugin)
@@ -16,6 +17,23 @@ from ophyd import StatusBase
 
 #shctl1 = EpicsSignal('XF:28IDC-ES:1{Det:PE1}cam1:ShutterMode', name='shctl1')
 #shctl1 = EpicsMotor('XF:28IDC-ES:1{Sh2:Exp-Ax:5}Mtr', name='shctl1')
+
+# monkey patch for trailing slash problem
+def _ensure_trailing_slash(path):
+    """
+    'a/b/c' -> 'a/b/c/'
+    EPICS adds the trailing slash itself if we do not, so in order for the
+    setpoint filepath to match the readback filepath, we need to add the
+    trailing slash ourselves.
+    """
+    newpath = os.path.join(path, '')
+    if newpath[0] != '/' and newpath[-1] == '/':
+        # make it a windows slash
+        newpath = newpath[:-1]
+    return newpath
+
+#ophyd.areadetector.filestore_mixins._ensure_trailing_slash = _ensure_trailing_slash
+
 
 
 class QASShutter(Device):
@@ -96,6 +114,7 @@ def take_dark(cam, light_field, dark_field_name):
     while not st.done:
         ttime.sleep(.1)
     ret = cam.read()
+    print(ret)
     desc = cam.describe()
     cam.unstage()
 
@@ -103,16 +122,12 @@ def take_dark(cam, light_field, dark_field_name):
     df = ret[light_field]
     df_sig = getattr(cam, dark_field_name)
     df_sig.put(**df)
-    # save the darkfrom description
+    # save the drk description
     df_sig.stashed_datakey = desc[light_field]
-
-
-
 
 class QASTIFFPlugin(TIFFPlugin, FileStoreTIFFSquashing,
                     FileStoreIterativeWrite):
     pass
-
 
 class QASHDF5Plugin(HDF5Plugin, FileStoreHDF5IterativeWrite):
     pass
@@ -120,23 +135,25 @@ class QASHDF5Plugin(HDF5Plugin, FileStoreHDF5IterativeWrite):
 
 class QASPerkinElmer(PerkinElmerDetector):
     image = C(ImagePlugin, 'image1:')
+    num_dark_frames = C(EpicsSignal,'cam1:PENumOffsetFrames')
+    acquire_dark_frames = C(EpicsSignal, 'cam1:PEAcquireOffset')
     _default_configuration_attrs = (
         PerkinElmerDetector._default_configuration_attrs +
         ('images_per_set', 'number_of_sets'))
-    tiff = C(QASTIFFPlugin, 'TIFF1:',
-             write_path_template='Z:/img/%Y/%m/%d/',
-             read_path_template='/SHARE/img/%Y/%m/%d/',
-             root='/SHARE/img/',
-             cam_name='cam',  # used to configure "tiff squashing"
-             proc_name='proc',  # ditto
-             read_attrs=[],
-             # TODO: switch to this configuration using GPFS later
-             # once G:\ drive is mounted to the Windows IOC
-             # (a new Windows 10 machine in the rack upstairs)
-             # write_path_template='G:\\img\\%Y\\%m\\%d\\',
-             # read_path_template='/nsls2/xf28id1/pe1_data/%Y/%m/%d/',
-             # root='/nsls2/xf28id1/pe1_data',
-             )
+    # tiff = C(QASTIFFPlugin, 'TIFF1:',
+    #         # write_path_template='z:/temp/',
+    #          #read_path_template= '', #'/nsls2/xf07bm/temp/',
+    #          #root='/nsls2/xf07bm/temp',
+    #          cam_name='cam',  # used to configure "tiff squashing"
+    #          proc_name='proc',  # ditto
+    #          read_attrs=[],
+    #          # TODO: switch to this configuration using GPFlsS later
+    #          # once G:\ drive is mounted to the Windows IOC
+    #          # (a new Windows 10 machine in the rack upstairs)
+    #          # write_path_template='G:\\img\\%Y\\%m\\%d\\',
+    #          # read_path_template='/nsls2/xf28id1/pe1_data/%Y/%m/%d/',
+    #          # root='/nsls2/xf28id1/pe1_data',
+    #          )
 
     # hdf5 = C(XPDHDF5Plugin, 'HDF1:',
     #          write_path_template='G:/pe1_data/%Y/%m/%d/',
@@ -162,6 +179,8 @@ class QASPerkinElmer(PerkinElmerDetector):
     roi3 = C(ROIPlugin, 'ROI3:')
     roi4 = C(ROIPlugin, 'ROI4:')
 
+
+
     # dark_image = C(SavedImageSignal, None)
 
     def __init__(self, *args, **kwargs):
@@ -169,74 +188,74 @@ class QASPerkinElmer(PerkinElmerDetector):
         self.stage_sigs.update([(self.cam.trigger_mode, 'Internal'),
                                ])
 
+#
+# class ContinuousAcquisitionTrigger(BlueskyInterface):
+#     """
+#     This trigger mixin class records images when it is triggered.
+#
+#     It expects the detector to *already* be acquiring, continously.
+#     """
+#     def __init__(self, *args, plugin_name=None, image_name=None, **kwargs):
+#         if plugin_name is None:
+#             raise ValueError("plugin name is a required keyword argument")
+#         super().__init__(*args, **kwargs)
+#         self._plugin = getattr(self, plugin_name)
+#         if image_name is None:
+#             image_name = '_'.join([self.name, 'image'])
+#         self._plugin.stage_sigs[self._plugin.auto_save] = 'No'
+#         self.cam.stage_sigs[self.cam.image_mode] = 'Continuous'
+#         self._plugin.stage_sigs[self._plugin.file_write_mode] = 'Capture'
+#         self._image_name = image_name
+#         self._status = None
+#         self._num_captured_signal = self._plugin.num_captured
+#         self._num_captured_signal.subscribe(self._num_captured_changed)
+#         self._save_started = False
+#
+#     def stage(self):
+#         if self.cam.acquire.get() != 1:
+#             raise RuntimeError("The ContinuousAcuqisitionTrigger expects "
+#                                "the detector to already be acquiring.")
+#         return super().stage()
+#         # put logic to look up proper dark frame
+#         # die if none is found
+#
+#     def trigger(self):
+#         "Trigger one acquisition."
+#         if not self._staged:
+#             raise RuntimeError("This detector is not ready to trigger."
+#                                "Call the stage() method before triggering.")
+#         self._save_started = False
+#         self._status = DeviceStatus(self)
+#         self._desired_number_of_sets = self.number_of_sets.get()
+#         self._plugin.num_capture.put(self._desired_number_of_sets)
+#         self.dispatch(self._image_name, ttime.time())
+#         # reset the proc buffer, this needs to be generalized
+#         self.proc.reset_filter.put(1)
+#         self._plugin.capture.put(1)  # Now the TIFF plugin is capturing.
+#         return self._status
+#
+#     def _num_captured_changed(self, value=None, old_value=None, **kwargs):
+#         "This is called when the 'acquire' signal changes."
+#         if self._status is None:
+#             return
+#         if value == self._desired_number_of_sets:
+#             # This is run on a thread, so exceptions might pass silently.
+#             # Print and reraise so they are at least noticed.
+#             try:
+#                 self.tiff.write_file.put(1)
+#             except Exception as e:
+#                 print(e)
+#                 raise
+#             self._save_started = True
+#         if value == 0 and self._save_started:
+#             self._status._finished()
+#             self._status = None
+#             self._save_started = False
 
-class ContinuousAcquisitionTrigger(BlueskyInterface):
-    """
-    This trigger mixin class records images when it is triggered.
-
-    It expects the detector to *already* be acquiring, continously.
-    """
-    def __init__(self, *args, plugin_name=None, image_name=None, **kwargs):
-        if plugin_name is None:
-            raise ValueError("plugin name is a required keyword argument")
-        super().__init__(*args, **kwargs)
-        self._plugin = getattr(self, plugin_name)
-        if image_name is None:
-            image_name = '_'.join([self.name, 'image'])
-        self._plugin.stage_sigs[self._plugin.auto_save] = 'No'
-        self.cam.stage_sigs[self.cam.image_mode] = 'Continuous'
-        self._plugin.stage_sigs[self._plugin.file_write_mode] = 'Capture'
-        self._image_name = image_name
-        self._status = None
-        self._num_captured_signal = self._plugin.num_captured
-        self._num_captured_signal.subscribe(self._num_captured_changed)
-        self._save_started = False
-
-    def stage(self):
-        if self.cam.acquire.get() != 1:
-            raise RuntimeError("The ContinuousAcuqisitionTrigger expects "
-                               "the detector to already be acquiring.")
-        return super().stage()
-        # put logic to look up proper dark frame
-        # die if none is found
-
-    def trigger(self):
-        "Trigger one acquisition."
-        if not self._staged:
-            raise RuntimeError("This detector is not ready to trigger."
-                               "Call the stage() method before triggering.")
-        self._save_started = False
-        self._status = DeviceStatus(self)
-        self._desired_number_of_sets = self.number_of_sets.get()
-        self._plugin.num_capture.put(self._desired_number_of_sets)
-        self.dispatch(self._image_name, ttime.time())
-        # reset the proc buffer, this needs to be generalized
-        self.proc.reset_filter.put(1)
-        self._plugin.capture.put(1)  # Now the TIFF plugin is capturing.
-        return self._status
-
-    def _num_captured_changed(self, value=None, old_value=None, **kwargs):
-        "This is called when the 'acquire' signal changes."
-        if self._status is None:
-            return
-        if value == self._desired_number_of_sets:
-            # This is run on a thread, so exceptions might pass silently.
-            # Print and reraise so they are at least noticed.
-            try:
-                self.tiff.write_file.put(1)
-            except Exception as e:
-                print(e)
-                raise
-            self._save_started = True
-        if value == 0 and self._save_started:
-            self._status._finished()
-            self._status = None
-            self._save_started = False
 
 
-
-class PerkinElmerContinuous(ContinuousAcquisitionTrigger, QASPerkinElmer):
-    pass
+# class PerkinElmerContinuous(ContinuousAcquisitionTrigger, QASPerkinElmer):
+#     pass
 
 
 class PerkinElmerStandard(SingleTrigger, QASPerkinElmer):
@@ -247,16 +266,16 @@ class PerkinElmerMulti(MultiTrigger, QASPerkinElmer):
     shutter = C(EpicsSignal, 'XF:07BM-ES:1{Sh:Exp}Cmd-Cmd')
 
 
-pe1 = PerkinElmerStandard('XF:07BM-ES{Det:PE1}', name='pe1', read_attrs=['tiff'])
+pe1 = PerkinElmerStandard('XF:07BM-ES{Det:PE1}', name='pe1')
 #pe1.stage_sigs.pop('cam.acquire')
 
 #pe1m = PerkinElmerMulti('XF:28IDC-ES:1{Det:PE1}', name='pe1', read_attrs=['tiff'],
                         #trigger_cycle=[[('image', {shctl1: 1}),
                                         #('dark_image', {shctl1: 0})]])
 
-pe1c = PerkinElmerContinuous('XF:07BM-ES{Det:PE1}', name='pe1c',
-                             read_attrs=['tiff', 'stats1.total'],
-                             plugin_name='tiff')
+# pe1c = PerkinElmerContinuous('XF:07BM-ES{Det:PE1}', name='pe1c',
+#                              read_attrs=['tiff', 'stats1.total'],
+#                              plugin_name='tiff')
 
 import time
 class CachedDetector:
