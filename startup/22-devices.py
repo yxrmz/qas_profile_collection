@@ -1,4 +1,9 @@
+from bluesky.plan_stubs import mv, abs_set
+
+
+
 print(__file__)
+
 
 class EPS_Shutter(Device):
     state = Cpt(EpicsSignal, 'Pos-Sts')
@@ -14,10 +19,10 @@ class EPS_Shutter(Device):
         self.color = 'red'
 
     def open_plan(self):
-        yield from bp.mv(self.opn, 1)
+        yield from mv(self.opn, 1,wait=True)
 
     def close_plan(self):
-        yield from bp.mv(self.cls, 1)
+        yield from abs_set(self.cls, 1, wait=True)
 
     def open(self):
         print('Opening {}'.format(self.name))

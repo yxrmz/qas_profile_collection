@@ -61,7 +61,7 @@ xlive_gui = isstools.xlive.XliveGui(plan_funcs=[tscan, get_offsets],
                                  job_submitter=submit_lightflow_job,
                                  bootstrap_servers=['cmb01:9092', 'cmb02:9092'],
                                  kafka_topic="qas-processing", 
-                                 window_title="XLive @QAS/11-BMNSLS-II",
+                                 window_title="XLive @QAS/7-BM NSLS-II",
                                  )
 
 sys.stdout = xlive_gui.emitstream_out
