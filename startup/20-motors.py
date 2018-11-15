@@ -90,7 +90,7 @@ class Monochromator(Device):
 
             # Finally, now that we are litsening to the IOC, prepare the
             # trajectory.
-            self.prepare_trajectory.set(1)
+            self.prepare_trajectory.set('1')  # Yes, the IOC requires a string.
 
             # Return the status object immediately, without waiting. The caller
             # will be able to watch for it to become done.
