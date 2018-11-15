@@ -1,6 +1,6 @@
 print(__file__)
 from ophyd import (EpicsMotor, Device, Component as Cpt,
-                   EpicsSignal)
+                   EpicsSignal, SubscriptionStatus)
 
 
 class SampleStage(Device):
@@ -71,6 +71,30 @@ class Monochromator(Device):
         super().__init__(*args, **kwargs)
         self.pulses_per_deg = 1/self.main_motor_res.value
         self.enc = enc
+
+    def set(self, command):
+        if command == 'prepare':
+
+            # This function will receive Events from the IOC and check whether
+            # we are seeing the trjectory become ready. It will return True
+            # only if is sees (1) the old value is "not ready" and (2) the new
+            # value is "ready".
+            def callback(value, old_value, **kwargs):
+                return (old_value == 0 and value == 1)
+
+            # Creating this status object subscribes `callback` Events from the
+            # IOC. Starting at this line, we are now listening for the IOC to
+            # tell us is has become ready. When it does, this status object
+            # will complete (status.done = True).
+            status = SubscriptionStatus(self.trajectory_ready, callback)
+
+            # Finally, now that we are litsening to the IOC, prepare the
+            # trajectory.
+            self.prepare_trajectory.set(1)
+
+            # Return the status object immediately, without waiting. The caller
+            # will be able to watch for it to become done.
+            return status
 
 mono1 = Monochromator('XF:07BMA-OP{', enc = pb1.enc1, name='mono1')
 mono1.energy.kind = 'hinted'
