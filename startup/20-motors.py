@@ -76,16 +76,14 @@ class Monochromator(Device):
         if command == 'prepare':
 
             # This function will receive Events from the IOC and check whether
-            # we are seeing the trjectory become ready. It will return True
-            # only if is sees (1) the old value is "not ready" and (2) the new
-            # value is "ready".
+            # we are seeing the trajectory_ready go low after having been high.
             def callback(value, old_value, **kwargs):
-                return (old_value == 0 and value == 1)
+                return (old_value == 1 and value == 0)
 
             # Creating this status object subscribes `callback` Events from the
             # IOC. Starting at this line, we are now listening for the IOC to
-            # tell us is has become ready. When it does, this status object
-            # will complete (status.done = True).
+            # tell us it is done. When it does, this status object will
+            # complete (status.done = True).
             status = SubscriptionStatus(self.trajectory_ready, callback)
 
             # Finally, now that we are litsening to the IOC, prepare the
