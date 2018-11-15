@@ -61,7 +61,7 @@ def ts_msg_hook(msg, file=sys.stdout):
         msg.obj.name if hasattr(msg.obj, 'name') else msg.obj,
         msg.args,
         msg.kwargs)
-    print('{} {}'.format(t, msg_fmt), file=file)
+    print('{} {}'.format(t, msg_fmt), file=file, flush=True)
 
 # The logs will be saved to the profile dir.
 profile_startup_dir = get_ipython().profile_dir.startup_dir
