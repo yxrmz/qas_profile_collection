@@ -58,30 +58,7 @@ def general_scan_plan(detectors, motor, rel_start, rel_stop, num):
 
 
 def prep_traj_plan(delay = 0.1):
-    yield from bps.abs_set(mono1.prepare_trajectory, '1', wait=True)
-
-    # Poll the trajectory ready pv
-    while True:
-        ret = (yield from bps.read(mono1.trajectory_ready))
-        if ret is None:
-            break
-        is_running = ret['mono1_trajectory_ready']['value']
-
-        if is_running:
-            break
-        else:
-            yield from bps.sleep(.1)
-
-    while True:
-        ret = (yield from bps.read(mono1.trajectory_ready))
-        if ret is None:
-            break
-        is_running = ret['mono1_trajectory_ready']['value']
-
-        if is_running:
-            yield from bps.sleep(.05)
-        else:
-            break
+    yield from bps.mv(mono1, 'prepare')
 
     yield from bps.sleep(delay)
 
