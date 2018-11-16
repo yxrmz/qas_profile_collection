@@ -1,6 +1,6 @@
 print(__file__)
-from ophyd import (EpicsMotor, Device, Component as Cpt,
-                   EpicsSignal, SubscriptionStatus)
+from ophyd import EpicsMotor, Device, Component as Cpt, EpicsSignal
+from ophyd.status import SubscriptionStatus
 
 
 class SampleStage(Device):

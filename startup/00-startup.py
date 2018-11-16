@@ -48,14 +48,14 @@ from pyOlog.ophyd_tools import *
 # Enabling (2018C3) logging of the message hook into a log file.
 import os
 import sys
-import datetime
+from datetime import datetime
 import functools
 
 # TODO: to be removed and imported from bluesky once
 # https://github.com/NSLS-II/bluesky/pull/1117 is reviewed, merged, released,
 # and pushed to the beamline.
 def ts_msg_hook(msg, file=sys.stdout):
-    t = '{:%H:%M:%S.%f}'.format(datetime.datetime.now())
+    t = '{:%H:%M:%S.%f}'.format(datetime.now())
     msg_fmt = '{: <17s} -> {!s: <15s} args: {}, kwargs: {}'.format(
         msg.command,
         msg.obj.name if hasattr(msg.obj, 'name') else msg.obj,
@@ -67,7 +67,7 @@ def ts_msg_hook(msg, file=sys.stdout):
 profile_startup_dir = get_ipython().profile_dir.startup_dir
 # The name of the log file consists of the beamline id and the timestamp at the
 # startup of bsui, so we don't have collisions of the names.
-log_filename = f'{beamline_id}-bsui-{datetime.datetime.now().strftime("%Y%m%d%H%M%S")}.log'
+log_filename = f'{beamline_id}-bsui-{datetime.now().strftime("%Y%m%d%H%M%S")}.log'
 log_filename = os.path.join(profile_startup_dir, log_filename)
 
 print(f'\n!!! The logs will be written to {log_filename} !!!\n')
