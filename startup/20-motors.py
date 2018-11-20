@@ -71,6 +71,7 @@ class Monochromator(Device):
         super().__init__(*args, **kwargs)
         self.pulses_per_deg = 1/self.main_motor_res.value
         self.enc = enc
+        self._running = None
 
     def set(self, command):
         if command == 'prepare':
@@ -78,7 +79,13 @@ class Monochromator(Device):
             # This function will receive Events from the IOC and check whether
             # we are seeing the trajectory_ready go low after having been high.
             def callback(value, old_value, **kwargs):
-                return (old_value == 1 and value == 0)
+                if int(round(old_value)) == 1 and int(round(value)) == 0:
+                    if self._running or self._running is None:
+                        self._running = False
+                        return True
+                    else:
+                        self._running = True
+                return False
 
             # Creating this status object subscribes `callback` Events from the
             # IOC. Starting at this line, we are now listening for the IOC to
