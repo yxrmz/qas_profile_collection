@@ -119,12 +119,9 @@ def execute_trajectory(name, ignore_shutter=True, **metadata):
         # this must be a string
         yield from bps.abs_set(mono1.start_trajectory, '1', wait=True)
 
-        # this should be replaced by a status object
-        # Updated below method. Should we remove the comment above?
         def poll_the_traj_plan():
 
             yield from bps.mv(mono1, 'start')
-            yield from bps.sleep(delay)
 
         yield from bpp.finalize_wrapper(poll_the_traj_plan(), 
                                        bps.abs_set(mono1.stop_trajectory, '1', wait=True)
