@@ -113,7 +113,6 @@ class Monochromator(Device):
                         self._starting = True
                 return False
 
-            #Need to double check the logic
             status = SubscriptionStatus(self.trajectory_running, callback)
             self.start_trajectory.set('1')
 
