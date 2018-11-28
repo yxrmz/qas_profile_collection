@@ -72,6 +72,7 @@ class Monochromator(Device):
         self.pulses_per_deg = 1/self.main_motor_res.value
         self.enc = enc
         self._preparing = None
+        self._starting = None
 
     def set(self, command):
         if command == 'prepare':
@@ -100,6 +101,23 @@ class Monochromator(Device):
             # Return the status object immediately, without waiting. The caller
             # will be able to watch for it to become done.
             return status
+
+        if command == 'start':
+
+            def callback(value, old_value, **kwargs):
+                if int(round(old_value)) == 1 and int(round(value)) == 0:
+                    if self._starting or self._starting is None:
+                        self._starting = False
+                        return True
+                    else:
+                        self._starting = True
+                return False
+
+            status = SubscriptionStatus(self.trajectory_running, callback)
+            self.start_trajectory.set('1')
+
+            return status
+
 
 mono1 = Monochromator('XF:07BMA-OP{', enc = pb1.enc1, name='mono1')
 mono1.energy.kind = 'hinted'

@@ -119,30 +119,9 @@ def execute_trajectory(name, ignore_shutter=True, **metadata):
         # this must be a string
         yield from bps.abs_set(mono1.start_trajectory, '1', wait=True)
 
-        # this should be replaced by a status object
         def poll_the_traj_plan():
-            while True:
-                ret = (yield from bps.read(mono1.trajectory_running))
-                if ret is None:
-                    break
-                is_running = ret['mono1_trajectory_running']['value']
 
-                if is_running:
-                    break
-                else:
-                    yield from bps.sleep(.1)
-
-            while True:
-                ret = (yield from bps.read(mono1.trajectory_running))
-                if ret is None:
-                    break
-                is_running = ret['mono1_trajectory_running']['value']
-
-                if is_running:
-                    yield from bps.sleep(.05)
-                else:
-                    break
-
+            yield from bps.mv(mono1, 'start')
 
         yield from bpp.finalize_wrapper(poll_the_traj_plan(), 
                                        bps.abs_set(mono1.stop_trajectory, '1', wait=True)
