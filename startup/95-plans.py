@@ -116,30 +116,23 @@ def execute_trajectory(name, ignore_shutter=True, **metadata):
         #yield from xia1.start_trigger()
         # this must be a float
         yield from bps.abs_set(mono1.enable_loop, 0, wait=True)
-        # this must be a string
-        yield from bps.abs_set(mono1.start_trajectory, '1', wait=True)
 
-        def poll_the_traj_plan():
-
-            yield from bps.mv(mono1, 'start')
-
-        yield from bpp.finalize_wrapper(poll_the_traj_plan(), 
-                                       bps.abs_set(mono1.stop_trajectory, '1', wait=True)
-                                      )
+        yield from bpp.finalize_wrapper(bps.mv(mono1, 'start'),
+                                        bps.mv(mono1.stop_trajectory, '1'))
 
         yield from bps.close_run()
 
-    def final_plan():
-        yield from bps.abs_set(mono1.trajectory_running, 0, wait=True)
-        #yield from xia1.stop_trigger()
-        for flyer in flyers:
-            yield from bps.unstage(flyer)
-        yield from bps.unstage(mono1)
 
     for flyer in flyers:
         yield from bps.stage(flyer)
 
-    yield from bps.stage(mono1)
+    # yield from bps.stage(mono1)
+
+    def final_plan():
+        #yield from xia1.stop_trigger()
+        for flyer in flyers:
+            yield from bps.unstage(flyer)
+        # yield from bps.unstage(mono1)
 
     fly_plan = bpp.fly_during_wrapper(bpp.finalize_wrapper(inner(), final_plan()),
                                               flyers)
