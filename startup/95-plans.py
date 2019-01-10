@@ -59,23 +59,9 @@ def general_scan_plan(detectors, motor, rel_start, rel_stop, num):
 
 def prep_traj_plan(delay = 0.1):
     yield from bps.mv(mono1, 'prepare')
-
     yield from bps.sleep(delay)
 
-    curr_energy = (yield from bps.read(mono1.energy))
 
-    if curr_energy is None:
-        return
-        raise Exception('Could not read current energy')
-
-    curr_energy = curr_energy['mono1_energy']['value']
-    print('Curr Energy: {}'.format(curr_energy))
-    if curr_energy >= 12000:
-        print('>12000')
-        yield from bps.mv(mono1.energy, curr_energy + 100)
-        yield from bps.sleep(1)
-        print('1')
-        yield from bps.mv(mono1.energy, curr_energy)
 
 
 def execute_trajectory(name, ignore_shutter=True, **metadata):
