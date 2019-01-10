@@ -101,6 +101,7 @@ pid
 security
 history.sqlite
 profile_default
+static
 
 #swap file
 *.swp

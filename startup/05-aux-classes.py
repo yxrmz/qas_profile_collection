@@ -1,5 +1,6 @@
 print(__file__)
-from bluesky.callbacks import LivePlot
+from bluesky.callbacks.mpl_plotting import LivePlot
+
 
 class NormPlot(LivePlot):
     def __init__(self, num_name, den_name, result_name, *args, **kwargs):
