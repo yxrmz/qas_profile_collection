@@ -76,17 +76,17 @@ profile_startup_dir = get_ipython().profile_dir.startup_dir
 # func = functools.partial(ts_msg_hook, file=file)
 # RE.msg_hook = func
 
-import logging
-logging.getLogger('caproto.ch').setLevel('DEBUG')
-import caproto
-caproto_log = os.path.join(profile_startup_dir, f'{beamline_id}-caproto-{datetime.now().strftime("%Y%m%d%H%M%S")}.log')
-caproto.set_handler(file=caproto_log)
+# import logging
+# logging.getLogger('caproto.ch').setLevel('DEBUG')
+# import caproto
+# caproto_log = os.path.join(profile_startup_dir, f'{beamline_id}-caproto-{datetime.now().strftime("%Y%m%d%H%M%S")}.log')
+# caproto.set_handler(file=caproto_log)
 
-logging.getLogger('bluesky').setLevel('DEBUG')
-import bluesky
-bluesky_log = os.path.join(profile_startup_dir, f'{beamline_id}-bluesky-{datetime.now().strftime("%Y%m%d%H%M%S")}.log')
-bluesky.set_handler(file=bluesky_log)
+# logging.getLogger('bluesky').setLevel('DEBUG')
+# import bluesky
+# bluesky_log = os.path.join(profile_startup_dir, f'{beamline_id}-bluesky-{datetime.now().strftime("%Y%m%d%H%M%S")}.log')
+# bluesky.set_handler(file=bluesky_log)
 
-print(f'\nThe caproto logs will be written to {caproto_log}')
-print(f'The bluesky logs will be written to {bluesky_log}\n')
+# print(f'\nThe caproto logs will be written to {caproto_log}')
+# print(f'The bluesky logs will be written to {bluesky_log}\n')
 
