@@ -589,7 +589,7 @@ class DualAdcFS(TriggerAdc):
 
                 filename = 'an_' + str(uuid.uuid4())[:6]
                 self._full_path = os.path.join(DIRECTORY, filename)  # stash for future reference
-                print("writing to {}".format(self._full_path))
+                print(">>>>>>>>>>>>>>> writing to {}".format(self._full_path))
 
                 self.filepath.put(self._full_path)
                 self.resource_uid = self._reg.register_resource(
