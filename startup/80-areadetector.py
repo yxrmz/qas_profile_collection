@@ -164,11 +164,11 @@ pe1c = PerkinElmerContinuous(pe1_pv_prefix, name='pe1',
 # Update read/write paths for all the detectors in once:
 for det in [pe1c]:
 
-    # det.tiff.read_path_template = f'/nsls2/xf07bm/data/{det.name}_data/%Y/%m/%d/'
-    det.tiff.read_path_template = f'C:/Users/xf07bm/DiffractionData/PE1_DATA/%Y/%m/%d/\\' # for WINDOWS local directory 
+    det.tiff.read_path_template = f'/nsls2/xf07bm/data/{det.name}_data/%Y/%m/%d/' # for GPFS
+    # det.tiff.read_path_template = f'C:/Users/xf07bm/DiffractionData/PE1_DATA/%Y/%m/%d/\\' # for WINDOWS local directory 
     # det.tiff.write_path_template = f'G:\\{det.name}_data\\%Y\\%m\\%d\\'
-    # det.tiff.write_path_template = f'Z:\\data\\{det.name}_data\\%Y\\%m\\%d\\'
-    det.tiff.write_path_template = f'C:/Users/xf07bm/DiffractionData/PE1_DATA/%Y/%m/%d/\\'  # for WINDOWS local directory
+    det.tiff.write_path_template = f'Z:\\data\\{det.name}_data\\%Y\\%m\\%d\\' # for GPFS
+    # det.tiff.write_path_template = f'C:/Users/xf07bm/DiffractionData/PE1_DATA/%Y/%m/%d/\\'  # for WINDOWS local directory
 
     det.cam.bin_x.kind = 'config'
     det.cam.bin_y.kind = 'config'

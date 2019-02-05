@@ -38,7 +38,57 @@ shutter_ph = EPS_Shutter('XF:07BMA-PPS{Sh:A}', name = 'PH Shutter')
 shutter_ph.shutter_type = 'PH'
 
 
+class Shutter(Device):
 
+    def __init__(self, name):
+        self.name = name
+        if pb2.connected:
+            self.output = pb2.do0.default_pol
+            if self.output.value == 1:
+                self.state = 'closed'
+            elif self.output.value == 0:
+                self.state = 'open'
+            self.function_call = None
+            self.output.subscribe(self.update_state)
+        else:
+            self.state = 'unknown'
+
+    def subscribe(self, function):
+        self.function_call = function
+
+    def unsubscribe(self):
+        self.function_call = None
+        
+    def update_state(self, pvname=None, value=None, char_value=None, **kwargs):
+        if value == 1:
+            self.state = 'closed'
+        elif value == 0:
+            self.state = 'open'
+        if self.function_call is not None:
+            self.function_call(pvname=pvname, value=value, char_value=char_value, **kwargs)
+        
+    def open(self):
+        print('Opening {}'.format(self.name))
+        self.output.put(0)
+        self.state = 'open'
+        
+    def close(self):
+        print('Closing {}'.format(self.name))
+        self.output.put(1)
+        self.state = 'closed'
+
+    def open_plan(self):
+        print('Opening {}'.format(self.name))
+        yield from bps.abs_set(self.output, 0, wait=True)
+        self.state = 'open'
+
+    def close_plan(self):
+        print('Closing {}'.format(self.name))
+        yield from bps.abs_set(self.output, 1, wait=True)
+        self.state = 'closed'
+
+fast_shutter = Shutter(name = 'Fast Shutter')
+fast_shutter.shutter_type = 'Fast'
 
 '''
 Here is the amplifier definitionir_
@@ -140,5 +190,5 @@ self.gain_1 = EpicsSignal(self.prefix + gain_1, name=self.name + '_gain_1')
         else:
             return ['0', 0]
 
-'''
 
+'''
