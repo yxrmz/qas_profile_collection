@@ -1,3 +1,5 @@
+print(__file__)
+
 from bluesky.plan_stubs import mv, abs_set
 
 

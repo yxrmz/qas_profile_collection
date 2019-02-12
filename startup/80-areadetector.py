@@ -1,9 +1,11 @@
+print(__file__)
+
 import time as ttime
 import os
 from copy import deepcopy
 import ophyd
-from ophyd.areadetector import (PerkinElmerDetector, ImagePlugin,
-                                TIFFPlugin, StatsPlugin, HDF5Plugin,
+from ophyd.areadetector import (PerkinElmerDetector, PerkinElmerDetectorCam,
+                                ImagePlugin, TIFFPlugin, StatsPlugin, HDF5Plugin,
                                 ProcessPlugin, ROIPlugin, TransformPlugin)
 from ophyd.device import BlueskyInterface
 from ophyd.areadetector.trigger_mixins import SingleTrigger, MultiTrigger
@@ -15,6 +17,9 @@ from ophyd import Signal, EpicsSignal, EpicsSignalRO # Tim test
 from ophyd import Component as C
 from ophyd import StatusBase
 from ophyd.status import DeviceStatus
+
+from distutils.version import LooseVersion
+
 
 # monkey patch for trailing slash problem
 def _ensure_trailing_slash(path):
@@ -37,16 +42,22 @@ ophyd.areadetector.filestore_mixins._ensure_trailing_slash = _ensure_trailing_sl
 # from shutter import sh1
 
 
-class XPDTIFFPlugin(TIFFPlugin, FileStoreTIFFSquashing,
+class QASTIFFPlugin(TIFFPlugin, FileStoreTIFFSquashing,
                     FileStoreIterativeWrite):
     pass
 
-class XPDPerkinElmer(PerkinElmerDetector):
+
+class PEDetCamWithVersions(PerkinElmerDetectorCam):
+    adcore_version = C(EpicsSignalRO, 'ADCoreVersion_RBV')
+    driver_version = C(EpicsSignalRO, 'DriverVersion_RBV')
+
+
+class QASPerkinElmer(PerkinElmerDetector):
     image = C(ImagePlugin, 'image1:')
-    _default_configuration_attrs = (
-        PerkinElmerDetector._default_configuration_attrs +
+    cam = C(PEDetCamWithVersions, 'cam1:')
+    _default_configuration_attrs = (PerkinElmerDetector._default_configuration_attrs +
         ('images_per_set', 'number_of_sets', 'pixel_size'))
-    tiff = C(XPDTIFFPlugin, 'TIFF1:',
+    tiff = C(QASTIFFPlugin, 'TIFF1:',
              write_path_template='/a/b/c/',
              read_path_template='/a/b/c',
              cam_name='cam',  # used to configure "tiff squashing"
@@ -54,7 +65,7 @@ class XPDPerkinElmer(PerkinElmerDetector):
              read_attrs=[],
              root='/nsls2/xf07bm/')
 
-    # hdf5 = C(XPDHDF5Plugin, 'HDF1:',
+    # hdf5 = C(QASHDF5Plugin, 'HDF1:',
     #          write_path_template='G:/pe1_data/%Y/%m/%d/',
     #          read_path_template='/direct/XF28ID2/pe1_data/%Y/%m/%d/',
     #          root='/direct/XF28ID2/')
@@ -151,27 +162,64 @@ class ContinuousAcquisitionTrigger(BlueskyInterface):
             self._status = None
             self._save_started = False
 
-class PerkinElmerContinuous(ContinuousAcquisitionTrigger, XPDPerkinElmer):
+
+class PerkinElmerContinuous(ContinuousAcquisitionTrigger, QASPerkinElmer):
     pass
+
 
 # PE1c detector configurations:
 pe1_pv_prefix = 'XF:07BM-ES{Det:PE1}'
+pe1 = QASPerkinElmer(pe1_pv_prefix, name='pe1',
+                     read_attrs=['tiff', 'stats1.total'])
 pe1c = PerkinElmerContinuous(pe1_pv_prefix, name='pe1',
                              read_attrs=['tiff', 'stats1.total'],
                              plugin_name='tiff')
 
 
-# Update read/write paths for all the detectors in once:
-for det in [pe1c]:
+# Check the version of ADCore and raise if it's less than 3.3
+# pe1_adcore_version = EpicsSignalRO('XF:07BM-ES{Det:PE1}cam1:ADCoreVersion_RBV', name='pe1_adcore_version')
+# pe1_driver_version = EpicsSignalRO('XF:07BM-ES{Det:PE1}cam1:DriverVersion_RBV', name='pe1_driver_version')
 
-    det.tiff.read_path_template = f'/nsls2/xf07bm/data/{det.name}_data/%Y/%m/%d/' # for GPFS
-    # det.tiff.read_path_template = f'C:/Users/xf07bm/DiffractionData/PE1_DATA/%Y/%m/%d/\\' # for WINDOWS local directory 
+class ADCoreVersionCheckException(Exception):
+    ...
+
+def check_adcore_version(det, min_adcore_version='3.3'):
+    """Check the version of the specified detector is not less than the minimally-required version.
+
+    Parameters
+    ----------
+    det : ophydobj
+        A detector Ophyd object.
+    min_adcore_version : str (optional)
+        The minimally-required version.
+
+    Raises
+    ------
+        ADCoreVersionCheckException
+    """
+    adcore_version = LooseVersion(det.cam.adcore_version.get())
+    if adcore_version < min_adcore_version:
+        raise ADCoreVersionCheckException(f'The ADCore version of your "{det.name}" ({det.cam.manufacturer.get()}) '
+                                          f'detector is "{adcore_version}", which is less than the minimally required '
+                                          f'ADCore version "{min_adcore_version}".\n'
+                                          f'Make sure you are running the correct IOC script.')
+
+
+# Update read/write paths for all the detectors in once:
+for det in [pe1, pe1c]:
+    check_adcore_version(det, min_adcore_version='3.3')
+    # Read:
+    det.tiff.read_path_template = f'/nsls2/xf07bm/data/{det.name}_data/%Y/%m/%d/'
+    # det.tiff.read_path_template = f'C:/Users/xf07bm/DiffractionData/PE_DATA1/%Y/%m/%d/\\' # for WINDOWS local directory
+
+    # Write
     # det.tiff.write_path_template = f'G:\\{det.name}_data\\%Y\\%m\\%d\\'
-    det.tiff.write_path_template = f'Z:\\data\\{det.name}_data\\%Y\\%m\\%d\\' # for GPFS
-    # det.tiff.write_path_template = f'C:/Users/xf07bm/DiffractionData/PE1_DATA/%Y/%m/%d/\\'  # for WINDOWS local directory
+    det.tiff.write_path_template = f'Z:\\data\\{det.name}_data\\%Y\\%m\\%d\\'
+    # det.tiff.write_path_template = f'C:/Users/xf07bm/DiffractionData/PE_DATA1/%Y/%m/%d/\\'  # for WINDOWS local directory
 
     det.cam.bin_x.kind = 'config'
     det.cam.bin_y.kind = 'config'
+    det.tiff.write_file  # NOTE: needed to make a channel in caproto control layer
     
 # some defaults, as an example of how to use this
 # pe1.configure(dict(images_per_set=6, number_of_sets=10))

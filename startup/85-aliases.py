@@ -1,3 +1,5 @@
+print(__file__)
+
 #these aliases are used to connect pizza boxes and amplifiers
 
 

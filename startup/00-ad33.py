@@ -1,3 +1,5 @@
+print(__file__)
+
 """Classes to help with supporting AreaDetector 33 (and the
 wait_for_plugins functionality)
 
