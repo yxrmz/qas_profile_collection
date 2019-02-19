@@ -1,6 +1,5 @@
 import copy
 from event_model import DocumentRouter
-from bluesky
 
 class DarkSubtractionCallback(DocumentRouter):
     def __init__(self,
