@@ -76,14 +76,16 @@ def execute_trajectory(name, ignore_shutter=True, **metadata):
         ex:
             execute_trajectory(**md)
     '''
-    flyers = [pb1.enc1, pba1.adc3, pba1.adc4, pba1.adc5, pba1.adc6, pba1.adc7, pba1.adc8]
+    flyers = [pba1.adc3, pba1.adc4, pba1.adc5, pba1.adc6, pba1.adc7, pba1.adc8, pb1.enc1]
     #flyers = [pb1.enc1, pba1.adc3, pba1.adc4]#, pba1.adc5, pba1.adc6, pba1.adc7, pba1.adc8]
     def inner():
+        interp_fn = f"{ROOT_PATH}/{USER_FILEPATH}/{RE.md['year']}/{RE.md['cycle']}/{RE.md['PROPOSAL']}/{name}.raw"
         curr_traj = getattr(mono1, 'traj{:.0f}'.format(mono1.lut_number_rbv.value))
         md = {'plan_args': {},
               'plan_name': 'execute_trajectory',
-              'experiment': 'transmission',
+              'experiment': 'fly_energy_scan',
               'name': name,
+              'interp_filename': interp_fn,
               'angle_offset': str(mono1.angle_offset.value),
               'trajectory_name': mono1.trajectory_name.value,
               'element': curr_traj.elem.value,
