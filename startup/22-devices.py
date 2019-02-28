@@ -1,10 +1,7 @@
 print(__file__)
 
 from bluesky.plan_stubs import mv, abs_set
-
-
-
-print(__file__)
+from nslsii.devices import TwoButtonShutter
 
 
 class EPS_Shutter(Device):
@@ -34,9 +31,15 @@ class EPS_Shutter(Device):
         print('Closing {}'.format(self.name))
         self.cls.put(1)
 
-shutter_fe = EPS_Shutter('XF:07BM-PPS{Sh:FE}', name = 'FE Shutter')
+
+class TwoButtonShutterQAS(TwoButtonShutter):
+    def stop(self, success=False):
+        pass
+
+
+shutter_fe = TwoButtonShutterQAS('XF:07BM-PPS{Sh:FE}', name = 'FE Shutter')
 shutter_fe.shutter_type = 'FE'
-shutter_ph = EPS_Shutter('XF:07BMA-PPS{Sh:A}', name = 'PH Shutter')
+shutter_ph = TwoButtonShutterQAS('XF:07BMA-PPS{Sh:A}', name = 'PH Shutter')
 shutter_ph.shutter_type = 'PH'
 
 

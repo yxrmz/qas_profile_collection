@@ -6,8 +6,8 @@ from bluesky.suspenders import (SuspendBoolHigh,
                                 SuspendInBand, SuspendOutBand)
 
 
-fe_shut_suspender = SuspendBoolHigh(shutter_fe.state, sleep=10*60)
-ph_shut_suspender = SuspendBoolHigh(shutter_ph.state, sleep=10*60)
+fe_shut_suspender = SuspendBoolHigh(EpicsSignalRO(shutter_fe.status.pvname), sleep=10*60)
+ph_shut_suspender = SuspendBoolHigh(EpicsSignalRO(shutter_ph.status.pvname), sleep=10*60)
 
 
 # suspender for beamline current is mA
