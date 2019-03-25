@@ -17,7 +17,7 @@ from ophyd import Signal, EpicsSignal, EpicsSignalRO # Tim test
 from ophyd import Component as C
 from ophyd import StatusBase
 from ophyd.status import DeviceStatus
-
+from nslsii.ad33 import StatsPluginV33
 from distutils.version import LooseVersion
 
 
