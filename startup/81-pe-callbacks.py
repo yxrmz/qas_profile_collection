@@ -127,7 +127,8 @@ def dark_plan(cam, dark_frame_cache, obsolete_secs, shutter):
     if (dark_frame_cache.just_started or  # first run after instantiation
         (dark_frame_cache.last_collected is not None and
          time.monotonic() - dark_frame_cache.last_collected > obsolete_secs)):
-        init_shutter_state = shutter.status.get()
+        tmp = yield from bps.read(shutter.status)
+        init_shutter_state = tmp[shutter.status.name]['value'] if tmp is not None else None
         yield from bps.mv(shutter, 'Close')
         yield from bps.trigger(cam, group='cam')
         yield from bps.wait('cam')
@@ -167,7 +168,8 @@ def dark_frame_aware_plan(cam, dark_frame_cache, shutter=shutter_fs,
     @bpp.stage_decorator([cam])
     @bpp.run_decorator(md=md)
     def inner_dark_frame_aware_plan():
-        init_shutter_state = shutter.status.get()
+        tmp = yield from bps.read(shutter.status)
+        init_shutter_state = tmp[shutter.status.name]['value'] if tmp is not None else None
         yield from bps.mv(shutter, 'Open')
 
         for _ in range(num_images):
@@ -181,8 +183,7 @@ def dark_frame_aware_plan(cam, dark_frame_cache, shutter=shutter_fs,
 
 def subtract_dark(light_img, dark_img):
     res = np.asarray(light_img, dtype=int) - np.asarray(dark_img, dtype=int)
-    res[res < 0] = 0
-    return res
+    return np.clip(res, 0, None)
 
 
 def get_subtracted_image(scan_id=-1, img_field='pe1_image'):

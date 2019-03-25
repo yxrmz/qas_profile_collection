@@ -71,8 +71,8 @@ import caproto
 logging.getLogger('caproto').setLevel('ERROR')
 logging.getLogger('caproto.ch').setLevel('ERROR')
 
-caproto_log = os.path.join(profile_startup_dir, f'{beamline_id}-caproto-{datetime.now().strftime("%Y%m%d%H%M%S")}.log')
-caproto.set_handler(file=caproto_log)
+# caproto_log = os.path.join(profile_startup_dir, f'{beamline_id}-caproto-{datetime.now().strftime("%Y%m%d%H%M%S")}.log')
+# caproto.set_handler(file=caproto_log)
 
 # logging.getLogger('bluesky').setLevel('NOTSET')
 # import bluesky
