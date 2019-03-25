@@ -14,33 +14,6 @@ from bluesky.utils import ts_msg_hook
 RE.msg_hook = ts_msg_hook  # noqa
 
 
-class QASFastShutter(Device):
-    IO_status = Cpt(EpicsSignal, '', kind='omitted')
-    status = Cpt(EpicsSignal, '', kind='omitted')
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.setmap = {'Open': 1, 'Close': 0}
-        self.readmap = {1: 'Open', 0: 'Close'}
-        self.status.get = self.get
-        self.status.set = self.set
-
-    def set(self, val):
-        return self.IO_status.set(self.setmap[val])
-
-    def get(self):
-        return self.readmap[self.IO_status.get()]
-
-    def read(self):
-        d = super().read()
-        d[self.name] = {'value': self.get(), 'timestamp': time.time()}
-        return d
-
-
-shutter_fs = QASFastShutter('XF:07BMB-CT{Enc02-DO:0}Dflt-Sel',
-                            name='shutter_fs')
-
-
 class DarkSubtractionCallback(DocumentRouter):
     def __init__(self,
                  image_key='pe1_image',

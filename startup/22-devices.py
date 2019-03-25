@@ -37,66 +37,39 @@ class TwoButtonShutterQAS(TwoButtonShutter):
         pass
 
 
+class QASFastShutter(Device):
+    IO_status = Cpt(EpicsSignal, '', kind='omitted')
+    status = Cpt(EpicsSignal, '', kind='omitted')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.setmap = {'Open': 1, 'Close': 0}
+        self.readmap = {1: 'Open', 0: 'Close'}
+        self.status.get = self.get
+        self.status.set = self.set
+
+    def set(self, val):
+        return self.IO_status.set(self.setmap[val])
+
+    def get(self):
+        return self.readmap[self.IO_status.get()]
+
+    def read(self):
+        d = super().read()
+        d[self.name] = {'value': self.get(), 'timestamp': time.time()}
+        return d
+
+
 shutter_fe = TwoButtonShutterQAS('XF:07BM-PPS{Sh:FE}', name = 'FE Shutter')
 shutter_fe.shutter_type = 'FE'
 shutter_ph = TwoButtonShutterQAS('XF:07BMA-PPS{Sh:A}', name = 'PH Shutter')
 shutter_ph.shutter_type = 'PH'
+shutter_fs = QASFastShutter('XF:07BMB-CT{Enc02-DO:0}Dflt-Sel',
+                            name='Fast Shutter')
 
-
-class Shutter(Device):
-
-    def __init__(self, name):
-        self.name = name
-        if pb2.connected:
-            self.output = pb2.do0.default_pol
-            if self.output.value == 1:
-                self.state = 'closed'
-            elif self.output.value == 0:
-                self.state = 'open'
-            self.function_call = None
-            self.output.subscribe(self.update_state)
-        else:
-            self.state = 'unknown'
-
-    def subscribe(self, function):
-        self.function_call = function
-
-    def unsubscribe(self):
-        self.function_call = None
-        
-    def update_state(self, pvname=None, value=None, char_value=None, **kwargs):
-        if value == 1:
-            self.state = 'closed'
-        elif value == 0:
-            self.state = 'open'
-        if self.function_call is not None:
-            self.function_call(pvname=pvname, value=value, char_value=char_value, **kwargs)
-        
-    def open(self):
-        print('Opening {}'.format(self.name))
-        self.output.put(0)
-        self.state = 'open'
-        
-    def close(self):
-        print('Closing {}'.format(self.name))
-        self.output.put(1)
-        self.state = 'closed'
-
-    def open_plan(self):
-        print('Opening {}'.format(self.name))
-        yield from bps.abs_set(self.output, 0, wait=True)
-        self.state = 'open'
-
-    def close_plan(self):
-        print('Closing {}'.format(self.name))
-        yield from bps.abs_set(self.output, 1, wait=True)
-        self.state = 'closed'
-
-fast_shutter = Shutter(name = 'Fast Shutter')
-fast_shutter.shutter_type = 'Fast'
 
 '''
-Here is the amplifier definitionir_
+Here is the amplifier definition
 
 '''
 
