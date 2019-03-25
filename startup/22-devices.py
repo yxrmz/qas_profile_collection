@@ -66,6 +66,7 @@ shutter_ph = TwoButtonShutterQAS('XF:07BMA-PPS{Sh:A}', name = 'PH Shutter')
 shutter_ph.shutter_type = 'PH'
 shutter_fs = QASFastShutter('XF:07BMB-CT{Enc02-DO:0}Dflt-Sel',
                             name='Fast Shutter')
+shutter_fs.shutter_type = 'FS'
 
 
 '''
