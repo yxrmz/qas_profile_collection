@@ -169,3 +169,9 @@ class Table(Device):
     vert_down_out = Cpt(EpicsMotor, '-Ax:YDO}Mtr')
 
 exp_table = Table('XF:07BMB-OP{Asm:1', name='exp_table')
+
+class BeamStop(Device):
+    horizontal = Cpt(EpicsMotor, '-Ax:X}Mtr')
+    vertical   = Cpt(EpicsMotor, '-Ax:Y}Mtr')
+
+beamstop = BeamStop('XF:07BMB-OP{Stg:PE', name='beamstop')
