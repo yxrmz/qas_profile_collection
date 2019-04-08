@@ -1,8 +1,7 @@
-from bluesky.plan_stubs import mv, abs_set
-
-
-
 print(__file__)
+
+from bluesky.plan_stubs import mv, abs_set
+from nslsii.devices import TwoButtonShutter
 
 
 class EPS_Shutter(Device):
@@ -32,16 +31,46 @@ class EPS_Shutter(Device):
         print('Closing {}'.format(self.name))
         self.cls.put(1)
 
-shutter_fe = EPS_Shutter('XF:07BM-PPS{Sh:FE}', name = 'FE Shutter')
+
+class TwoButtonShutterQAS(TwoButtonShutter):
+    def stop(self, success=False):
+        pass
+
+
+class QASFastShutter(Device):
+    IO_status = Cpt(EpicsSignal, '', kind='omitted')
+    status = Cpt(EpicsSignal, '', kind='omitted')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.setmap = {'Open': 1, 'Close': 0}
+        self.readmap = {1: 'Open', 0: 'Close'}
+        self.status.get = self.get
+        self.status.set = self.set
+
+    def set(self, val):
+        return self.IO_status.set(self.setmap[val])
+
+    def get(self):
+        return self.readmap[self.IO_status.get()]
+
+    def read(self):
+        d = super().read()
+        d[self.name] = {'value': self.get(), 'timestamp': time.time()}
+        return d
+
+
+shutter_fe = TwoButtonShutterQAS('XF:07BM-PPS{Sh:FE}', name = 'FE Shutter')
 shutter_fe.shutter_type = 'FE'
-shutter_ph = EPS_Shutter('XF:07BMA-PPS{Sh:A}', name = 'PH Shutter')
+shutter_ph = TwoButtonShutterQAS('XF:07BMA-PPS{Sh:A}', name = 'PH Shutter')
 shutter_ph.shutter_type = 'PH'
-
-
+shutter_fs = QASFastShutter('XF:07BMB-CT{Enc02-DO:0}Dflt-Sel',
+                            name='Fast Shutter')
+shutter_fs.shutter_type = 'FS'
 
 
 '''
-Here is the amplifier definitionir_
+Here is the amplifier definition
 
 '''
 
@@ -140,5 +169,5 @@ self.gain_1 = EpicsSignal(self.prefix + gain_1, name=self.name + '_gain_1')
         else:
             return ['0', 0]
 
-'''
 
+'''

@@ -1,3 +1,5 @@
+print(__file__)
+
 from databroker.assets.handlers_base import HandlerBase
 import pandas as pd
 

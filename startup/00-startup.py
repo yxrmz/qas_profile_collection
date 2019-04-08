@@ -46,27 +46,14 @@ from pyOlog.ophyd_tools import *
 
 # Uncomment the following lines to turn on verbose messages for
 # debugging.
-# import logging
+import logging
 # ophyd.logger.setLevel(logging.DEBUG)
 # logging.basicConfig(level=logging.DEBUG)
 
-# Enabling (2018C3) logging of the message hook into a log file.
 import os
 import sys
 from datetime import datetime
 import functools
-
-# TODO: to be removed and imported from bluesky once
-# https://github.com/NSLS-II/bluesky/pull/1117 is reviewed, merged, released,
-# and pushed to the beamline.
-def ts_msg_hook(msg, file=sys.stdout):
-    t = '{:%H:%M:%S.%f}'.format(datetime.now())
-    msg_fmt = '{: <17s} -> {!s: <15s} args: {}, kwargs: {}'.format(
-        msg.command,
-        msg.obj.name if hasattr(msg.obj, 'name') else msg.obj,
-        msg.args,
-        msg.kwargs)
-    print('{} {}'.format(t, msg_fmt), file=file, flush=True)
 
 # The logs will be saved to the profile dir.
 profile_startup_dir = get_ipython().profile_dir.startup_dir
@@ -74,18 +61,18 @@ profile_startup_dir = get_ipython().profile_dir.startup_dir
 # startup of bsui, so we don't have collisions of the names.
 # log_filename = f'{beamline_id}-bsui-{datetime.now().strftime("%Y%m%d%H%M%S")}.log'
 # log_filename = os.path.join(profile_startup_dir, log_filename)
-
 # print(f'\n!!! The logs will be written to {log_filename} !!!\n')
 # file = open(log_filename, 'a')
-
 # func = functools.partial(ts_msg_hook, file=file)
 # RE.msg_hook = func
 
-import logging
-logging.getLogger('caproto.ch').setLevel('DEBUG')
 import caproto
-caproto_log = os.path.join(profile_startup_dir, f'{beamline_id}-caproto-{datetime.now().strftime("%Y%m%d%H%M%S")}.log')
-caproto.set_handler(file=caproto_log)
+
+logging.getLogger('caproto').setLevel('ERROR')
+logging.getLogger('caproto.ch').setLevel('ERROR')
+
+# caproto_log = os.path.join(profile_startup_dir, f'{beamline_id}-caproto-{datetime.now().strftime("%Y%m%d%H%M%S")}.log')
+# caproto.set_handler(file=caproto_log)
 
 # logging.getLogger('bluesky').setLevel('NOTSET')
 # import bluesky
@@ -94,8 +81,6 @@ caproto.set_handler(file=caproto_log)
 
 # print(f'\nThe caproto logs will be written to {caproto_log}')
 # print(f'The bluesky logs will be written to {bluesky_log}\n')
-
-
 
 ROOT_PATH = '/nsls2/xf07bm'
 RAW_FILEPATH = 'data'

@@ -37,12 +37,16 @@ motors_dictionary = {jj_slits.top.name: {'name': jj_slits.top.name, 'description
                      sample_stage1.y.name: {'name': sample_stage1.y.name, 'description':sample_stage1.y.name, 'object':sample_stage1.y},
                      sample_stage1.z.name: {'name': sample_stage1.z.name, 'description':sample_stage1.z.name, 'object':sample_stage1.z},
                      sample_stage1.rotary.name: {'name': sample_stage1.rotary.name, 'description':sample_stage1.rotary.name, 'object':sample_stage1.rotary},
-                     ip_y_stage.name: {'name': ip_y_stage.name, 'description': ip_y_stage.name, 'object':ip_y_stage},
+                     ip_y_stage.name: {'name': ip_y_stage.name, 'description': ip_y_stage.name, 'object': ip_y_stage},
+                     beamstop.horizontal.name: {'name': beamstop.horizontal.name, 'description': beamstop.horizontal.name, 'object': beamstop.horizontal},
+                     beamstop.vertical.name: {'name': beamstop.vertical.name, 'description': beamstop.vertical.name, 'object': beamstop.vertical}, 
                     }
 
-shutters_dictionary = collections.OrderedDict([(shutter_fe.name, shutter_fe),
-                                         (shutter_ph.name, shutter_ph),])
-                                         #(shutter.name, shutter)])
+shutters_dictionary = {
+                       shutter_ph.name: shutter_ph,
+                       shutter_fe.name: shutter_fe,
+                       shutter_fs.name: shutter_fs,
+                       }
 
 sample_stages = [{'x': sample_stage1.x.name, 'y': sample_stage1.y.name}]
 

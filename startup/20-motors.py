@@ -124,7 +124,7 @@ mono1.energy.kind = 'hinted'
 mono1.bragg.kind = 'hinted'
 #mono1.pulses_per_deg = 23600*400/360
 # set the angle offset to corret for the energy offset
-mono1.angle_offset.set(-0.14881166238)
+# mono1.angle_offset.set(-0.14881166238)
 
 
 class Mirror(Device):
