@@ -43,8 +43,8 @@ motors_dictionary = {jj_slits.top.name: {'name': jj_slits.top.name, 'description
                     }
 
 shutters_dictionary = {
-                       shutter_ph.name: shutter_ph,
                        shutter_fe.name: shutter_fe,
+                       shutter_ph.name: shutter_ph,
                        shutter_fs.name: shutter_fs,
                        }
 
