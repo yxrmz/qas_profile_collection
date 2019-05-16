@@ -200,5 +200,4 @@ def plot_image(data, **kwargs):
     p = functools.partial(plt.imshow, cmap='gray', clim=(0, 500))  # noqa
     p(data, **kwargs)
 
-
 # RE(dark_frame_aware_plan(cam, dc))
