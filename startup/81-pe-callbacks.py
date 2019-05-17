@@ -199,14 +199,11 @@ def get_subtracted_image(scan_id=-1, img_field='pe1_image'):
 def plot_image(data, **kwargs):
     p = functools.partial(plt.imshow, cmap='gray', clim=(0, 500))  # noqa
     p(data, **kwargs)
-<<<<<<< HEAD
     from tifffile import TiffWriter
     
     ##File saving needs to be done properly via suite-case
     with open('/nsls2/xf07bm/data/pe1_data/2019/05/16/test.tiff', 'xb') as f:
         tw = TiffWriter(f)
         tw.save(data)
-=======
->>>>>>> refs/remotes/origin/master
 
 # RE(dark_frame_aware_plan(cam, dc))
