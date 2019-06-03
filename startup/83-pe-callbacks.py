@@ -115,7 +115,7 @@ def dark_plan(detector, dark_frame_cache, max_age, shutter):
         (dark_frame_cache.last_collected is not None and
          time.monotonic() - dark_frame_cache.last_collected > max_age)):
         init_shutter_state = shutter.get()
-        yield from bps.mv(shutter, 0)
+        yield from bps.mv(shutter, 'Close')
         yield from bps.trigger(detector, group='cam')
         yield from bps.wait('cam')
         yield from bps.mv(shutter, init_shutter_state)
@@ -156,7 +156,7 @@ class TakeDarkFrames:
         return (yield from bluesky.preprocessors.plan_mutator(plan, insert_take_dark))
 
 
-take_dark_frames = TakeDarkFrames(pe1c, dark_frame_cache, 10, det.shutter_open)
+take_dark_frames = TakeDarkFrames(pe1c, dark_frame_cache, 10, shutter_fs)
 insert_reference_to_dark_frame = InsertReferenceToDarkFrame(dark_frame_cache)
 RE.preprocessors.append(insert_reference_to_dark_frame)
 RE.preprocessors.append(take_dark_frames)
@@ -192,9 +192,9 @@ class DarkSubtraction(event_model.DocumentRouter):
         return doc
 
     def event(self, doc):
-        FIELD = 'det_img'  # TODO Do not hard-code this.
+        FIELD = 'pe1_image'  # TODO Do not hard-code this.
         if doc['descriptor'] == self.dark_descriptor:
-            self.dark_frame = doc['data']['det_img']
+            self.dark_frame = doc['data']['pe1_image']
         if doc['descriptor'] == self.primary_descriptor:
             doc['data'][FIELD] = self.subtract(doc['data'][FIELD], self.dark_frame)
         return doc
@@ -206,7 +206,7 @@ class DarkSubtraction(event_model.DocumentRouter):
 def factory(name, start_doc):
 
     # Fill externally-stored data into Documents.
-    filler = Filler({'npy': handler})
+    filler = Filler(db.reg.handler_reg)
     filler(name, start_doc)  # modifies doc in place
     # Do dark subtraction "in place".
     dark_subtraction = DarkSubtraction()
