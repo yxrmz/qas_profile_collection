@@ -202,7 +202,7 @@ def plot_image(data, **kwargs):
     from tifffile import TiffWriter
     
     ##File saving needs to be done properly via suite-case
-    with open('/nsls2/xf07bm/data/pe1_data/2019/05/16/test.tiff', 'xb') as f:
+    with open('/nsls2/xf07bm/data/pe1_data/2019/05/23/Diffraction_Image.tiff', 'xb') as f:
         tw = TiffWriter(f)
         tw.save(data)
 
