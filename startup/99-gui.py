@@ -46,18 +46,21 @@ sample_stages = [{'x': sample_stage1.x.name, 'y': sample_stage1.y.name}]
 
 print(mono1)
 xlive_gui = isstools.xlive.XliveGui(plan_funcs=[tscan, get_offsets], 
-                                 prep_traj_plan=prep_traj_plan, 
-                                 RE=RE,
-                                 db=db, 
-                                 accelerator=nsls_ii,
-                                 mono=mono1,#None,
-                                 shutters_dict=shutters_dictionary,
-                                 det_dict=detector_dictionary,
-                                 motors_dict=motors_dictionary,
-                                 general_scan_func=general_scan,
-                                 sample_stages = sample_stages,
-                                 window_title="XLive @QAS/7-BM NSLS-II",
-                                 )
+                                    prep_traj_plan=prep_traj_plan, 
+                                    RE=RE,
+                                    db=db, 
+                                    accelerator=nsls_ii,
+                                    mono=mono1,#None,
+                                    shutters_dict=shutters_dictionary,
+                                    det_dict=detector_dictionary,
+                                    aux_plan_funcs ={
+                                        'set_reference_foil': set_reference_foil,
+                                    },
+                                    motors_dict=motors_dictionary,
+                                    general_scan_func=general_scan,
+                                    sample_stages = sample_stages,
+                                    window_title="XLive @QAS/7-BM NSLS-II",
+                                   )
 
 sys.stdout = xlive_gui.emitstream_out
 
