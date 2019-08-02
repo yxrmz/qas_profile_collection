@@ -13,7 +13,7 @@ from ophyd.areadetector.filestore_mixins import (FileStoreIterativeWrite,
                                                  FileStoreHDF5IterativeWrite,
                                                  FileStoreTIFFSquashing,
                                                  FileStoreTIFF)
-from ophyd import Signal, EpicsSignal, EpicsSignalRO # Tim test
+from ophyd import Signal, EpicsSignal, EpicsSignalRO, EpicsSignalWithRBV # Tim test
 from ophyd import Component as C
 from ophyd import StatusBase
 from ophyd.status import DeviceStatus
@@ -92,11 +92,81 @@ class QASPerkinElmer(PerkinElmerDetector):
     roi3 = C(ROIPlugin, 'ROI3:')
     roi4 = C(ROIPlugin, 'ROI4:')
 
+
+
+
+    num_dark_images = C(EpicsSignal, 'cam1:PENumOffsetFrames')
+    acquire_dark  = C(EpicsSignal,'cam1:PEAcquireOffset')
+    dark_aquisition_complete = C(EpicsSignal, 'cam1:PEAcquireOffset')
+
+    acquire_light = C(EpicsSignal, 'cam1:Acquire')
+
+
+    def set(self,command):
+
+        if command == 'acquire_dark':
+
+            # This function will receive Events from the IOC and check whether
+            # we are seeing the acquire_dark go low after having been high.
+            def callback(value, old_value, **kwargs):
+                if old_value == 1 and value == 0:
+                    if self._acquiring_dark or self._acquiring_dark is None:
+                        self._acquiring_dark = False
+                        return True
+                    else:
+                        self._acquiring_dark = True
+                return False
+
+            # Creating this status object subscribes `callback` Events from the
+            # IOC. Starting at this line, we are now listening for the IOC to
+            # tell us it is done. When it does, this status object will
+            # complete (status.done = True).
+            status = SubscriptionStatus(self.acquire_dark, callback)
+
+            # Finally, now that we are litsening to the IOC, prepare the
+            # trajectory.
+            self.acquire_dark.set('Acquire')  # Yes, the IOC requires a string.
+
+            # Return the status object immediately, without waiting. The caller
+            # will be able to watch for it to become done.
+            return status
+
+        if command == 'acquire_light':
+
+            # This function will receive Events from the IOC and check whether
+            # we are seeing the acquire_dark go low after having been high.
+            def callback(value, old_value, **kwargs):
+                if old_value == 1 and value == 0:
+                    if self._acquiring_light or self._acquiring_light is None:
+                        self._acquiring_light = False
+                        return True
+                    else:
+                        self._acquiring_light = True
+                return False
+
+            # Creating this status object subscribes `callback` Events from the
+            # IOC. Starting at this line, we are now listening for the IOC to
+            # tell us it is done. When it does, this status object will
+            # complete (status.done = True).
+            status = SubscriptionStatus(self.acquire_light, callback)
+
+            # Finally, now that we are litsening to the IOC, prepare the
+            # trajectory.
+            self.acquire_light.set('Acquire')  # Yes, the IOC requires a string.
+
+            # Return the status object immediately, without waiting. The caller
+            # will be able to watch for it to become done.
+            return status
+
+
     # dark_image = C(SavedImageSignal, None)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.stage_sigs.update([(self.cam.trigger_mode, 'Internal')])
+        self._acquiring_dark = None
+        self._acquiring_light = None
+
 
 
 class ContinuousAcquisitionTrigger(BlueskyInterface):

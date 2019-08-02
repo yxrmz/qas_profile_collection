@@ -5,6 +5,7 @@ import bluesky.preprocessors as bpp
 
 
 
+
 def pe_acquisition_plan(dets, fs, sample_name='', images_per_set=None):
     '''
         This is testing a simple acquisition plan.
