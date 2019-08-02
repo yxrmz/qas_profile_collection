@@ -15,7 +15,6 @@ from ophyd import (Component as C, FormattedComponent as FC)
 
 from datetime import datetime
 
-
 print("init bpm")
 class BPM(ProsilicaDetector, SingleTrigger):
     image = Cpt(ImagePlugin, 'image1:')

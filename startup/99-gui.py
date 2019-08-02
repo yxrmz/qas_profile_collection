@@ -46,7 +46,8 @@ sample_stages = [{'x': sample_stage1.x.name, 'y': sample_stage1.y.name}]
 
 print(mono1)
 xlive_gui = isstools.xlive.XliveGui(plan_funcs=[tscan, get_offsets], 
-                                 prep_traj_plan=prep_traj_plan, 
+                                 prep_traj_plan=prep_traj_plan,
+                                 diff_plans=[pe_count],
                                  RE=RE,
                                  db=db, 
                                  accelerator=nsls_ii,
