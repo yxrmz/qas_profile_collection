@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import copy
 import functools
 import numpy as np
@@ -208,7 +207,6 @@ def plot_image(data, **kwargs):
         tw.save(data)
 
 # RE(dark_frame_aware_plan(cam, dc))
-=======
 # # BOILERPLATE SETUP
 #
 # from bluesky import RunEngine
@@ -445,4 +443,3 @@ def plot_image(data, **kwargs):
 # from event_model import RunRouter
 # rr = RunRouter([factory])
 # RE.subscribe(rr)
->>>>>>> pe_tests_local
