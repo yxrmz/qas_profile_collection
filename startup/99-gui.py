@@ -45,6 +45,7 @@ shutters_dictionary = {
 sample_stages = [{'x': sample_stage1.x.name, 'y': sample_stage1.y.name}]
 
 print(mono1)
+
 xlive_gui = isstools.xlive.XliveGui(plan_funcs=[tscan, get_offsets], 
                                     prep_traj_plan=prep_traj_plan,
                                     diff_plans=[pe_count], 
@@ -65,11 +66,20 @@ xlive_gui = isstools.xlive.XliveGui(plan_funcs=[tscan, get_offsets],
 
 sys.stdout = xlive_gui.emitstream_out
 
+
 def xlive():
     xlive_gui.show()
 
 #from isstools.xview import XviewGui
 #xview_gui = XviewGui(PB_PULSES_PER_DEGREE)
 
+## jlynch 8/30
+#import pyinstrument
+
+#profiler = pyinstrument.Profiler()
+#profiler.start()
+
+#print('starting pyinstrument profiler')
+## jlynch 8/30
 
 xlive()
