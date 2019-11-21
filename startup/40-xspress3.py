@@ -11,6 +11,7 @@ from ophyd.areadetector.filestore_mixins import (FileStoreIterativeWrite,
                                                  FileStoreTIFFSquashing,
                                                  FileStoreTIFF)
 from ophyd import Signal
+from ophyd.sim import NullStatus  # TODO: remove after complete/collect are defined
 from ophyd import Component as Cpt
 
 from hxntools.handlers import register
@@ -20,6 +21,7 @@ from pathlib import PurePath
 from hxntools.detectors.xspress3 import (XspressTrigger, Xspress3Detector,
                                          Xspress3Channel, Xspress3FileStore, logger)
 from databroker.assets.handlers import Xspress3HDF5Handler, HandlerBase
+from isstools.trajectory.trajectory import trajectory_manager
 
 
 class QasXspress3Detector(XspressTrigger, Xspress3Detector):
@@ -54,18 +56,15 @@ class QasXspress3Detector(XspressTrigger, Xspress3Detector):
         return ret
 
     def stage(self):
-        # self.external_trig.put(True)
-        # self.settings.trigger_mode.put(3)  # 'TTL Veto Only'
         if self.spectra_per_point.get() != 1:
             raise NotImplementedError(
                 "multi spectra per point not supported yet")
         ret = super().stage()
-        # self._resource_uid = self._resource
         return ret
 
-    # def unstage(self):
-    #     self.settings.trigger_mode.put(0)  # 'Software'
-    #     super().unstage()
+    def unstage(self):
+        self.settings.trigger_mode.put(0)  # 'Software'
+        super().unstage()
 
     # Currently only using three channels. Uncomment these to enable more
     # channels:
@@ -85,33 +84,88 @@ xs.settings.num_channels.put(4)
 
 
 class XSFlyer:
-    def __init__(self, det, pbs, pb_trigger, motor):
-        # self.name = f'{det.name}-{"-".join([pb.name for pb in pbs])}-flyer'
-        self.parent = None
-        self.det = det  # xspress3 device
-        self.pbs = pbs  # a list of passed pizza-boxes
+    def __init__(self, *, pb, pb_triggers, dets, motor):
+        """
+        The flyer based on a single encoder pizza-box and multiple xspress3 devices running a mono.
+
+        Parameters
+        ----------
+        pb : an encoder pizza-box orchestrating the experiment
+        pb_triggers : list
+            a list of names of the trigger signals (e.g., 'do1') from the pizza-box digital outputs.
+            It's possible to configure up to 4 triggers per pizza-box, triggering a corresponding xspress3 detector each.
+        dets : list
+            a list of ophyd devices for the xspress3 detectors (up to 4 xspress3 detectors per 1 pizza-box)
+        motor : a monochromator motor
+        """
+        self.name = f'{pb.name}-{"-".join([det.name for det in dets])}-{motor.name}-{self.__class__.__name__}'
+        self.pb = pb
+        self.pb_triggers = pb_triggers
+        self.dets = dets
         self.motor = motor
-        self.pb_trigger = pb_trigger
+
+        # self.parent = None
+        self.num_points = {}
         self._motor_status = None
 
     def kickoff(self, *args, **kwargs):
-        self.det.stage()
-        self.det.total_points.put()
+        # Set all required signals in xspress3
+        self._calc_num_points()
+        for det in self.dets:
+            det.stage()
+            det.total_points.put(self.num_points[det.name])
 
-    def calc_num_points(self):
+        # self.det.external_trig.put(True)  # This is questionable, if we need it or not.
+        # Next line should take care of everything.
+        # xspress3 CSS:
+        for det in self.dets:
+            det.settings.trigger_mode.put(3)  # "Acquisition Controls and Status" (top left pane) -->
+                                              # "Trigger" selection button 'TTL Veto Only' in
+            det.hdf5.capture.put(1)           # "File Saving" (left bottom pane) --> "Start File Saving" button
+            det.settings.acquire.put(1)       # "Acquisition Controls and Status" (top left pane) --> "Start" button
+
+        # Parameters of the encoder pizza-boxes:
+        # (J8B channel for pb2)
+        for pb_trigger in self.pb_triggers:
+            getattr(self.pb, pb_trigger).enable.put(1)
+
+        return NullStatus()
+
+    def complete(self):
+        return NullStatus()
+
+    def describe_collect(self):
+        return {}
+
+    def collect(self):
+        yield {}
+
+    def _calc_num_points(self):
         tr = trajectory_manager(self.motor)
         info = tr.read_info(silent=True)
         lut = str(int(self.motor.lut_number_rbv.get()))
-        traj_duration = int(info[lut]['size']) / 16000
-        if self.pb_trigger.unit_sel.get()==0:
-             multip = 1e-6
-        else:
-             multip = 1e-3
-        acq_num_points = traj_duration/ (self.pb_trigger.period_sp.get() * multip) * 1.3
-        print(f'acq_num_points: {acq_num_points}\ntraj_dur: {traj_duration}')
-        self.num_points = int(round(acq_num_points, ndigits=0))
+        traj_duration = int(info[lut]['size']) / 16_000
+        for pb_trigger, det in zip(self.pb_triggers, self.dets):
+            if getattr(self.pb, pb_trigger).unit_sel.get() == 0:
+                 multip = 1e-6
+            else:
+                 multip = 1e-3
+            acq_num_points = traj_duration / (getattr(self.pb, pb_trigger).period_sp.get() * multip) * 1.3
+            self.num_points[det.name] = int(round(acq_num_points, ndigits=0))
 
-xsflyer = XSFlyer(xs, [], pb2.do1, mono1)
+    def __repr__(self):
+        return f"""\
+Flyer '{self.name}' with the following config:
+
+    - encoder pizza-box  : {self.pb.name}
+    - pizza-box triggers : {', '.join([x for x in self.pb_triggers])}
+    - xspress3 detectors : {', '.join([x.name for x in self.dets])}
+    - motor              : {self.motor.name}
+"""
+
+
+xsflyer_pb2 = XSFlyer(pb=pb2, pb_triggers=['do1'], dets=[xs], motor=mono1)
+
 
 # This is necessary for when the ioc restarts
 # we have to trigger one image for the hdf5 plugin to work correclty
