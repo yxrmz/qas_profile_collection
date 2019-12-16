@@ -27,8 +27,12 @@ from isstools.trajectory.trajectory import trajectory_manager
 import bluesky.plans as bp
 import bluesky.plan_stubs as bps
 
+import itertools
+import time as ttime
+from collections import deque
 
-class QasXspress3Detector(XspressTrigger, Xspress3Detector):
+
+class QASXspress3Detector(XspressTrigger, Xspress3Detector):
     roi_data = Cpt(PluginBase, 'ROIDATA:')
     channel1 = Cpt(Xspress3Channel, 'C1_', channel_num=1, read_attrs=['rois'])
     channel2 = Cpt(Xspress3Channel, 'C2_', channel_num=2, read_attrs=['rois'])
@@ -53,6 +57,8 @@ class QasXspress3Detector(XspressTrigger, Xspress3Detector):
         super().__init__(prefix, configuration_attrs=configuration_attrs,
                          read_attrs=read_attrs, **kwargs)
         # self.create_dir.put(-3)
+        self._asset_docs_cache = deque()
+        self._datum_counter = None
 
     def stop(self):
         ret = super().stop()
@@ -64,11 +70,47 @@ class QasXspress3Detector(XspressTrigger, Xspress3Detector):
             raise NotImplementedError(
                 "multi spectra per point not supported yet")
         ret = super().stage()
+        self._datum_counter = itertools.count()
         return ret
 
     def unstage(self):
         self.settings.trigger_mode.put(0)  # 'Software'
         super().unstage()
+        self._datum_counter = None
+
+    def complete(self, *args, **kwargs):
+        for resource in self.hdf5._asset_docs_cache:
+            self._asset_docs_cache.append(('resource', resource[1]))
+
+        self._datum_ids = []
+
+        num_frames = xs.hdf5.num_captured.get()
+
+        for frame_num in range(num_frames):
+            for channel_num in self.hdf5.channels:  # Channels (1, 2, 3, 4) as of 12/16/2019
+                datum_id = '{}/{}'.format(self.hdf5._resource_uid, next(self._datum_counter))
+                datum = {'resource': self.hdf5._resource_uid,
+                         'datum_kwargs': {'frame': frame_num,
+                                          'channel': channel_num},
+                         'datum_id': datum_id}
+                self._asset_docs_cache.append(('datum', datum))
+                self._datum_ids.append(datum_id)
+
+        return NullStatus()
+
+    def collect(self):
+        now = ttime.time()
+        for datum_id in self._datum_ids:
+            data = {self.name: datum_id}
+            yield {'data': data,
+                   'timestamps': {key: now for key in data}, 'time': now,  # TODO: use the proper timestams from the mono start and stop times
+                   'filled': {key: False for key in data}}
+
+    def collect_asset_docs(self):
+        items = list(self._asset_docs_cache)
+        self._asset_docs_cache.clear()
+        for item in items:
+            yield item
 
     # Currently only using three channels. Uncomment these to enable more
     # channels:
@@ -78,7 +120,7 @@ class QasXspress3Detector(XspressTrigger, Xspress3Detector):
     # channel8 = C(Xspress3Channel, 'C8_', channel_num=8)
 
 
-xs = QasXspress3Detector('XF:07BMB-ES{Xsp:1}:', name='xs')
+xs = QASXspress3Detector('XF:07BMB-ES{Xsp:1}:', name='xs')
 for n in [1, 2, 3, 4]:
     getattr(xs, f'channel{n}').rois.read_attrs = ['roi{:02}'.format(j) for j in [1, 2, 3, 4]]
 xs.hdf5.num_extra_dims.put(0)
@@ -133,7 +175,9 @@ class XSFlyer:
         self._calc_num_points()
         for xs_det in self.xs_dets:
             xs_det.stage()
+            # TODO: set the "XF:07BMB-ES{Xsp:1}:HDF5:FileWriteMode" PV to "Stream" (option 2)
             xs_det.settings.num_images.put(self.num_points[xs_det.name])
+            xs_det.hdf5.num_capture.put(self.num_points[xs_det.name])
 
         # self.det.external_trig.put(True)  # This is questionable, if we need it or not.
         # Next line should take care of everything.
@@ -141,7 +185,8 @@ class XSFlyer:
         for xs_det in self.xs_dets:
             xs_det.settings.trigger_mode.put(3)  # "Acquisition Controls and Status" (top left pane) -->
                                                  # "Trigger" selection button 'TTL Veto Only'
-            xs_det.hdf5.capture.put(1)           # "File Saving" (left bottom pane) --> "Start File Saving" button
+            # We don't need the "hdf5.capture.put(1)" step as it's taken care of by the "acquire.put(1)" step
+            # xs_det.hdf5.capture.put(1)           # "File Saving" (left bottom pane) --> "Start File Saving" button
             xs_det.settings.acquire.put(1)       # "Acquisition Controls and Status" (top left pane) --> "Start" button
 
         # analog pizza-boxes:
@@ -172,6 +217,7 @@ class XSFlyer:
                                                      # "Trigger" selection button 'Internal'
                 xs_det.hdf5.capture.put(0)           # "File Saving" (left bottom pane) --> "Stop File Saving" button
                 xs_det.settings.acquire.put(0)       # "Acquisition Controls and Status" (top left pane) --> "Stop" button
+                xs_det.complete()
 
             for an_det in self.an_dets:
                 an_det.complete()
@@ -257,8 +303,8 @@ class XSFlyer:
         self.di.unstage()
 
         def collect_all():
-            # for xs_det in self.xs_dets:
-            #     yield from xs_det.collect()
+            for xs_det in self.xs_dets:
+                yield from xs_det.collect()
             for an_det in self.an_dets:
                 yield from an_det.collect()
             yield from self.pb.collect()
