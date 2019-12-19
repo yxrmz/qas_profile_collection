@@ -56,7 +56,9 @@ class QASXspress3Detector(XspressTrigger, Xspress3Detector):
             read_attrs = ['channel1', 'channel2', 'channel3', 'channel4', 'hdf5']
         super().__init__(prefix, configuration_attrs=configuration_attrs,
                          read_attrs=read_attrs, **kwargs)
+        self.set_channels_for_hdf5()
         # self.create_dir.put(-3)
+
         self._asset_docs_cache = deque()
         self._datum_counter = None
 
@@ -103,7 +105,8 @@ class QASXspress3Detector(XspressTrigger, Xspress3Detector):
         for datum_id in self._datum_ids:
             data = {self.name: datum_id}
             yield {'data': data,
-                   'timestamps': {key: now for key in data}, 'time': now,  # TODO: use the proper timestams from the mono start and stop times
+                   'timestamps': {key: now for key in data},
+                   'time': now,  # TODO: use the proper timestams from the mono start and stop times
                    'filled': {key: False for key in data}}
 
     def collect_asset_docs(self):
@@ -112,7 +115,22 @@ class QASXspress3Detector(XspressTrigger, Xspress3Detector):
         for item in items:
             yield item
 
-    # Currently only using three channels. Uncomment these to enable more
+    def set_channels_for_hdf5(self, channels=(1, 2, 3, 4)):
+        """
+        Configure which channels' data should be saved in the resulted hdf5 file.
+
+        Parameters
+        ----------
+        channels: tuple, optional
+            the channels to save the data for
+        """
+        # The number of channel
+        for n in channels:
+            getattr(self, f'channel{n}').rois.read_attrs = ['roi{:02}'.format(j) for j in [1, 2, 3, 4]]
+        self.hdf5.num_extra_dims.put(0)
+        self.settings.num_channels.put(len(channels))
+
+    # Currently only using four channels. Uncomment these to enable more
     # channels:
     # channel5 = C(Xspress3Channel, 'C5_', channel_num=5)
     # channel6 = C(Xspress3Channel, 'C6_', channel_num=6)
@@ -121,23 +139,20 @@ class QASXspress3Detector(XspressTrigger, Xspress3Detector):
 
 
 xs = QASXspress3Detector('XF:07BMB-ES{Xsp:1}:', name='xs')
-for n in [1, 2, 3, 4]:
-    getattr(xs, f'channel{n}').rois.read_attrs = ['roi{:02}'.format(j) for j in [1, 2, 3, 4]]
-xs.hdf5.num_extra_dims.put(0)
 xs.channel2.vis_enabled.put(1)
 xs.channel3.vis_enabled.put(1)
-xs.settings.num_channels.put(4)
 
 
 class XSFlyer:
-    def __init__(self, *, pb, di, pb_triggers, xs_dets, an_dets, motor):
+    def __init__(self, *, pb, di, motor_ts, pb_triggers, xs_dets, an_dets, motor):
         """
         The flyer based on a single encoder pizza-box and multiple xspress3 devices running a mono.
 
         Parameters
         ----------
-        pb : an encoder pizza-box orchestrating the experiment
+        pb : an encoder pizza-box orchestrating the experiment (triggering and timestamping the xspress3)
         di : a digital input to timestamp trigger pulses
+        motor_ts : an encoder pizza-box for timestamping the motor (mono)
         pb_triggers : list
             a list of names of the trigger signals (e.g., 'do1') from the pizza-box digital outputs.
             It's possible to configure up to 4 triggers per pizza-box, triggering a corresponding xspress3 detector each.
@@ -150,6 +165,7 @@ class XSFlyer:
         self.name = f'{pb.name}-{"-".join([xs_det.name for xs_det in xs_dets])}-{"-".join([an_det.name for an_det in an_dets])}-{motor.name}-{self.__class__.__name__}'
         self.pb = pb
         self.di = di
+        self.motor_ts = motor_ts
         self.pb_triggers = pb_triggers
         self.xs_dets = xs_dets
         self.an_dets = an_dets
@@ -175,7 +191,7 @@ class XSFlyer:
         self._calc_num_points()
         for xs_det in self.xs_dets:
             xs_det.stage()
-            # TODO: set the "XF:07BMB-ES{Xsp:1}:HDF5:FileWriteMode" PV to "Stream" (option 2)
+            xs_det.hdf5.file_write_mode.put('Stream')
             xs_det.settings.num_images.put(self.num_points[xs_det.name])
             xs_det.hdf5.num_capture.put(self.num_points[xs_det.name])
 
@@ -183,11 +199,13 @@ class XSFlyer:
         # Next line should take care of everything.
         # xspress3 CSS:
         for xs_det in self.xs_dets:
-            xs_det.settings.trigger_mode.put(3)  # "Acquisition Controls and Status" (top left pane) -->
-                                                 # "Trigger" selection button 'TTL Veto Only'
+            # "Acquisition Controls and Status" (top left pane) -->
+            # "Trigger" selection button 'TTL Veto Only (3)'
+            xs_det.settings.trigger_mode.put('TTL Veto Only')
             # We don't need the "hdf5.capture.put(1)" step as it's taken care of by the "acquire.put(1)" step
-            # xs_det.hdf5.capture.put(1)           # "File Saving" (left bottom pane) --> "Start File Saving" button
-            xs_det.settings.acquire.put(1)       # "Acquisition Controls and Status" (top left pane) --> "Start" button
+            # Update: we may need it!
+            # xs_det.hdf5.capture.put(1)   # "File Saving" (left bottom pane) --> "Start File Saving" button
+            xs_det.settings.acquire.put(1)  # "Acquisition Controls and Status" (top left pane) --> "Start" button
 
         # analog pizza-boxes:
         for an_det in self.an_dets:
@@ -197,7 +215,11 @@ class XSFlyer:
         # Parameters of the encoder pizza-boxes:
         # (J8B channel for pb2)
         self.pb.stage()
+        self.pb.kickoff()
+        self.motor_ts.stage()
+        self.motor_ts.kickoff()
         self.di.stage()
+        self.di.kickoff()
         for pb_trigger in self.pb_triggers:
             getattr(self.pb.parent, pb_trigger).enable.put(1)
 
@@ -213,14 +235,18 @@ class XSFlyer:
                 getattr(self.pb.parent, pb_trigger).enable.put(0)
 
             for xs_det in self.xs_dets:
-                xs_det.settings.trigger_mode.put(1)  # "Acquisition Controls and Status" (top left pane) -->
-                                                     # "Trigger" selection button 'Internal'
-                xs_det.hdf5.capture.put(0)           # "File Saving" (left bottom pane) --> "Stop File Saving" button
-                xs_det.settings.acquire.put(0)       # "Acquisition Controls and Status" (top left pane) --> "Stop" button
+                # "Acquisition Controls and Status" (top left pane) -->
+                # "Trigger" selection button 'Internal'
+                xs_det.settings.trigger_mode.put('Internal')
+                xs_det.hdf5.capture.put(0)      # "File Saving" (left bottom pane) --> "Stop File Saving" button
+                xs_det.settings.acquire.put(0)  # "Acquisition Controls and Status" (top left pane) --> "Stop" button
                 xs_det.complete()
 
             for an_det in self.an_dets:
                 an_det.complete()
+            self.pb.complete()
+            self.motor_ts.complete()
+            self.di.complete()
 
         self._motor_status.add_callback(callback_motor)
 
@@ -276,7 +302,9 @@ class XSFlyer:
         for xs_det in self.xs_dets:
             return_dict[xs_det.name] = {f'{xs_det.name}': {'source': 'xspress3',
                                                            'dtype': 'array',
-                                                           'shape': [-1, -1],
+                                                           'shape': [xs_det.settings.num_images.get(),
+                                                                     xs_det.hdf5.array_size.height.get(),
+                                                                     xs_det.hdf5.array_size.width.get()],
                                                            'external': 'FILESTORE:'}}
         # analog pizza-boxes:
         for an_det in self.an_dets:
@@ -284,7 +312,9 @@ class XSFlyer:
 
         # encoder pizza-box:
         return_dict[self.pb.name] = self.pb.describe_collect()[self.pb.name]
-        # TODO: add di
+        return_dict[self.motor_ts.name] = self.motor_ts.describe_collect()[self.motor_ts.name]
+        return_dict[self.di.name] = self.di.describe_collect()[self.di.name]
+
         return return_dict
 
     def collect_asset_docs(self):
@@ -300,6 +330,7 @@ class XSFlyer:
         for an_det in self.an_dets:
             an_det.unstage()
         self.pb.unstage()
+        self.motor_ts.unstage()
         self.di.unstage()
 
         def collect_all():
@@ -308,6 +339,8 @@ class XSFlyer:
             for an_det in self.an_dets:
                 yield from an_det.collect()
             yield from self.pb.collect()
+            yield from self.motor_ts.collect()
+            yield from self.di.collect()
 
         return collect_all()
 
@@ -332,6 +365,7 @@ class XSFlyer:
 
 xsflyer_pb2 = XSFlyer(pb=pb2.enc1,
                       di=pb2.di,
+                      motor_ts=pb1.enc1,
                       pb_triggers=['do1'],
                       xs_dets=[xs],
                       an_dets=[pba1.adc3, pba1.adc4, pba1.adc5, pba1.adc6, pba1.adc7, pba1.adc8],
