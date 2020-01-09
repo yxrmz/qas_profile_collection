@@ -13,7 +13,7 @@ from ophyd.areadetector.filestore_mixins import (FileStoreIterativeWrite,
 from ophyd import Signal
 from ophyd.status import SubscriptionStatus
 from ophyd.sim import NullStatus  # TODO: remove after complete/collect are defined
-from ophyd import Component as Cpt
+from ophyd import Component as Cpt, set_and_wait
 
 from hxntools.handlers import register
 register(db)
@@ -29,7 +29,44 @@ import bluesky.plan_stubs as bps
 
 import itertools
 import time as ttime
-from collections import deque
+from collections import deque, OrderedDict
+
+
+class Xspress3FileStoreFlyable(Xspress3FileStore):
+    def warmup(self):
+        """
+        A convenience method for 'priming' the plugin.
+        The plugin has to 'see' one acquisition before it is ready to capture.
+        This sets the array size, etc.
+        NOTE : this comes from:
+            https://github.com/NSLS-II/ophyd/blob/master/ophyd/areadetector/plugins.py
+        We had to replace "cam" with "settings" here.
+        Also modified the stage sigs.
+        """
+        print("warming up the hdf5 plugin...")
+        set_and_wait(self.enable, 1)
+        sigs = OrderedDict([(self.parent.settings.array_callbacks, 1),
+                            (self.parent.settings.trigger_mode, 'Internal'),
+                            # just in case the acquisition time is set very long...
+                            (self.parent.settings.acquire_time, 1),
+                            # (self.capture, 1),
+                            (self.parent.settings.acquire, 1)])
+
+        original_vals = {sig: sig.get() for sig in sigs}
+
+        # Remove the hdf5.capture item here to avoid an error as it should reset back to 0 itself
+        # del original_vals[self.capture]
+
+        for sig, val in sigs.items():
+            ttime.sleep(0.1)  # abundance of caution
+            set_and_wait(sig, val)
+
+        ttime.sleep(2)  # wait for acquisition
+
+        for sig, val in reversed(list(original_vals.items())):
+            ttime.sleep(0.1)
+            set_and_wait(sig, val)
+        print("done")
 
 
 class QASXspress3Detector(XspressTrigger, Xspress3Detector):
@@ -40,7 +77,7 @@ class QASXspress3Detector(XspressTrigger, Xspress3Detector):
     channel4 = Cpt(Xspress3Channel, 'C4_', channel_num=4, read_attrs=['rois'])
     # create_dir = Cpt(EpicsSignal, 'HDF5:FileCreateDir')
 
-    hdf5 = Cpt(Xspress3FileStore, 'HDF5:',
+    hdf5 = Cpt(Xspress3FileStoreFlyable, 'HDF5:',
                read_path_template='/nsls2/xf07bm/data/x3m/%Y/%m/%d/',
                root='/nsls2/xf07bm/data/',
                write_path_template='/nsls2/xf07bm/data/x3m/%Y/%m/%d/',
@@ -142,6 +179,43 @@ xs = QASXspress3Detector('XF:07BMB-ES{Xsp:1}:', name='xs')
 xs.channel2.vis_enabled.put(1)
 xs.channel3.vis_enabled.put(1)
 
+# This is necessary for when the ioc restarts
+# we have to trigger one image for the hdf5 plugin to work correctly
+# else, we get file writing errors
+xs.hdf5.warmup()
+
+# Hints:
+for n in [1, 2]:
+    getattr(xs, f'channel{n}').rois.roi01.value.kind = 'hinted'
+
+xs.settings.configuration_attrs = ['acquire_period',
+			           'acquire_time',
+			           'gain',
+			           'image_mode',
+			           'manufacturer',
+			           'model',
+			           'num_exposures',
+			           'num_images',
+			           'temperature',
+			           'temperature_actual',
+			           'trigger_mode',
+			           'config_path',
+			           'config_save_path',
+			           'invert_f0',
+			           'invert_veto',
+			           'xsp_name',
+			           'num_channels',
+			           'num_frames_config',
+			           'run_flags',
+                                   'trigger_signal']
+
+for n, d in xs.channels.items():
+    roi_names = ['roi{:02}'.format(j) for j in [1, 2, 3, 4]]
+    d.rois.read_attrs = roi_names
+    d.rois.configuration_attrs = roi_names
+    for roi_n in roi_names:
+        getattr(d.rois, roi_n).value_sum.kind = 'omitted'
+
 
 class XSFlyer:
     def __init__(self, *, pb, di, motor_ts, pb_triggers, xs_dets, an_dets, motor):
@@ -190,22 +264,32 @@ class XSFlyer:
         # Set all required signals in xspress3
         self._calc_num_points()
         for xs_det in self.xs_dets:
-            xs_det.stage()
             xs_det.hdf5.file_write_mode.put('Stream')
-            xs_det.settings.num_images.put(self.num_points[xs_det.name])
-            xs_det.hdf5.num_capture.put(self.num_points[xs_det.name])
 
-        # self.det.external_trig.put(True)  # This is questionable, if we need it or not.
-        # Next line should take care of everything.
-        # xspress3 CSS:
+            # Prepare the soft signals for hxntools.detectors.xspress3.Xspress3FileStore#stage
+            xs_det.external_trig.put(True)
+            xs_det.total_points.put(self.num_points[xs_det.name])
+            # TODO: sort out how many spectra per point we should have
+            xs_det.spectra_per_point.put(1)
+            xs_det.stage()
+
+            # These parameters are dynamically set for the case of
+            # the external triggering mode in the stage() method (see above).
+            # xs_det.settings.num_images.put(self.num_points[xs_det.name])
+            # xs_det.hdf5.num_capture.put(self.num_points[xs_det.name])
+
         for xs_det in self.xs_dets:
+            # These parameters are dynamically set for the case of
+            # the external triggering mode in the stage() method (see above).
+
             # "Acquisition Controls and Status" (top left pane) -->
             # "Trigger" selection button 'TTL Veto Only (3)'
-            xs_det.settings.trigger_mode.put('TTL Veto Only')
-            # We don't need the "hdf5.capture.put(1)" step as it's taken care of by the "acquire.put(1)" step
-            # Update: we may need it!
-            # xs_det.hdf5.capture.put(1)   # "File Saving" (left bottom pane) --> "Start File Saving" button
-            xs_det.settings.acquire.put(1)  # "Acquisition Controls and Status" (top left pane) --> "Start" button
+            # xs_det.settings.trigger_mode.put('TTL Veto Only')
+            # "File Saving" (left bottom pane) --> "Start File Saving" button
+            # xs_det.hdf5.capture.put(1)
+
+            # "Acquisition Controls and Status" (top left pane) --> "Start" button
+            xs_det.settings.acquire.put(1)
 
         # analog pizza-boxes:
         for an_det in self.an_dets:
@@ -238,8 +322,8 @@ class XSFlyer:
                 # "Acquisition Controls and Status" (top left pane) -->
                 # "Trigger" selection button 'Internal'
                 xs_det.settings.trigger_mode.put('Internal')
-                xs_det.hdf5.capture.put(0)      # "File Saving" (left bottom pane) --> "Stop File Saving" button
-                xs_det.settings.acquire.put(0)  # "Acquisition Controls and Status" (top left pane) --> "Stop" button
+                # "Acquisition Controls and Status" (top left pane) --> "Stop" button
+                xs_det.settings.acquire.put(0)
                 xs_det.complete()
 
             for an_det in self.an_dets:
@@ -370,87 +454,6 @@ xsflyer_pb2 = XSFlyer(pb=pb2.enc1,
                       xs_dets=[xs],
                       an_dets=[pba1.adc3, pba1.adc4, pba1.adc5, pba1.adc6, pba1.adc7, pba1.adc8],
                       motor=mono1)
-
-
-# This is necessary for when the ioc restarts
-# we have to trigger one image for the hdf5 plugin to work correclty
-# else, we get file writing errors
-# xs.hdf5.warmup()
-
-# Hints:
-for n in [1, 2]:
-    getattr(xs, f'channel{n}').rois.roi01.value.kind = 'hinted'
-
-# import skbeam.core.constants.xrf as xrfC
-#
-# interestinglist = ['Si', 'P', 'S', 'Cl', 'Ar', 'K', 'Ca', 'Sc', 'Ti', 'V', 'Cr', 'Mn', 'Fe', 'Co', 'Ni', 'Cu', 'Zn', 'Ga', 'Ge', 'As', 'Se', 'Br', 'Kr', 'Rb', 'Sr', 'Y', 'Zr', 'Nb', 'Mo', 'Tc', 'Ru', 'Rh', 'Pd', 'Ag', 'Cd', 'In', 'Sn', 'Sb', 'Te', 'I', 'Xe', 'Cs', 'Ba', 'La', 'Ce', 'Pr', 'Nd', 'Pm', 'Sm', 'Eu', 'Gd', 'Tb', 'Dy', 'Ho', 'Er', 'Tm', 'Yb', 'Lu', 'Hf', 'Ta', 'W', 'Re', 'Os', 'Ir', 'Pt', 'Au', 'Hg', 'Tl', 'Pb', 'Bi', 'Po', 'At', 'Rn', 'Fr', 'Ra', 'Ac', 'Th', 'Pa', 'U']
-#
-# elements = dict()
-# element_edges = ['ka1','ka2','kb1','la1','la2','lb1','lb2','lg1','ma1']
-# element_transitions = ['k', 'l1', 'l2', 'l3', 'm1', 'm2', 'm3', 'm4', 'm5']
-# for i in interestinglist:
-#     elements[i] = xrfC.XrfElement(i)
-#
-# def setroi(roinum, element, edge):
-#     '''
-#     Set energy ROIs for Vortex SDD.  Selects elemental edge given current energy if not provided.
-#     roinum      [1,2,3]     ROI number
-#     element     <symbol>    element symbol for target energy
-#     edge                    optional:  ['ka1','ka2','kb1','la1','la2','lb1','lb2','lg1','ma1']
-#     '''
-#
-#     cur_element = xrfC.XrfElement(element)
-#
-#     e_ch = int(cur_element.emission_line[edge] * 1000)
-#
-#     for (n, d) in xs.channels.items():
-#         d.set_roi(roinum, e_ch-200, e_ch+200, name=element + '_' + edge)
-#         getattr(d.rois, f'roi{roinum:02d}').kind = 'normal'
-#     print("ROI{} set for {}-{} edge.".format(roinum, element, edge))
-#
-#
-# def clearroi(roinum=None):
-#     if roinum is None:
-#         roinum = [1, 2, 3]
-#     try:
-#         roinum = list(roinum)
-#     except TypeError:
-#         roinum = [roinum]
-#
-#     # xs.channel1.rois.roi01.clear
-#     for (n, d) in xs.channels.items():
-#         for roi in roinum:
-#              cpt = getattr(d.rois, f'roi{roi:02d}')
-#              cpt.clear()
-#              cpt.kind = 'omitted'
-#
-xs.settings.configuration_attrs = ['acquire_period',
-			           'acquire_time',
-			           'gain',
-			           'image_mode',
-			           'manufacturer',
-			           'model',
-			           'num_exposures',
-			           'num_images',
-			           'temperature',
-			           'temperature_actual',
-			           'trigger_mode',
-			           'config_path',
-			           'config_save_path',
-			           'invert_f0',
-			           'invert_veto',
-			           'xsp_name',
-			           'num_channels',
-			           'num_frames_config',
-			           'run_flags',
-                                   'trigger_signal']
-
-for n, d in xs.channels.items():
-    roi_names = ['roi{:02}'.format(j) for j in [1, 2, 3, 4]]
-    d.rois.read_attrs = roi_names
-    d.rois.configuration_attrs = roi_names
-    for roi_n in roi_names:
-        getattr(d.rois, roi_n).value_sum.kind = 'omitted'
 
 
 def xs_plan():
