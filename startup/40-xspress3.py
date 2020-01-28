@@ -15,13 +15,10 @@ from ophyd.status import SubscriptionStatus
 from ophyd.sim import NullStatus  # TODO: remove after complete/collect are defined
 from ophyd import Component as Cpt, set_and_wait
 
-from hxntools.handlers import register
-register(db)
-
 from pathlib import PurePath
 from hxntools.detectors.xspress3 import (XspressTrigger, Xspress3Detector,
                                          Xspress3Channel, Xspress3FileStore, logger)
-from databroker.assets.handlers import Xspress3HDF5Handler, HandlerBase
+
 from isstools.trajectory.trajectory import trajectory_manager
 
 import bluesky.plans as bp
@@ -67,6 +64,16 @@ class Xspress3FileStoreFlyable(Xspress3FileStore):
             ttime.sleep(0.1)
             set_and_wait(sig, val)
         print("done")
+
+    def unstage(self):
+        """A custom unstage method is needed to avoid these messages:
+
+        Still capturing data .... waiting.
+        Still capturing data .... waiting.
+        Still capturing data .... waiting.
+        Still capturing data .... giving up.
+        """
+        return super().unstage()
 
 
 class QASXspress3Detector(XspressTrigger, Xspress3Detector):
@@ -126,14 +133,12 @@ class QASXspress3Detector(XspressTrigger, Xspress3Detector):
         num_frames = xs.hdf5.num_captured.get()
 
         for frame_num in range(num_frames):
-            for channel_num in self.hdf5.channels:  # Channels (1, 2, 3, 4) as of 12/16/2019
-                datum_id = '{}/{}'.format(self.hdf5._resource_uid, next(self._datum_counter))
-                datum = {'resource': self.hdf5._resource_uid,
-                         'datum_kwargs': {'frame': frame_num,
-                                          'channel': channel_num},
-                         'datum_id': datum_id}
-                self._asset_docs_cache.append(('datum', datum))
-                self._datum_ids.append(datum_id)
+            datum_id = '{}/{}'.format(self.hdf5._resource_uid, next(self._datum_counter))
+            datum = {'resource': self.hdf5._resource_uid,
+                     'datum_kwargs': {'frame': frame_num},
+                     'datum_id': datum_id}
+            self._asset_docs_cache.append(('datum', datum))
+            self._datum_ids.append(datum_id)
 
         return NullStatus()
 
@@ -318,19 +323,22 @@ class XSFlyer:
             for pb_trigger in self.pb_triggers:
                 getattr(self.pb.parent, pb_trigger).enable.put(0)
 
+            for an_det in self.an_dets:
+                an_det.complete()
+            self.pb.complete()
+            self.motor_ts.complete()
+            self.di.complete()
+
             for xs_det in self.xs_dets:
                 # "Acquisition Controls and Status" (top left pane) -->
                 # "Trigger" selection button 'Internal'
                 xs_det.settings.trigger_mode.put('Internal')
                 # "Acquisition Controls and Status" (top left pane) --> "Stop" button
                 xs_det.settings.acquire.put(0)
+                # TODO: check what happens when the number of collected frames is the same as expected.
+                # There is a chance the stop saving button is pressed twice.
+                xs_det.hdf5.capture.put(0)  # this is to save the file is the number of collected frames is less than expected
                 xs_det.complete()
-
-            for an_det in self.an_dets:
-                an_det.complete()
-            self.pb.complete()
-            self.motor_ts.complete()
-            self.di.complete()
 
         self._motor_status.add_callback(callback_motor)
 
