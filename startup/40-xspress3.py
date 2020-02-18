@@ -10,7 +10,7 @@ from ophyd.areadetector.filestore_mixins import (FileStoreIterativeWrite,
                                                  FileStoreHDF5IterativeWrite,
                                                  FileStoreTIFFSquashing,
                                                  FileStoreTIFF)
-from ophyd import Signal
+from ophyd import Signal, EpicsSignal, EpicsSignalRO
 from ophyd.status import SubscriptionStatus
 from ophyd.sim import NullStatus  # TODO: remove after complete/collect are defined
 from ophyd import Component as Cpt, set_and_wait
@@ -24,6 +24,7 @@ from isstools.trajectory.trajectory import trajectory_manager
 import bluesky.plans as bp
 import bluesky.plan_stubs as bps
 
+import numpy as np
 import itertools
 import time as ttime
 from collections import deque, OrderedDict
@@ -74,6 +75,10 @@ class Xspress3FileStoreFlyable(Xspress3FileStore):
         Still capturing data .... giving up.
         """
         return super().unstage()
+
+
+dpb_sec = pb2.di.sec_array
+dpb_nsec = pb2.di.nsec_array
 
 
 class QASXspress3Detector(XspressTrigger, Xspress3Detector):
@@ -143,12 +148,24 @@ class QASXspress3Detector(XspressTrigger, Xspress3Detector):
         return NullStatus()
 
     def collect(self):
-        now = ttime.time()
-        for datum_id in self._datum_ids:
+        # TODO: try to separate it from the xspress3 class
+        collected_frames = self.settings.array_counter.get()
+        dpb_sec_values = np.array(dpb_sec.get(), dtype='float128')[:collected_frames * 2: 2]
+        dpb_nsec_values = np.array(dpb_nsec.get(), dtype='float128')[:collected_frames * 2: 2]
+
+        di_timestamps = dpb_sec_values + dpb_nsec_values * 1e-9
+
+        assert len(di_timestamps) == len(self._datum_ids), \
+            (f'The length of "di_timestamps" ({len(di_timestamps)}) '
+             f'does not match the length of "self._datum_ids" ({len(self._datum_ids)})')
+
+        for datum_id, ts in zip(self._datum_ids, di_timestamps):
             data = {self.name: datum_id}
+            # TODO: fix the lost precision as pymongo complained about np.float128.
+            ts = float(ts)
             yield {'data': data,
-                   'timestamps': {key: now for key in data},
-                   'time': now,  # TODO: use the proper timestams from the mono start and stop times
+                   'timestamps': {key: ts for key in data},
+                   'time': ts,  # TODO: use the proper timestams from the mono start and stop times
                    'filled': {key: False for key in data}}
 
     def collect_asset_docs(self):
@@ -426,13 +443,13 @@ class XSFlyer:
         self.di.unstage()
 
         def collect_all():
-            for xs_det in self.xs_dets:
-                yield from xs_det.collect()
-            for an_det in self.an_dets:
-                yield from an_det.collect()
             yield from self.pb.collect()
             yield from self.motor_ts.collect()
             yield from self.di.collect()
+            for an_det in self.an_dets:
+                yield from an_det.collect()
+            for xs_det in self.xs_dets:
+                yield from xs_det.collect()
 
         return collect_all()
 
@@ -447,10 +464,13 @@ class XSFlyer:
         lut = str(int(self.motor.lut_number_rbv.get()))
         traj_duration = int(info[lut]['size']) / 16_000
         for pb_trigger, xs_det in zip(self.pb_triggers, self.xs_dets):
-            if getattr(self.pb.parent, pb_trigger).unit_sel.get() == 0:
+            units = getattr(self.pb.parent, pb_trigger).unit_sel.get(as_string=True)
+            if units == 'us':
                  multip = 1e-6  # micro-seconds
+            elif units == 'ms':
+                 multip = 1e-3  # milli-seconds
             else:
-                 multip = 1e-3  # mili-seconds
+                raise RuntimeError(f'The units "{units}" are not supported yet.')
             acq_num_points = traj_duration / (getattr(self.pb.parent, pb_trigger).period_sp.get() * multip) * 1.3
             self.num_points[xs_det.name] = int(round(acq_num_points, ndigits=0))
 
