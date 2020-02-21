@@ -165,7 +165,7 @@ class QASXspress3Detector(XspressTrigger, Xspress3Detector):
             ts = float(ts)
             yield {'data': data,
                    'timestamps': {key: ts for key in data},
-                   'time': ts,  # TODO: use the proper timestams from the mono start and stop times
+                   'time': ts,  # TODO: use the proper timestamps from the mono start and stop times
                    'filled': {key: False for key in data}}
 
     def collect_asset_docs(self):
