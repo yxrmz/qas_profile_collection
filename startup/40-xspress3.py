@@ -28,6 +28,7 @@ import numpy as np
 import itertools
 import time as ttime
 from collections import deque, OrderedDict
+import warnings
 
 
 class Xspress3FileStoreFlyable(Xspress3FileStore):
@@ -155,11 +156,18 @@ class QASXspress3Detector(XspressTrigger, Xspress3Detector):
 
         di_timestamps = dpb_sec_values + dpb_nsec_values * 1e-9
 
-        assert len(di_timestamps) == len(self._datum_ids), \
-            (f'The length of "di_timestamps" ({len(di_timestamps)}) '
-             f'does not match the length of "self._datum_ids" ({len(self._datum_ids)})')
+        len_di_timestamps = len(di_timestamps)
+        len_datum_ids = len(self._datum_ids)
 
-        for datum_id, ts in zip(self._datum_ids, di_timestamps):
+        if len_di_timestamps != len_datum_ids:
+            warnings.warn(f'The length of "di_timestamps" ({len_di_timestamps}) '
+                          f'does not match the length of "self._datum_ids" ({len_datum_ids})')
+
+        num_frames = min(len_di_timestamps, len_datum_ids)
+        for frame_num in range(num_frames):
+            datum_id = self._datum_ids[frame_num]
+            ts = di_timestamps[frame_num]
+
             data = {self.name: datum_id}
             # TODO: fix the lost precision as pymongo complained about np.float128.
             ts = float(ts)
@@ -283,6 +291,12 @@ class XSFlyer:
 """
 
     def kickoff(self, *args, **kwargs):
+        # Set the parameters in the LEMO DO CSS screen
+        for pb_trigger in self.pb_triggers:
+            getattr(self.pb.parent, pb_trigger).period_sp.put(1000)
+            getattr(self.pb.parent, pb_trigger).unit_sel.put('ms')  # in milliseconds
+            getattr(self.pb.parent, pb_trigger).dutycycle_sp.put(50)  # in percents
+
         # Set all required signals in xspress3
         self._calc_num_points()
         for xs_det in self.xs_dets:
