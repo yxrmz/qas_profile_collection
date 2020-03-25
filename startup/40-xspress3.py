@@ -502,7 +502,16 @@ class XSFlyer:
             else:
                 raise RuntimeError(f'The units "{units}" are not supported yet.')
             acq_num_points = traj_duration / (getattr(self.pb.parent, pb_trigger).period_sp.get() * multip) * 1.3
-            self.num_points[xs_det.name] = int(round(acq_num_points, ndigits=0))
+            acq_num_points = int(round(acq_num_points, ndigits=0))
+
+            # WARNING! This is needed only for tests, should not be used for production!
+            # acq_num_points = 5000
+
+            xs_max_num_images = 16384 # TODO: get from xspress3 EPICS PV
+            if acq_num_points > xs_max_num_images:
+                raise ValueError(f'The calculated number of points {acq_num_points} is greater than maximum allowed '
+                                 f'number of frames by Xspress3 {xs_max_num_images}')
+            self.num_points[xs_det.name] = acq_num_points
 
 
 xsflyer_pb2 = XSFlyer(pb=pb2.enc1,
