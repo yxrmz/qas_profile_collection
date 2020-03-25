@@ -82,10 +82,10 @@ class Xspress3FileStoreFlyable(Xspress3FileStore):
 # of Elements Read (at QAS, as of March 25, 2020, .NELM was set to 50000 for
 # the PVs below, but .NORD was always returning 1024 elements)
 dpb_sec = pb2.di.sec_array
-dpb_sec_nelm = EpicsSignal(f'{dpb_sec.pvname}.NELM', name='dpb_sec_nelm')
+dpb_sec_nelm = EpicsSignalRO(f'{dpb_sec.pvname}.NELM', name='dpb_sec_nelm')
 
 dpb_nsec = pb2.di.nsec_array
-dpb_nsec_nelm = EpicsSignal(f'{dpb_nsec.pvname}.NELM', name='dpb_nsec_nelm')
+dpb_nsec_nelm = EpicsSignalRO(f'{dpb_nsec.pvname}.NELM', name='dpb_nsec_nelm')
 
 
 class QASXspress3Detector(XspressTrigger, Xspress3Detector):
@@ -309,7 +309,8 @@ class XSFlyer:
         # Set the parameters in the LEMO DO CSS screen
         for pb_trigger in self.pb_triggers:
             getattr(self.pb.parent, pb_trigger).period_sp.put(1000)
-            getattr(self.pb.parent, pb_trigger).unit_sel.put('ms')  # in milliseconds
+            #getattr(self.pb.parent, pb_trigger).unit_sel.put('ms')  # in milliseconds
+            getattr(self.pb.parent, pb_trigger).unit_sel.put('us')  # in microseconds
             getattr(self.pb.parent, pb_trigger).dutycycle_sp.put(50)  # in percents
 
         # Set all required signals in xspress3
@@ -376,14 +377,14 @@ class XSFlyer:
             self.di.complete()
 
             for xs_det in self.xs_dets:
-                # "Acquisition Controls and Status" (top left pane) -->
-                # "Trigger" selection button 'Internal'
-                xs_det.settings.trigger_mode.put('Internal')
                 # "Acquisition Controls and Status" (top left pane) --> "Stop" button
                 xs_det.settings.acquire.put(0)
                 # TODO: check what happens when the number of collected frames is the same as expected.
                 # There is a chance the stop saving button is pressed twice.
                 xs_det.hdf5.capture.put(0)  # this is to save the file is the number of collected frames is less than expected
+                # "Acquisition Controls and Status" (top left pane) -->
+                # "Trigger" selection button 'Internal'
+                xs_det.settings.trigger_mode.put('Internal')
                 xs_det.complete()
 
         self._motor_status.add_callback(callback_motor)
