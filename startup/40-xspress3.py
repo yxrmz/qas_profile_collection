@@ -78,8 +78,14 @@ class Xspress3FileStoreFlyable(Xspress3FileStore):
         return super().unstage()
 
 
+# NELM specifies the number of elements that the array will hold NORD is Number
+# of Elements Read (at QAS, as of March 25, 2020, .NELM was set to 50000 for
+# the PVs below, but .NORD was always returning 1024 elements)
 dpb_sec = pb2.di.sec_array
+dpb_sec_nelm = EpicsSignal(f'{dpb_sec.pvname}.NELM', name='dpb_sec_nelm')
+
 dpb_nsec = pb2.di.nsec_array
+dpb_nsec_nelm = EpicsSignal(f'{dpb_nsec.pvname}.NELM', name='dpb_nsec_nelm')
 
 
 class QASXspress3Detector(XspressTrigger, Xspress3Detector):
@@ -151,8 +157,17 @@ class QASXspress3Detector(XspressTrigger, Xspress3Detector):
     def collect(self):
         # TODO: try to separate it from the xspress3 class
         collected_frames = self.settings.array_counter.get()
-        dpb_sec_values = np.array(dpb_sec.get(), dtype='float128')[:collected_frames * 2: 2]
-        dpb_nsec_values = np.array(dpb_nsec.get(), dtype='float128')[:collected_frames * 2: 2]
+
+
+        # This is a hack around the issue with .NORD (number of elements to #
+        # read) that does not match .NELM (number of elements to that the array
+        # will hold)
+        dpb_sec_nelm_count = int(dpb_sec_nelm.get())
+        dpb_nsec_nelm_count = int(dpb_nsec_nelm.get())
+        dpb_sec_values = np.array(dpb_sec.get(count=dpb_sec_nelm_count),
+                                  dtype='float128')[:collected_frames * 2: 2]
+        dpb_nsec_values = np.array(dpb_nsec.get(count=dpb_nsec_nelm_count),
+                                   dtype='float128')[:collected_frames * 2: 2]
 
         di_timestamps = dpb_sec_values + dpb_nsec_values * 1e-9
 
