@@ -307,11 +307,11 @@ class XSFlyer:
 
     def kickoff(self, *args, **kwargs):
         # Set the parameters in the LEMO DO CSS screen
-        for pb_trigger in self.pb_triggers:
-            getattr(self.pb.parent, pb_trigger).period_sp.put(1000)
-            #getattr(self.pb.parent, pb_trigger).unit_sel.put('ms')  # in milliseconds
-            getattr(self.pb.parent, pb_trigger).unit_sel.put('us')  # in microseconds
-            getattr(self.pb.parent, pb_trigger).dutycycle_sp.put(50)  # in percents
+        # for pb_trigger in self.pb_triggers:
+        #     #getattr(self.pb.parent, pb_trigger).period_sp.put(10)
+        #     getattr(self.pb.parent, pb_trigger).unit_sel.put('ms')  # in milliseconds
+        #     #getattr(self.pb.parent, pb_trigger).unit_sel.put('us')  # in microseconds
+        #     getattr(self.pb.parent, pb_trigger).dutycycle_sp.put(50)  # in percents
 
         # Set all required signals in xspress3
         self._calc_num_points()
