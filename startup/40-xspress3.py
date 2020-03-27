@@ -269,7 +269,7 @@ class XSFlyer:
 
         Parameters
         ----------
-        pb : an encoder pizza-box orchestrating the experiment (triggering and timestamping the xspress3)
+        pb : digital pizza box orchestrating the experiment (triggering and timestamping the xspress3)
         di : a digital input to timestamp trigger pulses
         motor_ts : an encoder pizza-box for timestamping the motor (mono)
         pb_triggers : list
@@ -290,7 +290,6 @@ class XSFlyer:
         self.an_dets = an_dets
         self.motor = motor
 
-        # self.parent = None
         self.num_points = {}
         self._motor_status = None
 
@@ -298,7 +297,7 @@ class XSFlyer:
         return f"""\
     Flyer '{self.name}' with the following config:
 
-        - encoder pizza-box  : {self.pb.name}
+        - digital pizza-box  : {self.pb.name}
         - pizza-box triggers : {', '.join([x for x in self.pb_triggers])}
         - xspress3 detectors : {', '.join([x.name for x in self.xs_dets])}
         - analog detectors   : {', '.join([x.name for x in self.an_dets])}
@@ -308,10 +307,10 @@ class XSFlyer:
     def kickoff(self, *args, **kwargs):
         # Set the parameters in the LEMO DO CSS screen
         # for pb_trigger in self.pb_triggers:
-        #     #getattr(self.pb.parent, pb_trigger).period_sp.put(10)
-        #     getattr(self.pb.parent, pb_trigger).unit_sel.put('ms')  # in milliseconds
-        #     #getattr(self.pb.parent, pb_trigger).unit_sel.put('us')  # in microseconds
-        #     getattr(self.pb.parent, pb_trigger).dutycycle_sp.put(50)  # in percents
+        #     #getattr(self.pb, pb_trigger).period_sp.put(10)
+        #     getattr(self.pb, pb_trigger).unit_sel.put('ms')  # in milliseconds
+        #     #getattr(self.pb, pb_trigger).unit_sel.put('us')  # in microseconds
+        #     getattr(self.pb, pb_trigger).dutycycle_sp.put(50)  # in percents
 
         # Set all required signals in xspress3
         self._calc_num_points()
@@ -350,14 +349,12 @@ class XSFlyer:
 
         # Parameters of the encoder pizza-boxes:
         # (J8B channel for pb2)
-        self.pb.stage()
-        self.pb.kickoff()
         self.motor_ts.stage()
         self.motor_ts.kickoff()
         self.di.stage()
         self.di.kickoff()
         for pb_trigger in self.pb_triggers:
-            getattr(self.pb.parent, pb_trigger).enable.put(1)
+            getattr(self.pb, pb_trigger).enable.put(1)
 
         self._motor_status = self.motor.set('start')
 
@@ -368,11 +365,10 @@ class XSFlyer:
             # Parameters of the encoder pizza-boxes:
             # (J8B channel for pb2)
             for pb_trigger in self.pb_triggers:
-                getattr(self.pb.parent, pb_trigger).enable.put(0)
+                getattr(self.pb, pb_trigger).enable.put(0)
 
             for an_det in self.an_dets:
                 an_det.complete()
-            self.pb.complete()
             self.motor_ts.complete()
             self.di.complete()
 
@@ -450,7 +446,6 @@ class XSFlyer:
             return_dict[an_det.name] = an_det.describe_collect()[an_det.name]
 
         # encoder pizza-box:
-        return_dict[self.pb.name] = self.pb.describe_collect()[self.pb.name]
         return_dict[self.motor_ts.name] = self.motor_ts.describe_collect()[self.motor_ts.name]
         return_dict[self.di.name] = self.di.describe_collect()[self.di.name]
 
@@ -459,21 +454,19 @@ class XSFlyer:
     def collect_asset_docs(self):
         for xs_det in self.xs_dets:
             yield from xs_det.collect_asset_docs()
+        #TODO: Investigate below
         # for an_det in self.an_dets:
         #     yield from an_det.collect_asset_docs()
-        # yield from self.pb.collect_asset_docs()
 
     def collect(self):
         for xs_det in self.xs_dets:
             xs_det.unstage()
         for an_det in self.an_dets:
             an_det.unstage()
-        self.pb.unstage()
         self.motor_ts.unstage()
         self.di.unstage()
 
         def collect_all():
-            yield from self.pb.collect()
             yield from self.motor_ts.collect()
             yield from self.di.collect()
             for an_det in self.an_dets:
@@ -494,14 +487,14 @@ class XSFlyer:
         lut = str(int(self.motor.lut_number_rbv.get()))
         traj_duration = int(info[lut]['size']) / 16_000
         for pb_trigger, xs_det in zip(self.pb_triggers, self.xs_dets):
-            units = getattr(self.pb.parent, pb_trigger).unit_sel.get(as_string=True)
+            units = getattr(self.pb, pb_trigger).unit_sel.get(as_string=True)
             if units == 'us':
                  multip = 1e-6  # micro-seconds
             elif units == 'ms':
                  multip = 1e-3  # milli-seconds
             else:
                 raise RuntimeError(f'The units "{units}" are not supported yet.')
-            acq_num_points = traj_duration / (getattr(self.pb.parent, pb_trigger).period_sp.get() * multip) * 1.3
+            acq_num_points = traj_duration / (getattr(self.pb, pb_trigger).period_sp.get() * multip) * 1.3
             acq_num_points = int(round(acq_num_points, ndigits=0))
 
             # WARNING! This is needed only for tests, should not be used for production!
@@ -514,7 +507,7 @@ class XSFlyer:
             self.num_points[xs_det.name] = acq_num_points
 
 
-xsflyer_pb2 = XSFlyer(pb=pb2.enc1,
+xsflyer_pb2 = XSFlyer(pb=pb2,
                       di=pb2.di,
                       motor_ts=pb1.enc1,
                       pb_triggers=['do1'],
