@@ -1,12 +1,14 @@
 print(__file__)
 
-from databroker.assets.handlers_base import HandlerBase
 import pandas as pd
+from databroker.assets.handlers import HandlerBase, Xspress3HDF5Handler
+
 
 fc = 7.62939453125e-05
 adc2counts = lambda x: ((int(x, 16) >> 8) - 0x40000) * fc \
         if (int(x, 16) >> 8) > 0x1FFFF else (int(x, 16) >> 8)*fc
 enc2counts = lambda x: int(x) if int(x) <= 0 else -(int(x) ^ 0xffffff - 1)
+
 
 class PizzaBoxAnHandlerTxt(HandlerBase):
     def __init__(self, fpath, chunk_size=0):
@@ -49,6 +51,7 @@ class PizzaBoxAnHandlerTxt(HandlerBase):
             return df
         else:
             return pd.DataFrame(columns=columns)
+
 
 class PizzaBoxEncHandlerTxt(HandlerBase):
     def __init__(self, fpath, chunk_size=0):
@@ -133,6 +136,16 @@ class PizzaBoxDIHandlerTxt(HandlerBase):
 #                for ln in self.lines[chunk_num*cs:(chunk_num+1)*cs]]
 
 
+class QASXspress3HDF5Handler(Xspress3HDF5Handler):
+    def __call__(self, *args, frame=None, **kwargs):
+        self._get_dataset()
+        shape = self.dataset.shape
+        if len(shape) != 3:
+            raise RuntimeError(f'The ndim of the dataset is not 3, but {len(shape)}')
+        num_channels = shape[1]
+        df = pd.DataFrame(data=self._dataset[frame, :, :].T,
+                          columns=[f'ch_{n+1}' for n in range(num_channels)])
+        return df
 
 
 db.reg.register_handler('PIZZABOX_AN_FILE_TXT',
@@ -141,3 +154,5 @@ db.reg.register_handler('PIZZABOX_ENC_FILE_TXT',
                         PizzaBoxEncHandlerTxt, overwrite=True)
 db.reg.register_handler('PIZZABOX_DI_FILE_TXT',
                         PizzaBoxDIHandlerTxt, overwrite=True)
+db.reg.register_handler(QASXspress3HDF5Handler.HANDLER_NAME,
+                        QASXspress3HDF5Handler, overwrite=True)
