@@ -131,6 +131,39 @@ def execute_trajectory(name, ignore_shutter=True, **metadata):
 
     yield from fly_plan
 
+def execute_trajectory_xs3(name, ignore_shutter=True, **metadata):
+    ''' Execute a trajectory on the flyers given:
+            flyers : list of flyers to fly on
+
+        scans on 'mono1' by default
+
+        ignore_shutter : bool, optional
+            If True, ignore the shutter
+            (suspenders on shutter and ring current will be installed if not)
+        ex:
+            execute_trajectory(**md)
+    '''
+    flyers = [pba1.adc3, pba1.adc4, pba1.adc5, pba1.adc6, pba1.adc7, pba1.adc8, pb1.enc1]
+
+    interp_fn = f"{ROOT_PATH}/{USER_FILEPATH}/{RE.md['year']}/{RE.md['cycle']}/{RE.md['PROPOSAL']}/{name}.raw"
+    curr_traj = getattr(mono1, 'traj{:.0f}'.format(mono1.lut_number_rbv.value))
+    md = {'plan_args': {},
+          'plan_name': 'execute_trajectory_xs3',
+          'experiment': 'fly_energy_scan_xs3',
+          'name': name,
+          'interp_filename': interp_fn,
+          'angle_offset': str(mono1.angle_offset.value),
+          'trajectory_name': mono1.trajectory_name.value,
+          'element': curr_traj.elem.value,
+          'edge': curr_traj.edge.value,
+          'e0': curr_traj.e0.value,
+          'pulses_per_deg': mono1.pulses_per_deg}
+    for flyer in flyers:
+        if hasattr(flyer, 'offset'):
+            md['{} offset'.format(flyer.name)] = flyer.offset.value
+    RE.md.update(metadata)
+    yield from xs_plan()
+
 
 def get_offsets_plan(detectors, num = 1, name = '', **metadata):
     """
