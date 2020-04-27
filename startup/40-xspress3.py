@@ -17,7 +17,7 @@ from ophyd import Component as Cpt, set_and_wait
 
 from pathlib import PurePath
 from hxntools.detectors.xspress3 import (XspressTrigger, Xspress3Detector,
-                                         Xspress3Channel, Xspress3FileStore, logger)
+                                         Xspress3Channel, Xspress3FileStore, Xspress3ROI, logger)
 
 from isstools.trajectory.trajectory import trajectory_manager
 
@@ -117,6 +117,8 @@ class QASXspress3Detector(XspressTrigger, Xspress3Detector):
 
         self._asset_docs_cache = deque()
         self._datum_counter = None
+
+        self.channel1.rois.roi01.configuration_attrs.append('bin_low')
 
     def stop(self):
         ret = super().stop()

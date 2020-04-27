@@ -1,7 +1,9 @@
 print(__file__)
 
+from itertools import product
+
 import pandas as pd
-from databroker.assets.handlers import HandlerBase, Xspress3HDF5Handler
+from databroker.assets.handlers import HandlerBase, Xspress3HDF5Handler, XS3_XRF_DATA_KEY
 
 
 fc = 7.62939453125e-05
@@ -143,10 +145,15 @@ class QASXspress3HDF5Handler(Xspress3HDF5Handler):
         if len(shape) != 3:
             raise RuntimeError(f'The ndim of the dataset is not 3, but {len(shape)}')
         num_channels = shape[1]
+        chanrois = [f'CHAN{c}ROI{r}' for c, r in product([1, 2, 3, 4], [1, 2, 3, 4])]
+        attrsdf = pd.DataFrame.from_dict(
+            {chanroi: self._file['/entry/instrument/detector/']['NDAttributes'][chanroi] for chanroi in chanrois}
+        )
+        ##print(attrsdf)
         df = pd.DataFrame(data=self._dataset[frame, :, :].T,
                           columns=[f'ch_{n+1}' for n in range(num_channels)])
-        return df
-
+        return pd.concat([df, attrsdf])
+        #return df
 
 db.reg.register_handler('PIZZABOX_AN_FILE_TXT',
                         PizzaBoxAnHandlerTxt, overwrite=True)

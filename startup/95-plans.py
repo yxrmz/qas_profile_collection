@@ -5,6 +5,7 @@ import time as ttime
 from subprocess import call
 import os
 import signal
+#from bluesky import RunEngine
 
 
 ### Added by Chanaka and Julien
@@ -161,7 +162,8 @@ def execute_trajectory_xs3(name, ignore_shutter=True, **metadata):
     for flyer in flyers:
         if hasattr(flyer, 'offset'):
             md['{} offset'.format(flyer.name)] = flyer.offset.value
-    RE.md.update(metadata)
+    md.update(metadata)
+    RE.md.update(md)
     yield from xs_plan()
 
 
