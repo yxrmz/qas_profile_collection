@@ -148,17 +148,34 @@ def execute_trajectory_xs3(name, ignore_shutter=True, **metadata):
 
     interp_fn = f"{ROOT_PATH}/{USER_FILEPATH}/{RE.md['year']}/{RE.md['cycle']}/{RE.md['PROPOSAL']}/{name}.raw"
     curr_traj = getattr(mono1, 'traj{:.0f}'.format(mono1.lut_number_rbv.value))
+    # wip terrible hack
+    roi1_lo = xs.channel1.rois.roi01.bin_low.get()
+    roi2_lo = xs.channel1.rois.roi02.bin_low.get()
+    roi3_lo = xs.channel1.rois.roi03.bin_low.get()
+    roi4_lo = xs.channel1.rois.roi04.bin_low.get()
+
+    roi1_hi = xs.channel1.rois.roi01.bin_high.get()
+    roi2_hi = xs.channel1.rois.roi02.bin_high.get()
+    roi3_hi = xs.channel1.rois.roi03.bin_high.get()
+    roi4_hi = xs.channel1.rois.roi04.bin_high.get()
+
+    # end of terrible hack
+
+    xs_fn = xs.hdf5.full_file_name.get()
+
     md = {'plan_args': {},
           'plan_name': 'execute_trajectory_xs3',
           'experiment': 'fly_energy_scan_xs3',
           'name': name,
           'interp_filename': interp_fn,
+          'xs3_filename': xs_fn,
           'angle_offset': str(mono1.angle_offset.value),
           'trajectory_name': mono1.trajectory_name.value,
           'element': curr_traj.elem.value,
           'edge': curr_traj.edge.value,
           'e0': curr_traj.e0.value,
-          'pulses_per_deg': mono1.pulses_per_deg}
+          'pulses_per_deg': mono1.pulses_per_deg,
+          'rois': [roi1_lo, roi1_hi, roi2_lo, roi2_hi, roi3_lo, roi3_hi, roi4_lo, roi4_hi]}
     for flyer in flyers:
         if hasattr(flyer, 'offset'):
             md['{} offset'.format(flyer.name)] = flyer.offset.value

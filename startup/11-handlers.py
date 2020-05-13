@@ -152,7 +152,7 @@ class QASXspress3HDF5Handler(Xspress3HDF5Handler):
         ##print(attrsdf)
         df = pd.DataFrame(data=self._dataset[frame, :, :].T,
                           columns=[f'ch_{n+1}' for n in range(num_channels)])
-        return pd.concat([df, attrsdf])
+        return pd.concat([df])
         #return df
 
 db.reg.register_handler('PIZZABOX_AN_FILE_TXT',
