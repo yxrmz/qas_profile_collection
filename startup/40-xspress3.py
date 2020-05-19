@@ -225,6 +225,7 @@ class QASXspress3Detector(XspressTrigger, Xspress3Detector):
 xs = QASXspress3Detector('XF:07BMB-ES{Xsp:1}:', name='xs')
 xs.channel2.vis_enabled.put(1)
 xs.channel3.vis_enabled.put(1)
+xs.dev_name = 'xs'
 
 # This is necessary for when the ioc restarts
 # we have to trigger one image for the hdf5 plugin to work correctly
@@ -247,6 +248,7 @@ xs.settings.configuration_attrs = ['acquire_period',
 			           'temperature_actual',
 			           'trigger_mode',
 			           'config_path',
+
 			           'config_save_path',
 			           'invert_f0',
 			           'invert_veto',
@@ -438,11 +440,14 @@ class XSFlyer:
         # xspress3 detectors:
         for xs_det in self.xs_dets:
             return_dict[xs_det.name] = {f'{xs_det.name}': {'source': 'xspress3',
+                                                           'devname': 'xs3',
+                                                           'filename': '',
                                                            'dtype': 'array',
                                                            'shape': [xs_det.settings.num_images.get(),
                                                                      xs_det.hdf5.array_size.height.get(),
                                                                      xs_det.hdf5.array_size.width.get()],
-                                                           'external': 'FILESTORE:'}}
+                                                           'external': 'FILESTORE:'}   }
+
         # analog pizza-boxes:
         for an_det in self.an_dets:
             return_dict[an_det.name] = an_det.describe_collect()[an_det.name]
