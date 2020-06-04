@@ -67,15 +67,15 @@ class Xspress3FileStoreFlyable(Xspress3FileStore):
             set_and_wait(sig, val)
         print("done")
 
-    def unstage(self):
-        """A custom unstage method is needed to avoid these messages:
-
-        Still capturing data .... waiting.
-        Still capturing data .... waiting.
-        Still capturing data .... waiting.
-        Still capturing data .... giving up.
-        """
-        return super().unstage()
+    #def unstage(self):
+     #   """A custom unstage method is needed to avoid these messages:
+     #
+     #   Still capturing data .... waiting.
+     #   Still capturing data .... waiting.
+     #   Still capturing data .... waiting.
+     #   Still capturing data .... giving up.
+     #   """
+     #   return super().unstage()
 
 
 # NELM specifies the number of elements that the array will hold NORD is Number
@@ -95,6 +95,17 @@ class QASXspress3Detector(XspressTrigger, Xspress3Detector):
     channel3 = Cpt(Xspress3Channel, 'C3_', channel_num=3, read_attrs=['rois'])
     channel4 = Cpt(Xspress3Channel, 'C4_', channel_num=4, read_attrs=['rois'])
     # create_dir = Cpt(EpicsSignal, 'HDF5:FileCreateDir')
+
+    mca1_sum = Cpt(EpicsSignal, 'ARRSUM1:ArrayData')
+    mca2_sum = Cpt(EpicsSignal, 'ARRSUM2:ArrayData')
+    mca3_sum = Cpt(EpicsSignal, 'ARRSUM3:ArrayData')
+    mca4_sum = Cpt(EpicsSignal, 'ARRSUM4:ArrayData')
+
+    mca1 = Cpt(EpicsSignal, 'ARR1:ArrayData')
+    mca2 = Cpt(EpicsSignal, 'ARR2:ArrayData')
+    mca3 = Cpt(EpicsSignal, 'ARR3:ArrayData')
+    mca4 = Cpt(EpicsSignal, 'ARR4:ArrayData')
+
 
     hdf5 = Cpt(Xspress3FileStoreFlyable, 'HDF5:',
                read_path_template='/nsls2/xf07bm/data/x3m/%Y/%m/%d/',
