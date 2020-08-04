@@ -145,6 +145,7 @@ class QASXspress3HDF5Handler(Xspress3HDF5Handler):
         if len(shape) != 3:
             raise RuntimeError(f'The ndim of the dataset is not 3, but {len(shape)}')
         num_channels = shape[1]
+        print(num_channels)
         chanrois = [f'CHAN{c}ROI{r}' for c, r in product([1, 2, 3, 4], [1, 2, 3, 4])]
         attrsdf = pd.DataFrame.from_dict(
             {chanroi: self._file['/entry/instrument/detector/']['NDAttributes'][chanroi] for chanroi in chanrois}
@@ -152,8 +153,8 @@ class QASXspress3HDF5Handler(Xspress3HDF5Handler):
         ##print(attrsdf)
         df = pd.DataFrame(data=self._dataset[frame, :, :].T,
                           columns=[f'ch_{n+1}' for n in range(num_channels)])
-        return pd.concat([df])
-        #return df
+        #return pd.concat([df]+[attrsdf])
+        return df
 
 db.reg.register_handler('PIZZABOX_AN_FILE_TXT',
                         PizzaBoxAnHandlerTxt, overwrite=True)

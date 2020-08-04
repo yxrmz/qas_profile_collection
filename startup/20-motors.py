@@ -176,6 +176,11 @@ class BeamStop(Device):
 
 beamstop = BeamStop('XF:07BMB-OP{Stg:PE', name='beamstop')
 
+class PerkinElmerPositioner(Device):
+    vertical = Cpt(EpicsMotor, '-Ax:Y}Mtr')
+
+pe_pos = PerkinElmerPositioner('XF:07BMB-ES{Asm:2', name='pe_pos')
+
 class FoilWheel(Device):
     wheel1 = Cpt(EpicsMotor, '-Ax:RotUp}Mtr')
     wheel2 = Cpt(EpicsMotor, '-Ax:RotDn}Mtr')

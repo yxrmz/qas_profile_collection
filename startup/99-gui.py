@@ -58,6 +58,7 @@ xlive_gui = isstools.xlive.XliveGui(plan_funcs=[tscan, tscan_xs3, get_offsets, x
                                     det_dict=detector_dictionary,
                                     aux_plan_funcs ={
                                         'set_reference_foil': set_reference_foil,
+                                        'get_reference_foil': get_reference_foil,
                                     },
                                     motors_dict=motors_dictionary,
                                     general_scan_func=general_scan,

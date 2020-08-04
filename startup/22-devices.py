@@ -68,6 +68,30 @@ shutter_fs = QASFastShutter('XF:07BMB-CT{Enc02-DO:0}Dflt-Sel',
                             name='Fast Shutter')
 shutter_fs.shutter_type = 'FS'
 
+class EPS_MFC1(Device):
+    flow_rb = Cpt(EpicsSignal, 'MFC1_FB')
+
+mfc1_he = EPS_MFC1('XF:07BMA-CT{MFC-AI}', name='mfc1_he')
+
+class EPS_MFC2(Device):
+    flow_rb = Cpt(EpicsSignal, 'MFC2_FB')
+
+mfc2_n2 = EPS_MFC2('XF:07BMA-CT{MFC-AI}', name='mfc2_n2')
+
+class EPS_MFC3(Device):
+    flow_rb = Cpt(EpicsSignal, 'MFC3_FB')
+
+mfc3_ar = EPS_MFC3('XF:07BMA-CT{MFC-AI}', name='mfc3_ar')
+
+class EPS_MFC4(Device):
+    flow_rb = Cpt(EpicsSignal, 'MFC4_FB')
+
+mfc4_n2 = EPS_MFC4('XF:07BMA-CT{MFC-AI}', name='mfc4_n2')
+
+class EPS_MFC5(Device):
+    flow_rb = Cpt(EpicsSignal, 'MFC5_FB')
+
+mfc5_ar = EPS_MFC5('XF:07BMA-CT{MFC-AI}', name='mfc5_ar')
 
 '''
 Here is the amplifier definition
@@ -77,8 +101,8 @@ Here is the amplifier definition
 
 class ICAmplifier(Device):
 
-    gain = Cpt(EpicsSignal,'gain')
-    risetime = Cpt(EpicsSignal,'risetime')
+    gain = Cpt(EpicsSignal,'Gain')
+    risetime = Cpt(EpicsSignal,'RiseTime')
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -98,6 +122,7 @@ it_amp = ICAmplifier('XF:07BM:K428:B:',name='it_amp')
 ir_amp = ICAmplifier('XF:07BM:K428:C:',name='ir_amp')
 
 iff_amp = ICAmplifier('XF:07BM:K428:D:',name='iff_amp')
+
 
 '''
 ir_amp = ICAmplifier('XF:08IDB-CT{', gain_0='ES-DO}2_10_0', gain_1='ES-DO}2_10_1',
