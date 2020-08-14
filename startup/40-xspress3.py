@@ -187,18 +187,19 @@ class QASXspress3Detector(XspressTrigger, Xspress3Detector):
         dpb_sec_values = np.array(dpb_sec.get(count=dpb_sec_nelm_count), dtype='float128')[:collected_frames * 2: 2]
         dpb_nsec_values = np.array(dpb_nsec.get(count=dpb_nsec_nelm_count), dtype='float128')[:collected_frames * 2: 2]
 
-        dpb_sec_values = dpb_sec_values[np.where(dpb_sec_values > 0)]
-        dpb_nsec_values = dpb_nsec_values[np.where(dpb_nsec_values > 0)]
-
-        if np.any(dpb_sec_values == 0) or np.any(dpb_nsec_values == 0):
-            msg = (f"\nThere are zero timestamps found in either 'dpb_sec_values' or 'dpb_nsec_values'\n"
+        if np.any(dpb_sec_values == 0):
+            non_zero_index = np.where(dpb_sec_values > 0)
+            msg = (f"\nThere are zero timestamps found in 'dpb_sec_values'\n"
                    f"reported on {ttime.ctime(ttime.time())}:\n"
-                   f"    dpb_sec_values: {dpb_sec_values} (len={len(dpb_sec_values)})\n"
-                   f"    dpb_nsec_values: {dpb_nsec_values} (len={len(dpb_sec_values)})\n\n"
+                   f"    dpb_sec_values: {list(dpb_sec_values)} (len={len(dpb_sec_values)})\n"
+                   f"    dpb_nsec_values: {list(dpb_nsec_values)} (len={len(dpb_sec_values)})\n\n"
                    f"collected_frames: {collected_frames}\n"
                    f"dpb_sec_nelm_count: {dpb_sec_nelm_count}\n"
-                   f"dpb_nsec_nelm_count: {dpb_nsec_nelm_count}\n")
-            raise ZeroTimestampError(msg)
+                   f"dpb_nsec_nelm_count: {dpb_nsec_nelm_count}\n\n"
+                   f"The 0-s will be trimmed from the arrays leaving {len(non_zero_index[0])} elements.\n")
+            warnings.warn(msg)
+            dpb_sec_values = dpb_sec_values[non_zero_index]
+            dpb_nsec_values = dpb_nsec_values[non_zero_index]
 
         di_timestamps = dpb_sec_values + dpb_nsec_values * 1e-9
 
