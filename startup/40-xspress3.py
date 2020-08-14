@@ -88,6 +88,10 @@ dpb_nsec = pb2.di.nsec_array
 dpb_nsec_nelm = EpicsSignalRO(f'{dpb_nsec.pvname}.NELM', name='dpb_nsec_nelm')
 
 
+class ZeroTimestampError(Exception):
+    ...
+
+
 class QASXspress3Detector(XspressTrigger, Xspress3Detector):
     roi_data = Cpt(PluginBase, 'ROIDATA:')
     channel1 = Cpt(Xspress3Channel, 'C1_', channel_num=1, read_attrs=['rois'])
@@ -181,6 +185,16 @@ class QASXspress3Detector(XspressTrigger, Xspress3Detector):
                                   dtype='float128')[:collected_frames * 2: 2]
         dpb_nsec_values = np.array(dpb_nsec.get(count=dpb_nsec_nelm_count),
                                    dtype='float128')[:collected_frames * 2: 2]
+
+        if np.any(dpb_sec_values == 0) or np.any(dpb_nsec_values == 0):
+            msg = (f"\nThere are zero timestamps found in either 'dpb_sec_values' or 'dpb_nsec_values'\n"
+                   f"reported on {ttime.ctime(ttime.time())}:\n"
+                   f"    dpb_sec_values: {dpb_sec_values} (len={len(dpb_sec_values)})\n"
+                   f"    dpb_nsec_values: {dpb_nsec_values} (len={len(dpb_sec_values)})\n\n"
+                   f"collected_frames: {collected_frames}\n"
+                   f"dpb_sec_nelm_count: {dpb_sec_nelm_count}\n"
+                   f"dpb_nsec_nelm_count: {dpb_nsec_nelm_count}\n")
+            raise ZeroTimestampError(msg)
 
         di_timestamps = dpb_sec_values + dpb_nsec_values * 1e-9
 
