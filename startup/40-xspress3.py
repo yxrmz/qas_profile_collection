@@ -16,7 +16,7 @@ from ophyd.sim import NullStatus  # TODO: remove after complete/collect are defi
 from ophyd import Component as Cpt, set_and_wait
 
 from pathlib import PurePath
-from hxntools.detectors.xspress3 import (XspressTrigger, Xspress3Detector,
+from nslsii.detectors.xspress3 import (XspressTrigger, Xspress3Detector,
                                          Xspress3Channel, Xspress3FileStore, Xspress3ROI, logger)
 
 from isstools.trajectory.trajectory import trajectory_manager
