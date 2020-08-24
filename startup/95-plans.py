@@ -124,7 +124,7 @@ def execute_trajectory(name, ignore_shutter=True, **metadata):
               'element': curr_traj.elem.value,
               'edge': curr_traj.edge.value,
               'e0': curr_traj.e0.value,
-              'foil': [foil_elem],
+              'foil_element': [foil_elem],
               'pulses_per_deg': mono1.pulses_per_deg,
               'keithley_gainsB': [i0_gainB, it_gainB, ir_gainB, iff_gainB],
               'ionchamber_ratesB': [mfc1B_he, mfc2B_n2, mfc3B_ar, mfc4B_n2, mfc5B_ar],

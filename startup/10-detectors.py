@@ -631,6 +631,7 @@ class DualAdcFS(TriggerAdc):
             if self._twin_adc is None:
                 raise ValueError("Error a twin ADC must be given")
 
+            self._datum_counter = itertools.count()
             # if twin didnt stage yet, stage
             if not self._twin_adc._staged_adc:
                 self._staged_adc = True
@@ -654,7 +655,6 @@ class DualAdcFS(TriggerAdc):
                             'uid': self._resource_uid}
 
                 self._asset_docs_cache.append(('resource', resource))
-                self._datum_counter = itertools.count()
                 print('Staging of {} complete'.format(self.name))
             
                 super().stage()
@@ -750,6 +750,7 @@ class DualAdcFS(TriggerAdc):
             data = {self.name: datum_id}
             yield {'data': data,
                    'timestamps': {key: now for key in data}, 'time': now,
+                   'filled': {key: False for key in data}}
 
     def describe_collect(self):
         # TODO Return correct shape (array dims)
