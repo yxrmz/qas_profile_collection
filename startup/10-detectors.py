@@ -646,11 +646,11 @@ class DualAdcFS(TriggerAdc):
                 print(">>>>>>>>>>>>>>> writing to {}".format(self._full_path))
 
                 self.filepath.put(self._full_path)
-                self._resrouce_uid = str(uuid.uuid4())
+                self._resource_uid = str(uuid.uuid4())
                 resource = {'spec' : 'PIZZABOX_AN_FILE_TXT',
                             'root' : DIRECTORY,
                             'resource_path': full_path,
-                            'resrouce_kwargs': {},
+                            'resource_kwargs': {'chunk_size': self.chunk_size},
                             'path_semantics': os.name,
                             'uid': self._resource_uid}
 
@@ -711,16 +711,6 @@ class DualAdcFS(TriggerAdc):
         if not self._ready_to_collect:
             raise RuntimeError("must called kickoff() method before calling complete()")
         
-        # HACK: Make datum documents here so that they are available for collect_asset_docs
-        # before collect() is called. May need changes to RE to do this properly. - Dan A.
-        self._datum_ids = []
-        datum_id = '{}/{}'.format(self._resource_uid,  next(self._datum_counter))
-        datum = {'resource': self._resource_uid,
-                 'datum_kwargs': {},
-                 'datum_id': datum_id}
-        self._asset_docs_cache.append(('datum', datum))
-        self._datum_ids.append(datum_id)
-        
         if self._twin_adc._complete_adc is False:
             # Stop adding new data to the file.
             #set_and_wait(self.enable_sel, 1)
@@ -736,7 +726,6 @@ class DualAdcFS(TriggerAdc):
     def collect(self):
         """
         Record a 'datum' document in the filestore database for each encoder.
-
         Return a dictionary with references to these documents.
         """
         print('Collect of {} starting'.format(self.name))
@@ -745,12 +734,29 @@ class DualAdcFS(TriggerAdc):
         # Create an Event document and a datum record in filestore for each line
         # in the text file.
         now = ttime.time()
+        ttime.sleep(1)  # wait for file to be written by pizza box
+        if os.path.isfile(self._full_path):
+            with open(self._full_path, 'r') as f:
+                linecount = 0
+                for ln in f:
+                    linecount += 1
 
-        for datum_id in self._datum_ids:
-            data = {self.name: datum_id}
-            yield {'data': data,
-                   'timestamps': {key: now for key in data}, 'time': now,
-                   'filled': {key: False for key in data}}
+            chunk_count = linecount // self.chunk_size + int(linecount % self.chunk_size != 0)
+            for chunk_num in range(chunk_count):
+        
+                datum_id = '{}/{}'.format(self._resource_uid,  next(self._datum_counter))
+                datum = {'resource': self._resource_uid,
+                         'datum_kwargs': {{'chunk_num': chunk_num,
+                                           'column' : self._column}},
+                         'datum_id': datum_id}
+                self._asset_docs_cache.append(('datum', datum))
+                data = {self.name: datum_uid}
+
+                yield {'data': data,
+                       'timestamps': {key: now for key in data}, 'time': now}
+        else:
+            print('collect {}: File was not created'.format(self.name))
+            print("filename : {}".format(self._full_path))
 
     def describe_collect(self):
         # TODO Return correct shape (array dims)
