@@ -591,7 +591,7 @@ class DualAdcFS(TriggerAdc):
     offset = FC(EpicsSignal, '{self._adc_read}}}Offset')
     dev_name = FC(EpicsSignal, '{self._adc_read}}}DevName')
 
-    def __init__(self, *args, adc_column, adc_read_name, twin_adc=None, reg,
+    def __init__(self, *args, adc_column, adc_read_name, twin_adc=None,
                  **kwargs):
         '''
             This is for a dual ADC system.
@@ -608,8 +608,10 @@ class DualAdcFS(TriggerAdc):
                     (for ex, adc6 and adc7 triggered using adc1, but adc6 is
                      what will put to adc1's trigger)
         '''
+        self._asset_docs_cache = deque()
+        self._resource_uid = None
+        self._datum_counter = None
         self._twin_adc = twin_adc
-        self._reg = reg
         self._column = adc_column
         self._adc_read = adc_read_name
         self._staged_adc = False
@@ -635,15 +637,23 @@ class DualAdcFS(TriggerAdc):
                 #DIRECTORY = "/nsls2/xf07bm/data/pb_data"
 
                 filename = 'an_' + str(uuid.uuid4())[:6]
-                self._full_path = os.path.join(DIRECTORY, filename)  # stash for future reference
+                full_path = make_filename(filename)
+                self._full_path = os.path.join(DIRECTORY, full_path)  # stash for future reference
                 print(">>>>>>>>>>>>>>> writing to {}".format(self._full_path))
 
                 self.filepath.put(self._full_path)
-                self.resource_uid = self._reg.register_resource(
-                    'PIZZABOX_AN_FILE_TXT',
-                    DIRECTORY, self._full_path,
-                    {'chunk_size': self.chunk_size})
+                self._resrouce_uid = str(uuid.uuid4())
+                resource = {'spec' : 'PIZZABOX_AN_FILE_TXT',
+                            'root' : DIRECTORY,
+                            'resource_path': full_path,
+                            'resrouce_kwargs': {},
+                            'path_semantics': os.name,
+                            'uid': self._resource_uid}
 
+                self._asset_docs_cache.append(('resource', resource))
+                self._datum_counter = itertools.count()
+                print('Staging of {} complete'.format(self.name))
+            
                 super().stage()
             else:
                 # don't stage, use twin's info
@@ -665,6 +675,7 @@ class DualAdcFS(TriggerAdc):
             self._staged_adc = False
             self._kickoff_adc = False
             self._complete_adc = False
+            self._datum_counter = None
             return super().unstage()
 
     def kickoff(self):
@@ -699,6 +710,17 @@ class DualAdcFS(TriggerAdc):
         if self._twin_adc._complete_adc is False:
             # Stop adding new data to the file.
             #set_and_wait(self.enable_sel, 1)
+            # HACK: Make datum documents here so that they are available for collect_asset_docs
+        # before collect() is called. May need changes to RE to do this properly. - Dan A.
+            self._datum_ids = []
+            datum_id = '{}/{}'.format(self._resource_uid,  next(self._datum_counter))
+            datum = {'resource': self._resource_uid,
+                     'datum_kwargs': {},
+                     'datum_id': datum_id}
+            self._asset_docs_cache.append(('datum', datum))
+
+            self._datum_ids.append(datum_id)
+            
             self.enable_sel.put(1)
             self._complete_adc = True
         else:
@@ -708,6 +730,7 @@ class DualAdcFS(TriggerAdc):
 
         return NullStatus()
 
+    '''
     def collect(self):
         """
         Record a 'datum' document in the filestore database for each encoder.
@@ -739,6 +762,27 @@ class DualAdcFS(TriggerAdc):
         else:
             print('collect {}: File was not created'.format(self.name))
             print("filename : {}".format(self._full_path))
+    '''
+
+    def collect(self):
+        """
+        Record a 'datum' document in the filestore database for each encoder.
+
+        Return a dictionary with references to these documents.
+        """
+        print('Collect of {} starting'.format(self.name))
+        self._ready_to_collect = False
+
+        # Create an Event document and a datum record in filestore for each line
+        # in the text file.
+        now = ttime.time()
+
+        for datum_id in self._datum_ids:
+            data = {self.name: datum_id}
+            yield {'data': data,
+                   'timestamps': {key: now for key in data}, 'time': now,
+                   'filled': {key: False for key in data}}
+
 
     def describe_collect(self):
         # TODO Return correct shape (array dims)
