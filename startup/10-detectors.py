@@ -2,6 +2,7 @@ print(__file__)
 import uuid
 from collections import namedtuple, deque
 import os
+import shutil
 import time as ttime
 from ophyd import (ProsilicaDetector, SingleTrigger, Component as Cpt, Device,
                    EpicsSignal, EpicsSignalRO, ImagePlugin, StatsPlugin, ROIPlugin,
@@ -117,7 +118,8 @@ def make_filename(filename):
 # TODO: Move this class to ophyd.
 class EncoderFS(Encoder):
     "Encoder Device, when read, returns references to data in filestore."
-    chunk_size = 1024
+    chunk_size = 2**20
+    write_path_template = '/nsls2/xf07bm/data/pizza_box_data/%Y/%m/%d/'
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -138,27 +140,28 @@ class EncoderFS(Encoder):
             print('Staging of {} starting'.format(self.name))
 
             filename = 'en_' + str(uuid.uuid4())[:8]
-
+            
+            DIRECTORY = datetime.now().strftime(self.write_path_template)
             # without the root, but with data path + date folders
             full_path = make_filename(filename)
             # with the root
-            self._full_path = os.path.join(ROOT_PATH, full_path)  # stash for future reference
+            self._full_path = os.path.join(DIRECTORY, full_path)  # stash for future reference
 
 
             # FIXME: Quick TEMPORARY fix for beamline disaster
             # we are writing the file to a temp directory in the ioc and
             # then moving it to the GPFS system.
             #
-            ioc_file_root = '/home/softioc/tmp/'
-            self._ioc_full_path = os.path.join(ioc_file_root, filename)
-            self._filename = filename
+            #ioc_file_root = '/home/softioc/tmp/'
+            #self._ioc_full_path = os.path.join(ioc_file_root, filename)
+            #self._filename = filename
 
-            #self.filepath.put(self._full_path)   # commented out during disaster
-            self.filepath.put(self._ioc_full_path)
+            self.filepath.put(self._full_path)   # commented out during disaster
+            #self.filepath.put(self._ioc_full_path)
 
             self._resource_uid = str(uuid.uuid4())
             resource = {'spec': 'PIZZABOX_ENC_FILE_TXT_PD',
-                        'root': ROOT_PATH,
+                        'root': DIRECTORY,
                         'resource_path': full_path,
                         'resource_kwargs': {},
                         'path_semantics': os.name,
@@ -197,10 +200,10 @@ class EncoderFS(Encoder):
 
         # FIXME: beam line disaster fix.
         # Let's move the file to the correct place
-        workstation_file_root = '/mnt/xf08ida-ioc1/'
-        workstation_full_path = os.path.join(workstation_file_root, self._filename)
-        print('Moving file from {} to {}'.format(workstation_full_path, self._full_path))
-        cp_stat = shutil.copy(workstation_full_path, self._full_path)
+        #workstation_file_root = '/mnt/xf08ida-ioc1/'
+        #workstation_full_path = os.path.join(workstation_file_root, self._filename)
+        #print('Moving file from {} to {}'.format(workstation_full_path, self._full_path))
+        #cp_stat = shutil.copy(workstation_full_path, self._full_path)
 
 
         # HACK: Make datum documents here so that they are available for collect_asset_docs
@@ -657,7 +660,7 @@ class DualAdcFS(TriggerAdc):
                 super().stage()
             else:
                 # don't stage, use twin's info
-                self._resource_uid = self._twin_adc.resource_uid
+                self._resource_uid = self._twin_adc._resource_uid
                 self._full_path = self._twin_adc._full_path
                 # reset twin
                 self._twin_adc._staged_adc = False
@@ -707,20 +710,20 @@ class DualAdcFS(TriggerAdc):
         print('complete', self.name, '| filepath', self._full_path)
         if not self._ready_to_collect:
             raise RuntimeError("must called kickoff() method before calling complete()")
+        
+        # HACK: Make datum documents here so that they are available for collect_asset_docs
+        # before collect() is called. May need changes to RE to do this properly. - Dan A.
+        self._datum_ids = []
+        datum_id = '{}/{}'.format(self._resource_uid,  next(self._datum_counter))
+        datum = {'resource': self._resource_uid,
+                 'datum_kwargs': {},
+                 'datum_id': datum_id}
+        self._asset_docs_cache.append(('datum', datum))
+        self._datum_ids.append(datum_id)
+        
         if self._twin_adc._complete_adc is False:
             # Stop adding new data to the file.
             #set_and_wait(self.enable_sel, 1)
-            # HACK: Make datum documents here so that they are available for collect_asset_docs
-        # before collect() is called. May need changes to RE to do this properly. - Dan A.
-            self._datum_ids = []
-            datum_id = '{}/{}'.format(self._resource_uid,  next(self._datum_counter))
-            datum = {'resource': self._resource_uid,
-                     'datum_kwargs': {},
-                     'datum_id': datum_id}
-            self._asset_docs_cache.append(('datum', datum))
-
-            self._datum_ids.append(datum_id)
-            
             self.enable_sel.put(1)
             self._complete_adc = True
         else:
@@ -729,40 +732,6 @@ class DualAdcFS(TriggerAdc):
             self._complete_adc = False
 
         return NullStatus()
-
-    '''
-    def collect(self):
-        """
-        Record a 'datum' document in the filestore database for each encoder.
-
-        Return a dictionary with references to these documents.
-        """
-        print('collect', self.name)
-        self._ready_to_collect = False
-
-        # Create an Event document and a datum record in filestore for each line
-        # in the text file.
-        now = ttime.time()
-        ttime.sleep(1)  # wait for file to be written by pizza box
-        if os.path.isfile(self._full_path):
-            with open(self._full_path, 'r') as f:
-                linecount = 0
-                for ln in f:
-                    linecount += 1
-
-            chunk_count = linecount // self.chunk_size + int(linecount % self.chunk_size != 0)
-            for chunk_num in range(chunk_count):
-                datum_uid = self._reg.register_datum(self.resource_uid,
-                                                     {'chunk_num': chunk_num,
-                                                      'column' : self._column})
-                data = {self.name: datum_uid}
-
-                yield {'data': data,
-                       'timestamps': {key: now for key in data}, 'time': now}
-        else:
-            print('collect {}: File was not created'.format(self.name))
-            print("filename : {}".format(self._full_path))
-    '''
 
     def collect(self):
         """
@@ -781,8 +750,6 @@ class DualAdcFS(TriggerAdc):
             data = {self.name: datum_id}
             yield {'data': data,
                    'timestamps': {key: now for key in data}, 'time': now,
-                   'filled': {key: False for key in data}}
-
 
     def describe_collect(self):
         # TODO Return correct shape (array dims)
