@@ -5,6 +5,9 @@ import functools
 import isstools.xlive
 import collections
 import atexit
+
+import PyQt5
+
 from bluesky.examples import motor
 motor.move = motor.set
 
@@ -45,6 +48,8 @@ shutters_dictionary = {
 sample_stages = [{'x': sample_stage1.x.name, 'y': sample_stage1.y.name}]
 
 print(mono1)
+
+newApp = PyQt5.QtWidgets.QApplication(sys.argv)
 
 xlive_gui = isstools.xlive.XliveGui(plan_funcs=[tscan, tscan_xs3, get_offsets, xs_count],
                                     prep_traj_plan=prep_traj_plan,
