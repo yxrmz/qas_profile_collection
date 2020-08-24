@@ -657,7 +657,7 @@ class DualAdcFS(TriggerAdc):
                 super().stage()
             else:
                 # don't stage, use twin's info
-                self.resource_uid = self._twin_adc.resource_uid
+                self._resource_uid = self._twin_adc.resource_uid
                 self._full_path = self._twin_adc._full_path
                 # reset twin
                 self._twin_adc._staged_adc = False
@@ -860,22 +860,22 @@ class PizzaBoxDualAnalogFS(Device):
         pizza boxes. Some care must be taken to modify the plans and the GUI if
         doing this.
     '''
-    adc3 = Cpt(DualAdcFS, 'ADC:1', reg=db.reg,
+    adc3 = Cpt(DualAdcFS, 'ADC:1',
                adc_column=0, adc_read_name="XF:07BMB-CT{GP2-ADC:3")
-    adc4 = Cpt(DualAdcFS, 'ADC:1', reg=db.reg,
+    adc4 = Cpt(DualAdcFS, 'ADC:1',
                adc_column=1, adc_read_name="XF:07BMB-CT{GP2-ADC:4")
 
     # second pair
     # if using both, one must be master, the other slave
-    adc5 = Cpt(DualAdcFS, 'ADC:6', reg=db.reg,
+    adc5 = Cpt(DualAdcFS, 'ADC:6',
                adc_column=0, adc_read_name="XF:07BMB-CT{GP2-ADC:5")
-    adc6 = Cpt(DualAdcFS, 'ADC:6', reg=db.reg,
+    adc6 = Cpt(DualAdcFS, 'ADC:6',
                adc_column=1, adc_read_name="XF:07BMB-CT{GP2-ADC:6")
 
     # third pair
-    adc7 = Cpt(DualAdcFS, 'ADC:7', reg=db.reg,
+    adc7 = Cpt(DualAdcFS, 'ADC:7',
                adc_column=0, adc_read_name="XF:07BMB-CT{GP2-ADC:7")
-    adc8 = Cpt(DualAdcFS, 'ADC:7', reg=db.reg,
+    adc8 = Cpt(DualAdcFS, 'ADC:7',
                adc_column=1, adc_read_name="XF:07BMB-CT{GP2-ADC:8")
 
 
