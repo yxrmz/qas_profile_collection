@@ -238,7 +238,8 @@ class EncoderFS(Encoder):
         for datum_id in self._datum_ids:
             data = {self.name: datum_id}
             yield {'data': data,
-                   'timestamps': {key: now for key in data}, 'time': now,
+                   'timestamps': {key: now for key in data},
+                   'time': now,
                    'filled': {key: False for key in data}}
         print('Collect of {} complete'.format(self.name))
 
@@ -958,4 +959,3 @@ print("done")
 #pba1.adc7.dev_name.put('it')
 
 # cludge for now
-
