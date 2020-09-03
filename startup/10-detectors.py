@@ -164,7 +164,7 @@ class EncoderFS(Encoder):
                         'root': DIRECTORY,
                         'resource_path': full_path,
                         'resource_kwargs': {'chunk_size': self.chunk_size},
-                        'path_semantics': os.name,
+                        'path_semantics': {'posix': 'posix', 'nt': 'windows'}[os.name]}
                         'uid': self._resource_uid}
             self._asset_docs_cache.append(('resource', resource))
             self._datum_counter = itertools.count()
@@ -958,5 +958,4 @@ print("done")
 #pba1.adc7.dev_name.put('it')
 
 # cludge for now
-
 
