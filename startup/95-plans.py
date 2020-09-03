@@ -113,17 +113,17 @@ def execute_trajectory(name, ignore_shutter=True, **metadata):
 
     def inner():
         interp_fn = f"{ROOT_PATH}/{USER_FILEPATH}/{RE.md['year']}/{RE.md['cycle']}/{RE.md['PROPOSAL']}/{name}.raw"
-        curr_traj = getattr(mono1, 'traj{:.0f}'.format(mono1.lut_number_rbv.value))
+        curr_traj = getattr(mono1, 'traj{:.0f}'.format(mono1.lut_number_rbv.get()))
         md = {'plan_args': {},
               'plan_name': 'execute_trajectory',
               'experiment': 'fly_energy_scan',
               'name': name,
               'interp_filename': interp_fn,
-              'angle_offset': str(mono1.angle_offset.value),
-              'trajectory_name': mono1.trajectory_name.value,
-              'element': curr_traj.elem.value,
-              'edge': curr_traj.edge.value,
-              'e0': curr_traj.e0.value,
+              'angle_offset': str(mono1.angle_offset.get()),
+              'trajectory_name': mono1.trajectory_name.get(),
+              'element': curr_traj.elem.get(),
+              'edge': curr_traj.edge.get(),
+              'e0': curr_traj.e0.get(),
               'foil_element': [foil_elem],
               'pulses_per_deg': mono1.pulses_per_deg,
               'keithley_gainsB': [i0_gainB, it_gainB, ir_gainB, iff_gainB],
@@ -136,7 +136,7 @@ def execute_trajectory(name, ignore_shutter=True, **metadata):
 
         for flyer in flyers:
             if hasattr(flyer, 'offset'):
-                md['{} offset'.format(flyer.name)] = flyer.offset.value
+                md['{} offset'.format(flyer.name)] = flyer.offset.get()
         md.update(**metadata)
         yield from bps.open_run(md=md)
 
@@ -188,7 +188,7 @@ def execute_trajectory_xs3(name, ignore_shutter=True, **metadata):
     flyers = [pba1.adc3, pba1.adc4, pba1.adc5, pba1.adc6, pba1.adc7, pba1.adc8, pb1.enc1]
 
     interp_fn = f"{ROOT_PATH}/{USER_FILEPATH}/{RE.md['year']}/{RE.md['cycle']}/{RE.md['PROPOSAL']}/{name}.raw"
-    curr_traj = getattr(mono1, 'traj{:.0f}'.format(mono1.lut_number_rbv.value))
+    curr_traj = getattr(mono1, 'traj{:.0f}'.format(mono1.lut_number_rbv.get()))
 
     # wip terrible hack
     roi1_ch1_lo = xs.channel1.rois.roi01.bin_low.get()
@@ -240,11 +240,11 @@ def execute_trajectory_xs3(name, ignore_shutter=True, **metadata):
           'name': name,
           'interp_filename': interp_fn,
           'xs3_filename': xs_fn,
-          'angle_offset': str(mono1.angle_offset.value),
-          'trajectory_name': mono1.trajectory_name.value,
-          'element': curr_traj.elem.value,
-          'edge': curr_traj.edge.value,
-          'e0': curr_traj.e0.value,
+          'angle_offset': str(mono1.angle_offset.get()),
+          'trajectory_name': mono1.trajectory_name.get(),
+          'element': curr_traj.elem.get(),
+          'edge': curr_traj.edge.get(),
+          'e0': curr_traj.e0.get(),
           'pulses_per_deg': mono1.pulses_per_deg,
           'rois': [[roi1_ch1_lo, roi1_ch1_hi, roi2_ch1_lo, roi2_ch1_hi, roi3_ch1_lo, roi3_ch1_hi, roi4_ch1_lo, roi4_ch1_hi],
                    [roi1_ch2_lo, roi1_ch2_hi, roi2_ch2_lo, roi2_ch2_hi, roi3_ch2_lo, roi3_ch2_hi, roi4_ch2_lo, roi4_ch2_hi],
@@ -252,7 +252,7 @@ def execute_trajectory_xs3(name, ignore_shutter=True, **metadata):
                    [roi1_ch4_lo, roi1_ch4_hi, roi2_ch4_lo, roi2_ch4_hi, roi3_ch4_lo, roi3_ch4_hi, roi4_ch4_lo, roi4_ch4_hi]]}
     for flyer in flyers:
         if hasattr(flyer, 'offset'):
-            md['{} offset'.format(flyer.name)] = flyer.offset.value
+            md['{} offset'.format(flyer.name)] = flyer.offset.get()
     md.update(metadata)
     RE.md.update(md)
     yield from xs_plan()
@@ -271,7 +271,7 @@ def get_offsets_plan(detectors, num = 1, name = '', **metadata):
 
     def set_offsets():
         for flyer in flyers:
-            ret = flyer.volt.value
+            ret = flyer.volt.get()
             yield from bps.abs_set(flyer.offset, ret, wait=True)
 
     yield from bpp.fly_during_wrapper(bpp.finalize_wrapper(plan, set_offsets()), flyers)

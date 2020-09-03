@@ -171,7 +171,7 @@ def get_offsets(num:int = 20, *args, **kwargs):
         offsets.append(offset)
         if 'dummy_read' not in kwargs:
             adc.offset.put(offset)
-            print('{}\nMean ({}) = {}'.format(array, adc.dev_name.value, offset))
+            print('{}\nMean ({}) = {}'.format(array, adc.dev_name.get(), offset))
         adc.averaging_points.put(old_avers[index])
     
     run = db[uid]
@@ -184,15 +184,15 @@ def get_offsets(num:int = 20, *args, **kwargs):
     if 'dummy_read' in kwargs:
         print_message = ''
         for index, adc in enumerate(adcs):
-            print('Mean ({}) = {}'.format(adc.dev_name.value, offsets[index]))
+            print('Mean ({}) = {}'.format(adc.dev_name.get(), offsets[index]))
 
-            saturation = adc.dev_saturation.value
+            saturation = adc.dev_saturation.get()
 
             if adc.polarity == 'neg':
                 if offsets[index] > saturation/100:
-                    print_message += 'Increase {} gain by 10^2\n'.format(adc.dev_name.value)
+                    print_message += 'Increase {} gain by 10^2\n'.format(adc.dev_name.get())
                 elif offsets[index] <= saturation/100 and offsets[index] > saturation/10:
-                    print_message += 'Increase {} gain by 10^1\n'.format(adc.dev_name.value)
+                    print_message += 'Increase {} gain by 10^1\n'.format(adc.dev_name.get())
         print('-' * 30)
         print(print_message[:-1])
         print('-' * 30)

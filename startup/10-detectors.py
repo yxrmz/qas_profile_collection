@@ -164,7 +164,7 @@ class EncoderFS(Encoder):
                         'root': DIRECTORY,
                         'resource_path': full_path,
                         'resource_kwargs': {'chunk_size': self.chunk_size},
-                        'path_semantics': {'posix': 'posix', 'nt': 'windows'}[os.name]}
+                        'path_semantics': {'posix': 'posix', 'nt': 'windows'}[os.name],
                         'uid': self._resource_uid}
             self._asset_docs_cache.append(('resource', resource))
             self._datum_counter = itertools.count()
@@ -248,7 +248,7 @@ class EncoderFS(Encoder):
         now = ttime.time()
         return {self.name: {self.name:
                      {'filename': self._full_path,
-                      'devname': self.dev_name.value,
+                      'devname': self.dev_name.get(),
                       'source': 'pizzabox-enc-file',
                       'external': 'FILESTORE:',
                       'shape': [-1, -1],
@@ -377,7 +377,7 @@ class DIFS(DigitalInput):
         now = ttime.time()
         return {self.name: {self.name:
                      {'filename': self._full_path,
-                      'devname': self.dev_name.value,
+                      'devname': self.dev_name.get(),
                       'source': 'pizzabox-di-file',
                       'external': 'FILESTORE:',
                       'shape': [1024, 5],
@@ -464,7 +464,7 @@ class TriggerAdc(Device):
             #self.enable_sel.put(1)
             #self.sample_rate.put(350)
             self.enable_averaging.put(1)
-            if self.averaging_points.value == 0:
+            if self.averaging_points.get() == 0:
                 self.averaging_points.put("1024")
         #except Exception as exc:
         #    pass
@@ -569,7 +569,7 @@ class AdcFS(Adc):
         now = ttime.time()
         return {self.name: {self.name:
                      {'filename': self._full_path,
-                      'devname': self.dev_name.value,
+                      'devname': self.dev_name.get(),
                       'source': 'pizzabox-adc-file',
                       'external': 'FILESTORE:',
                       'shape': [5,],
@@ -652,7 +652,7 @@ class DualAdcFS(TriggerAdc):
                             'root' : DIRECTORY,
                             'resource_path': full_path,
                             'resource_kwargs': {'chunk_size': self.chunk_size},
-                        'path_semantics': {'posix': 'posix', 'nt': 'windows'}[os.name]}
+                            'path_semantics': {'posix': 'posix', 'nt': 'windows'}[os.name],
                             'uid': self._resource_uid}
 
                 self._asset_docs_cache.append(('resource', resource))
@@ -747,8 +747,8 @@ class DualAdcFS(TriggerAdc):
         
                 datum_id = '{}/{}'.format(self._resource_uid,  next(self._datum_counter))
                 datum = {'resource': self._resource_uid,
-                         'datum_kwargs': {{'chunk_num': chunk_num,
-                                           'column' : self._column}},
+                         'datum_kwargs': {'chunk_num': chunk_num,
+                                           'column' : self._column},
                          'datum_id': datum_id}
                 self._asset_docs_cache.append(('datum', datum))
                 data = {self.name: datum_uid}
@@ -764,7 +764,7 @@ class DualAdcFS(TriggerAdc):
         now = ttime.time()
         return {self.name: {self.name:
                      {'filename': self._full_path,
-                      'devname': self.dev_name.value,
+                      'devname': self.dev_name.get(),
                       'source': 'pizzabox-adc-file',
                       'external': 'FILESTORE:',
                       'shape': [5,],
