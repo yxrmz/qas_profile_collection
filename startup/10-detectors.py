@@ -138,16 +138,16 @@ class EncoderFS(Encoder):
 
         if self.connected:
             print('Staging of {} starting'.format(self.name))
+            #write_path_template = '/nsls2/xf07bm/data/pizza_box_data/%Y/%m/%d/'
 
-            filename = 'en_' + str(uuid.uuid4())[:8]
-            
-            DIRECTORY = datetime.now().strftime(self.write_path_template)
+            filename = 'en_' + str(uuid.uuid4())[:6]
+            write_path_template = os.path.join('pizza_box_data/%Y/%m/%d', filename)
+            # path without the root
+            resource_path = datetime.now().strftime(write_path_template)
+            filepath = os.path.join(ROOT_PATH, RAW_FILEPATH, resource_path)
+                
             # without the root, but with data path + date folders
-            full_path = make_filename(filename)
-            # with the root
-            self._full_path = os.path.join(DIRECTORY, full_path)  # stash for future reference
-
-
+            self._full_path = filepath
             # FIXME: Quick TEMPORARY fix for beamline disaster
             # we are writing the file to a temp directory in the ioc and
             # then moving it to the GPFS system.
@@ -161,14 +161,14 @@ class EncoderFS(Encoder):
 
             self._resource_uid = str(uuid.uuid4())
             resource = {'spec': 'PIZZABOX_ENC_FILE_TXT',
-                        'root': DIRECTORY,
-                        'resource_path': full_path,
+                        'root': os.path.join(ROOT_PATH, RAW_FILEPATH),
+                        'resource_path': resource_path,
                         'resource_kwargs': {'chunk_size': self.chunk_size},
                         'path_semantics': {'posix': 'posix', 'nt': 'windows'}[os.name],
                         'uid': self._resource_uid}
             self._asset_docs_cache.append(('resource', resource))
             self._datum_counter = itertools.count()
-
+            
             super().stage()
             print('Staging of {} complete'.format(self.name))
 
@@ -559,7 +559,9 @@ class AdcFS(Adc):
                 data = {self.name: datum_uid}
 
                 yield {'data': data,
-                       'timestamps': {key: now for key in data}, 'time': now}
+                       'timestamps': {key: now for key in data},
+                       'time': now,
+                       'filled': {key: False for key in data}}
         else:
             print('collect {}: File was not created'.format(self.name))
             print("filename : {}".format(self._full_path))
@@ -623,6 +625,13 @@ class DualAdcFS(TriggerAdc):
         self._complete_adc = False
         super().__init__(*args, **kwargs)
 
+
+    def collect_asset_docs(self):
+        items = list(self._asset_docs_cache)
+        self._asset_docs_cache.clear()
+        for item in items:
+            yield item
+
     def stage(self):
         "Set the filename and record it in a 'resource' document in the filestore database."
 
@@ -638,23 +647,23 @@ class DualAdcFS(TriggerAdc):
                 self._staged_adc = True
 
                 print(self.name, 'stage')
-                DIRECTORY = datetime.now().strftime(self.write_path_template)
-                #DIRECTORY = "/nsls2/xf07bm/data/pb_data"
-
                 filename = 'an_' + str(uuid.uuid4())[:6]
-                full_path = make_filename(filename)
-                self._full_path = os.path.join(DIRECTORY, full_path)  # stash for future reference
+                write_path_template = os.path.join('pizza_box_data/%Y/%m/%d', filename)
+                resource_path = datetime.now().strftime(write_path_template)
+                filepath = os.path.join(ROOT_PATH, RAW_FILEPATH, resource_path)
+                self._full_path = filepath
+
                 print(">>>>>>>>>>>>>>> writing to {}".format(self._full_path))
 
                 self.filepath.put(self._full_path)
                 self._resource_uid = str(uuid.uuid4())
                 resource = {'spec' : 'PIZZABOX_AN_FILE_TXT',
-                            'root' : DIRECTORY,
-                            'resource_path': full_path,
+                            'root' : os.path.join(ROOT_PATH, RAW_FILEPATH),
+                            'resource_path': resource_path,
                             'resource_kwargs': {'chunk_size': self.chunk_size},
                             'path_semantics': {'posix': 'posix', 'nt': 'windows'}[os.name],
                             'uid': self._resource_uid}
-
+                print("RESOURCE!!!!!!!!!!!", resource)
                 self._asset_docs_cache.append(('resource', resource))
                 print('Staging of {} complete'.format(self.name))
             
@@ -751,7 +760,7 @@ class DualAdcFS(TriggerAdc):
                                            'column' : self._column},
                          'datum_id': datum_id}
                 self._asset_docs_cache.append(('datum', datum))
-                data = {self.name: datum_uid}
+                data = {self.name: datum_id}
 
                 yield {'data': data,
                        'timestamps': {key: now for key in data}, 'time': now}
