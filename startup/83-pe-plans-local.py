@@ -34,7 +34,7 @@ def pe_count(filename='', exposure = 1, num_images:int = 1, num_dark_images:int 
             yield from bps.mv(pe1.num_dark_images ,num_dark_images )
             yield from bps.mv(pe1.cam.image_mode, 'Average')
             yield from bps.mv(shutter_fs, 'Close')
-            yield from bps.sleep(0.5)
+            yield from bps.sleep(1.0)
             yield from bps.mv(pe1.tiff.file_write_mode, 'Single')
             yield from bps.mv(pe1c, 'acquire_dark')
             yield from bps.mv(pe1.tiff.write_file, 1)
@@ -45,7 +45,7 @@ def pe_count(filename='', exposure = 1, num_images:int = 1, num_dark_images:int 
         yield from bps.mv(pe1.cam.num_images,num_images)
     
         yield from bps.mv(shutter_fs, 'Open')
-        yield from bps.sleep(0.5)
+        yield from bps.sleep(1.0)
     
         ## Below 'Capture' mode is used with 'Multiple' image_mode
         #yield from bps.mv(pe1.tiff.file_write_mode, 'Capture')
