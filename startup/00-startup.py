@@ -1,9 +1,13 @@
 print(__file__)
 import nslsii
 
+from databroker.v0 import Broker
+
 beamline_id = 'qas'
 
-nslsii.configure_base(get_ipython().user_ns, beamline_id, bec=False)
+db = Broker.named(beamline_id)
+
+nslsii.configure_base(get_ipython().user_ns, db, bec=False)
 
 
 # At the end of every run, verify that files were saved and
