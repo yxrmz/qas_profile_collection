@@ -259,6 +259,8 @@ class DigitalOutput(Device):
     """ DigitalOutput """
     enable = Cpt(EpicsSignal, '}Ena-Cmd')
     period_sp = Cpt(EpicsSignal, '}Period-SP')
+    unit_sel = Cpt(EpicsSignal, '}Unit-Sel')
+    dutycycle_sp = Cpt(EpicsSignal, '}DutyCycle-SP')
     default_pol = Cpt(EpicsSignal, '}Dflt-Sel')
 
     def __init__(self, *args, reg, **kwargs):
