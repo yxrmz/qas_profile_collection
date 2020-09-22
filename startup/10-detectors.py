@@ -213,7 +213,7 @@ class EncoderFS(Encoder):
 
         datum_id = '{}/{}'.format(self._resource_uid,  next(self._datum_counter))
         datum = {'resource': self._resource_uid,
-                 'datum_kwargs': {},
+                 'datum_kwargs': {"chunk_num": 0},
                  'datum_id': datum_id}
         self._asset_docs_cache.append(('datum', datum))
 
@@ -234,7 +234,7 @@ class EncoderFS(Encoder):
         # in the text file.
         now = ttime.time()
         #ttime.sleep(1)  # wait for file to be written by pizza box
-
+        #breakpoint()
         for datum_id in self._datum_ids:
             data = {self.name: datum_id}
             yield {'data': data,
@@ -259,8 +259,6 @@ class DigitalOutput(Device):
     """ DigitalOutput """
     enable = Cpt(EpicsSignal, '}Ena-Cmd')
     period_sp = Cpt(EpicsSignal, '}Period-SP')
-    unit_sel = Cpt(EpicsSignal, '}Unit-Sel')
-    dutycycle_sp = Cpt(EpicsSignal, '}DutyCycle-SP')
     default_pol = Cpt(EpicsSignal, '}Dflt-Sel')
 
     def __init__(self, *args, reg, **kwargs):
@@ -624,10 +622,11 @@ class DualAdcFS(TriggerAdc):
         self._kickoff_adc = False
         self._complete_adc = False
         super().__init__(*args, **kwargs)
-
+        self._data_docs_cache = deque()
 
     def collect_asset_docs(self):
         items = list(self._asset_docs_cache)
+        print(f"DOCS!!! for DualAdcFS {self}", items)
         self._asset_docs_cache.clear()
         for item in items:
             yield item
@@ -641,9 +640,9 @@ class DualAdcFS(TriggerAdc):
             if self._twin_adc is None:
                 raise ValueError("Error a twin ADC must be given")
 
-            self._datum_counter = itertools.count()
             # if twin didnt stage yet, stage
             if not self._twin_adc._staged_adc:
+                self._datum_counter = itertools.count()
                 self._staged_adc = True
 
                 print(self.name, 'stage')
@@ -666,9 +665,10 @@ class DualAdcFS(TriggerAdc):
                 print("RESOURCE!!!!!!!!!!!", resource)
                 self._asset_docs_cache.append(('resource', resource))
                 print('Staging of {} complete'.format(self.name))
-            
+     
                 super().stage()
             else:
+                self._datum_counter = self._twin_adc._datum_counter
                 # don't stage, use twin's info
                 self._resource_uid = self._twin_adc._resource_uid
                 self._full_path = self._twin_adc._full_path
@@ -714,9 +714,30 @@ class DualAdcFS(TriggerAdc):
             st = Status()
             st._finished()
             return st
+
+    def generate_those_documents(self):
        
+        now = ttime.time()
+        ttime.sleep(1)  # wait for file to be written by pizza box
+        #if os.path.isfile(self._full_path):
+        with open(self._full_path, 'r') as f:
+            linecount = 0
+            for ln in f:
+                linecount += 1
+        chunk_count = linecount // self.chunk_size + int(linecount % self.chunk_size != 0)
+        for chunk_num in range(chunk_count):
+    
+            datum_id = '{}/{}'.format(self._resource_uid,  next(self._datum_counter))
+            datum = {'resource': self._resource_uid,
+                     'datum_kwargs': {'chunk_num': chunk_num,
+                                      'column' : self._column},
+                     'datum_id': datum_id}
+            self._asset_docs_cache.append(('datum', datum))
+            data = {self.name: datum_id}
+            self._data_docs_cache.append(data)
 
     def complete(self):
+        
         print('complete', self.name, '| filepath', self._full_path)
         if not self._ready_to_collect:
             raise RuntimeError("must called kickoff() method before calling complete()")
@@ -731,6 +752,9 @@ class DualAdcFS(TriggerAdc):
             self._twin_adc._complete_adc = False
             self._complete_adc = False
 
+        ttime.sleep(1)
+        self.generate_those_documents()
+
         return NullStatus()
 
     def collect(self):
@@ -744,29 +768,32 @@ class DualAdcFS(TriggerAdc):
         # Create an Event document and a datum record in filestore for each line
         # in the text file.
         now = ttime.time()
-        ttime.sleep(1)  # wait for file to be written by pizza box
-        if os.path.isfile(self._full_path):
-            with open(self._full_path, 'r') as f:
-                linecount = 0
-                for ln in f:
-                    linecount += 1
-
-            chunk_count = linecount // self.chunk_size + int(linecount % self.chunk_size != 0)
-            for chunk_num in range(chunk_count):
-        
-                datum_id = '{}/{}'.format(self._resource_uid,  next(self._datum_counter))
-                datum = {'resource': self._resource_uid,
-                         'datum_kwargs': {'chunk_num': chunk_num,
-                                           'column' : self._column},
-                         'datum_id': datum_id}
-                self._asset_docs_cache.append(('datum', datum))
-                data = {self.name: datum_id}
-
-                yield {'data': data,
+        #ttime.sleep(1)  # wait for file to be written by pizza box
+        #if os.path.isfile(self._full_path):
+        #    with open(self._full_path, 'r') as f:
+        #        linecount = 0
+        #        for ln in f:
+        #            linecount += 1
+            #breakpoint()
+            #chunk_count = linecount // self.chunk_size + int(linecount % self.chunk_size != 0)
+            #for chunk_num in range(chunk_count):
+            #
+            #    datum_id = '{}/{}'.format(self._resource_uid,  next(self._datum_counter))
+            #    datum = {'resource': self._resource_uid,
+            #             'datum_kwargs': {'chunk_num': chunk_num,
+            #                               'column' : self._column},
+            #             'datum_id': datum_id}
+            #    self._asset_docs_cache.append(('datum', datum))
+#    data = {self.name: datum_id}
+        print(f"DualAdcFS.collect: {len(self._data_docs_cache)}")
+        for data in self._data_docs_cache:
+            yield {'data': data,
                        'timestamps': {key: now for key in data}, 'time': now}
-        else:
-            print('collect {}: File was not created'.format(self.name))
-            print("filename : {}".format(self._full_path))
+        
+        self._data_docs_cache.clear()
+        #else:
+        #    print('collect {}: File was not created'.format(self.name))
+        #    print("filename : {}".format(self._full_path))
 
     def describe_collect(self):
         # TODO Return correct shape (array dims)
@@ -778,6 +805,7 @@ class DualAdcFS(TriggerAdc):
                       'external': 'FILESTORE:',
                       'shape': [5,],
                       'dtype': 'array'}}}
+
 
 class PizzaBoxAnalogFS(Device):
     #internal_ts_sel = Cpt(EpicsSignal, 'Gen}T:Internal-Sel')
@@ -921,6 +949,12 @@ class PizzaBoxDualAnalogFS(Device):
         devices = self._get_active_devices()
         for device in devices:
             yield from device.collect()
+
+    def collect_asset_docs(self):
+        print(f"PizzaBox collect_asset_docs")
+        devices = self._get_active_devices()
+        for device in devices:
+            yield from device.collect_asset_docs()
 
 
 print("init 6 chan pizza box")
