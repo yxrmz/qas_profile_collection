@@ -122,6 +122,12 @@ class Monochromator(Device):
 mono1 = Monochromator('XF:07BMA-OP{', enc = pb1.enc1, name='mono1')
 mono1.energy.kind = 'hinted'
 mono1.bragg.kind = 'hinted'
+
+# Fix for the 'object' value instead of 0 or 1 in callbacks.
+mono1.wait_for_connection()
+_ = mono1.trajectory_ready.read()
+_ = mono1.trajectory_running.read()
+
 #mono1.pulses_per_deg = 23600*400/360
 # set the angle offset to corret for the energy offset
 # mono1.angle_offset.set(-0.14881166238)

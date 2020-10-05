@@ -155,13 +155,16 @@ class QASXspress3Detector(XspressTrigger, Xspress3Detector):
 
     def complete(self, *args, **kwargs):
         for resource in self.hdf5._asset_docs_cache:
+            print(f'  resource in "complete": {resource}')
             self._asset_docs_cache.append(('resource', resource[1]))
+        print(f'complete in {self.name}: {self._asset_docs_cache}')
 
         self._datum_ids = []
 
         num_frames = xs.hdf5.num_captured.get()
 
         for frame_num in range(num_frames):
+            print(f'  frame_num in "complete": {frame_num} / {num_frames}')
             datum_id = '{}/{}'.format(self.hdf5._resource_uid, next(self._datum_counter))
             datum = {'resource': self.hdf5._resource_uid,
                      'datum_kwargs': {'frame': frame_num},
@@ -212,6 +215,8 @@ class QASXspress3Detector(XspressTrigger, Xspress3Detector):
 
         num_frames = min(len_di_timestamps, len_datum_ids)
         for frame_num in range(num_frames):
+            print(f'  frame_num in "collect": {frame_num} / {num_frames}')
+
             datum_id = self._datum_ids[frame_num]
             ts = di_timestamps[frame_num]
 
@@ -489,11 +494,16 @@ class XSFlyer:
         return return_dict
 
     def collect_asset_docs(self):
+        yield from self.motor_ts.collect_asset_docs()
+
+        # TODO: rework the device to implement this method.
+        # yield from self.di.collect_asset_docs()
+
+        for an_det in self.an_dets:
+            yield from an_det.collect_asset_docs()
+
         for xs_det in self.xs_dets:
             yield from xs_det.collect_asset_docs()
-        #TODO: Investigate below
-        # for an_det in self.an_dets:
-        #     yield from an_det.collect_asset_docs()
 
     def collect(self):
         for xs_det in self.xs_dets:
@@ -505,9 +515,13 @@ class XSFlyer:
 
         def collect_all():
             yield from self.motor_ts.collect()
-            yield from self.di.collect()
+
+            # see the TODO above in collect_asset_docs().
+            # yield from self.di.collect()
+
             for an_det in self.an_dets:
                 yield from an_det.collect()
+
             for xs_det in self.xs_dets:
                 yield from xs_det.collect()
 

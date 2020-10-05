@@ -1,13 +1,19 @@
 print(__file__)
 import nslsii
 
-from databroker.v0 import Broker
+import ophyd
+try:
+    ophyd.EpicsSignal.set_default_timeout(timeout=10, connection_timeout=10)
+except AttributeError:
+    pass
 
 beamline_id = 'qas'
 
+from databroker.v0 import Broker
 db = Broker.named(beamline_id)
-
 nslsii.configure_base(get_ipython().user_ns, db, bec=False)
+
+# nslsii.configure_base(get_ipython().user_ns, beamline_id, bec=False)
 
 
 # At the end of every run, verify that files were saved and
@@ -27,11 +33,10 @@ import numpy as np
 
 from pyOlog.ophyd_tools import *
 
-# Uncomment the following lines to turn on verbose messages for
-# debugging.
+# Temporary fix before it's fixed in ophyd
 import logging
-# ophyd.logger.setLevel(logging.DEBUG)
-# logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger('ophyd')
+logger.setLevel('WARNING')
 
 import os
 import sys
