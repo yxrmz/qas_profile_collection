@@ -1,6 +1,7 @@
 print(__file__)
 from ophyd import EpicsMotor, Device, Component as Cpt, EpicsSignal
 from ophyd.status import SubscriptionStatus
+import time as ttime
 
 
 class SampleStage(Device):
@@ -71,30 +72,36 @@ class Monochromator(Device):
         super().__init__(*args, **kwargs)
         self.pulses_per_deg = 1/self.main_motor_res.get()
         self.enc = enc
-        self._preparing = None
-        self._starting = None
+        # self._preparing = None
+        # self._starting = None
 
     def set(self, command):
         if command == 'prepare':
 
             # This function will receive Events from the IOC and check whether
             # we are seeing the trajectory_ready go low after having been high.
+            # def callback(value, old_value, **kwargs):
+            #     if int(round(old_value)) == 1 and int(round(value)) == 0:
+            #         if self._preparing or self._preparing is None:
+            #             self._preparing = False
+            #             return True
+            #         else:
+            #             self._preparing = True
+            #     return False
+
+            # This is a simpler callback to work more reliably with collection-2020-2.0rc7-1.
             def callback(value, old_value, **kwargs):
-                if int(round(old_value)) == 1 and int(round(value)) == 0:
-                    if self._preparing or self._preparing is None:
-                        self._preparing = False
-                        return True
-                    else:
-                        self._preparing = True
+                if old_value == 1 and value == 0:
+                    return True
                 return False
 
             # Creating this status object subscribes `callback` Events from the
             # IOC. Starting at this line, we are now listening for the IOC to
             # tell us it is done. When it does, this status object will
             # complete (status.done = True).
-            status = SubscriptionStatus(self.trajectory_ready, callback)
+            status = SubscriptionStatus(self.trajectory_ready, callback, run=False)
 
-            # Finally, now that we are litsening to the IOC, prepare the
+            # Finally, now that we are listening to the IOC, prepare the
             # trajectory.
             self.prepare_trajectory.set('1')  # Yes, the IOC requires a string.
 
@@ -104,16 +111,22 @@ class Monochromator(Device):
 
         if command == 'start':
 
+            # def callback(value, old_value, **kwargs):
+            #     if int(round(old_value)) == 1 and int(round(value)) == 0:
+            #         if self._starting or self._starting is None:
+            #             self._starting = False
+            #             return True
+            #         else:
+            #             self._starting = True
+            #     return False
+
+            # This is a simpler callback to work more reliably with collection-2020-2.0rc7-1.
             def callback(value, old_value, **kwargs):
-                if int(round(old_value)) == 1 and int(round(value)) == 0:
-                    if self._starting or self._starting is None:
-                        self._starting = False
-                        return True
-                    else:
-                        self._starting = True
+                if old_value == 1 and value == 0:
+                    return True
                 return False
 
-            status = SubscriptionStatus(self.trajectory_running, callback)
+            status = SubscriptionStatus(self.trajectory_running, callback, run=False)
             self.start_trajectory.set('1')
 
             return status

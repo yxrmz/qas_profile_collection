@@ -568,5 +568,7 @@ xsflyer_pb2 = XSFlyer(pb=pb2,
 
 
 def xs_plan():
-    yield from bps.mv(xsflyer_pb2.motor, 'prepare')
+    # This is used in the "execute_trajectory_xs3" plan, and we should not 'prepare' twice
+    # (first via the "prep_traj_plan(...)" and here).
+    # yield from bps.mv(xsflyer_pb2.motor, 'prepare')
     yield from bp.fly([xsflyer_pb2])

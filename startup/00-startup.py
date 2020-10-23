@@ -3,7 +3,7 @@ import nslsii
 
 import ophyd
 try:
-    ophyd.EpicsSignal.set_default_timeout(timeout=10, connection_timeout=10)
+    ophyd.signal.EpicsSignalBase.set_default_timeout(timeout=60, connection_timeout=60)
 except AttributeError:
     pass
 
