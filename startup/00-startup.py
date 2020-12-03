@@ -1,5 +1,22 @@
 print(__file__)
+
+import psutil
+
 import nslsii
+
+# warn the user if there is another bsui running
+def get_bsui_processes():
+    bsui_processes = []
+    for process in psutil.process_iter():
+        if "bsui" in process.name():
+            bsui_processes.append(process)
+    return bsui_processes
+
+bsui_processes = get_bsui_processes()
+if len(bsui_processes) > 1:
+    print("WARNING: more than one bsui process is running!")
+    print("\n".join([str(process) for process in bsui_processes]))
+    input("Press CTRL-C to quit (recommended) or ENTER to continue")
 
 import ophyd
 try:
@@ -147,4 +164,3 @@ for key, default in zip(keys, defaults):
         RE.md[key] = default
 
 RE.is_aborted = False
-
