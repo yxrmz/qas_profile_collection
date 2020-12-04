@@ -14,6 +14,25 @@ from bluesky.utils import ts_msg_hook
 RE.msg_hook = ts_msg_hook  # noqa
 
 
+# this is not needed if you have ophyd >= 1.5.4, maybe
+# monkey patch for trailing slash problem
+def _ensure_trailing_slash(path, path_semantics=None):
+    """
+    'a/b/c' -> 'a/b/c/'
+ 
+    EPICS adds the trailing slash itself if we do not, so in order for the
+    setpoint filepath to match the readback filepath, we need to add the
+    trailing slash ourselves.
+    """
+    newpath = os.path.join(path, '')
+    if newpath[0] != '/' and newpath[-1] == '/':
+        # make it a windows slash
+        newpath = newpath[:-1]
+    return newpath
+ 
+ophyd.areadetector.filestore_mixins._ensure_trailing_slash = _ensure_trailing_slash
+
+
 class DarkSubtractionCallback(DocumentRouter):
     def __init__(self,
                  image_key='pe1_image',
@@ -123,7 +142,7 @@ class DarkFrameCache(Device):
         self._asset_docs_cache = self._really_cached
 
 
-def dark_plan(cam, dark_frame_cache, obsolete_secs, shutter):
+def dark_plan_old(cam, dark_frame_cache, obsolete_secs, shutter):
     if (dark_frame_cache.just_started or  # first run after instantiation
         (dark_frame_cache.last_collected is not None and
          time.monotonic() - dark_frame_cache.last_collected > obsolete_secs)):
@@ -141,44 +160,45 @@ def dark_plan(cam, dark_frame_cache, obsolete_secs, shutter):
         dark_frame_cache.update_done = False
 
 
-def teleport(cam, dfc):
-    dfc._describe = cam.describe()
-    dfc._describe_configuration = cam.describe_configuration()
-    dfc._read = cam.read()
-    dfc._read_configuration = cam.read_configuration()
-    dfc._read_attrs = cam.read_attrs
-    dfc._configuration_attrs = cam.configuration_attrs
-    dfc._asset_docs_cache = list(cam.collect_asset_docs())
-    dfc.last_collected = time.monotonic()
+# usage with dark frames:
+#   RE(
+#       dark_frame_preprocessor(
+#           count_qas(
+#               [pe1], exposure_time=?, frame_count=?, subframe_count=?
+#           )
+#       ), 
+#       purpose="pe1 debugging"
+#    )
+def count_qas(detectors, exposure_time, frame_count, subframe_count):
+    if pe1 in detectors:
+        yield from bps.mv(pe1.cam.acquire_time, exposure_time, pe1.cam.num_images, subframe_count)
+    
+    return (yield from bp.count(detectors, num=frame_count))
 
 
-dark_frame_cache = DarkFrameCache(name='dark_frame_cache')
-# Update the '_<name>' attributes which do not exist yet
-teleport(pe1c, dark_frame_cache)  # noqa
+# new dark plan
+def dark_plan(cam):
+    # Restage to ensure that dark frames goes into a separate file.
+    yield from bps.unstage(cam)
+    yield from bps.stage(cam)
+
+    tmp = yield from bps.read(shutter_fs.status)
+    init_shutter_state = tmp[shutter_fs.status.name]['value'] if tmp is not None else None
+    yield from bps.mv(shutter_fs, 'Close')
+    yield from bps.trigger(cam, group='bluesky-darkframes-trigger')
+    yield from bps.wait('bluesky-darkframes-trigger')
+    yield from bps.mv(shutter_fs, init_shutter_state)
+
+    snapshot = bluesky_darkframes.SnapshotDevice(cam)
+    # Restage.
+    yield from bps.unstage(cam)
+    yield from bps.stage(cam)
+    return snapshot
 
 
-def dark_frame_aware_plan(cam, dark_frame_cache, shutter=shutter_fs,
-                          obsolete_secs=60, num_images=1, md=None):
-
-    def check_and_take_darks():
-        yield from dark_plan(cam, dark_frame_cache, obsolete_secs, shutter)
-        if dark_frame_cache.update_done:
-            yield from bpp.trigger_and_read([dark_frame_cache], name='dark')
-
-    @bpp.stage_decorator([cam])
-    @bpp.run_decorator(md=md)
-    def inner_dark_frame_aware_plan():
-        tmp = yield from bps.read(shutter.status)
-        init_shutter_state = tmp[shutter.status.name]['value'] if tmp is not None else None
-        yield from bps.mv(shutter, 'Open')
-
-        for _ in range(num_images):
-            yield from check_and_take_darks()
-            yield from bpp.trigger_and_read([cam], name='primary')
-
-        yield from bps.mv(shutter, init_shutter_state)
-
-    return (yield from inner_dark_frame_aware_plan())
+# Always take a fresh dark frame at the beginning of each run.
+dark_frame_preprocessor = bluesky_darkframes.DarkFramePreprocessor(
+    dark_plan=dark_plan, detector=pe1, max_age=0)
 
 
 def subtract_dark(light_img, dark_img):

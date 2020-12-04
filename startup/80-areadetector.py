@@ -17,7 +17,7 @@ from ophyd import Signal, EpicsSignal, EpicsSignalRO, EpicsSignalWithRBV # Tim t
 from ophyd import Component as C
 from ophyd import StatusBase
 from ophyd.status import DeviceStatus
-from nslsii.ad33 import StatsPluginV33
+from nslsii.ad33 import SingleTriggerV33, StatsPluginV33
 from distutils.version import LooseVersion
 
 
@@ -25,7 +25,7 @@ from distutils.version import LooseVersion
 # from shutter import sh1
 
 
-class QASTIFFPlugin(TIFFPlugin, FileStoreTIFFSquashing,
+class QASTIFFPlugin(TIFFPlugin, FileStoreTIFF,
                     FileStoreIterativeWrite):
     pass
 
@@ -35,7 +35,7 @@ class PEDetCamWithVersions(PerkinElmerDetectorCam):
     driver_version = C(EpicsSignalRO, 'DriverVersion_RBV')
 
 
-class QASPerkinElmer(PerkinElmerDetector):
+class QASPerkinElmer(SingleTriggerV33, PerkinElmerDetector):
     image = C(ImagePlugin, 'image1:')
     cam = C(PEDetCamWithVersions, 'cam1:')
     _default_configuration_attrs = (PerkinElmerDetector._default_configuration_attrs +
@@ -43,8 +43,8 @@ class QASPerkinElmer(PerkinElmerDetector):
     tiff = C(QASTIFFPlugin, 'TIFF1:',
              write_path_template='/a/b/c/',
              read_path_template='/a/b/c',
-             cam_name='cam',  # used to configure "tiff squashing"
-             proc_name='proc',  # ditto
+             #cam_name='cam',  # used to configure "tiff squashing"
+             #proc_name='proc',  # ditto
              read_attrs=[],
              root='/nsls2/xf07bm/')
 
