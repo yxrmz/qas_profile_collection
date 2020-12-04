@@ -627,6 +627,7 @@ class DualAdcFS(TriggerAdc):
         self._data_docs_cache = deque()
 
     def collect_asset_docs(self):
+        self.generate_those_documents()
         items = list(self._asset_docs_cache)
         print(f"DOCS!!! for DualAdcFS {self}", items)
         self._asset_docs_cache.clear()
@@ -720,7 +721,7 @@ class DualAdcFS(TriggerAdc):
     def generate_those_documents(self):
        
         now = ttime.time()
-        ttime.sleep(1)  # wait for file to be written by pizza box
+        #ttime.sleep(1)  # wait for file to be written by pizza box
         #if os.path.isfile(self._full_path):
         with open(self._full_path, 'r') as f:
             linecount = 0
@@ -754,10 +755,13 @@ class DualAdcFS(TriggerAdc):
             self._twin_adc._complete_adc = False
             self._complete_adc = False
 
-        ttime.sleep(1)
-        self.generate_those_documents()
-
-        return NullStatus()
+        status = DeviceStatus(self)
+        from threading import Timer
+        # wait on this complete function for 1 second
+        # hold on to the Timer so it will not be garbage collected
+        self.complete_timer = Timer(1, status.set_finished)
+        self.complete_timer.start()
+        return status
 
     def collect(self):
         """
