@@ -161,27 +161,102 @@ def dark_plan_old(cam, dark_frame_cache, obsolete_secs, shutter):
         dark_frame_cache.update_done = False
 
 
+from bluesky_darkframes import DarkSubtraction
+from event_model import RunRouter
+from suitcase.tiff_series import Serializer
+
+def darksubtraction_serializer_factory(name, doc):
+    # The problem this is solving is to store documents from this run long
+    # enough to cross-reference them (e.g. light frames and dark frames),
+    # and then tearing it down when we're done with this run.
+    subtractor = DarkSubtraction('pe1_image')
+    serializer = Serializer(
+        '/tmp/live_exported_files/',
+        file_prefix=(
+            '{start[sample_name]}-'
+            '{start[exposure_time]:.1f}s-'
+            '{descriptor[configuration][pe1][data][pe1_sample_to_detector_distance]}mm-'
+            '{event[data][mono1_energy]:.1f}eV-'
+        )
+    )
+
+    stream_map = dict()
+
+    # And by returning this function below, we are routing all other
+    # documents *for this run* through here.
+    def subtract_and_serialize(name, doc):
+        name, doc = subtractor(name, doc)
+        if name == "descriptor":
+            stream_map[doc["uid"]] = doc["name"]
+        if "event" in name:
+            if stream_map[doc["descriptor"]] != "primary":
+                return
+        serializer(name, doc)
+
+    return [subtract_and_serialize], []
+
+darksubtraction_serializer_rr = RunRouter([darksubtraction_serializer_factory], db.reg.handler_reg)
+
 # usage with dark frames:
 #   RE(
 #       dark_frame_preprocessor(
 #           count_qas(
-#               [pe1], shutter_fs, exposure_time=?, frame_count=?, subframe_count=?
+#               [pe1, mono1.energy], shutter_fs, sample_name=?,
+#               frame_count=?, subframe_time, subframe_count=?
 #           )
 #       ), 
 #       purpose="pe1 debugging"
 #    )
-def count_qas(detectors, shutter, exposure_time, frame_count, subframe_count):
+
+def count_qas(detectors, shutter, sample_name, frame_count, subframe_time, subframe_count):
+    """
+    Diffraction count plan averaging subframe_count exposures for each frame.
+
+    Open the specified shutter before bp.count()'ing, close it when the plan ends.
+
+    Parameters
+    ----------
+    detectors: list
+        list of devices to be bp.count()'d, should include pe1
+    shutter: Device (but a shutter)
+        the shutter to close for background exposures
+    sample_name: str
+        added to the start document with key "sample_name"
+    frame_count: int
+        passed to bp.count(..., num=frame_count)
+    subframe_time: float
+        exposure time for each subframe, total exposure time will be subframe_time*subframe_count
+    subframe_count: int
+        number of exposures to average for each frame 
+
+    Returns
+    -------
+    run start id
+    """
+    @bpp.subs_decorator(darksubtraction_serializer_rr)
     def inner_count_qas(): 
         if pe1 in detectors:
-            yield from bps.mv(pe1.cam.acquire_time, exposure_time)
+            yield from bps.mv(pe1.cam.acquire_time, subframe_time)
+            # set acquire_period to slightly longer than exposure_time
+            # to avoid spending a lot of time after the exposure just waiting around
+            yield from bps.mv(pe1.cam.acquire_period, subframe_time + 0.1)
             yield from bps.mv(pe1.images_per_set, subframe_count) 
         yield from bps.mv(shutter, "Open")
-        return (yield from bp.count(detectors, num=frame_count))
+        return (
+            yield from bp.count(
+                detectors,
+                num=frame_count,
+                md={
+                    "sample_name": sample_name,
+                    "exposure_time": subframe_time * subframe_count
+                }
+            )
+        )
 
     def finally_plan():
         yield from bps.mv(shutter, "Close")
 
-    yield from bpp.finalize_wrapper(inner_count_qas(), finally_plan)
+    return (yield from bpp.finalize_wrapper(inner_count_qas(), finally_plan))
 
 
 # new dark plan
