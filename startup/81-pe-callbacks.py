@@ -6,6 +6,7 @@ import time
 import bluesky.plan_stubs as bps
 import bluesky.plans as bp  # noqa
 import bluesky.preprocessors as bpp
+import bluesky_darkframes
 
 from event_model import DocumentRouter
 from ophyd import Device, Component as Cpt, EpicsSignal
@@ -171,8 +172,8 @@ def dark_plan_old(cam, dark_frame_cache, obsolete_secs, shutter):
 #    )
 def count_qas(detectors, exposure_time, frame_count, subframe_count):
     if pe1 in detectors:
-        yield from bps.mv(pe1.cam.acquire_time, exposure_time, pe1.cam.num_images, subframe_count)
-    
+        yield from bps.mv(pe1.cam.acquire_time, exposure_time)
+        yield from bps.mv(pe1.images_per_set, subframe_count) 
     return (yield from bp.count(detectors, num=frame_count))
 
 

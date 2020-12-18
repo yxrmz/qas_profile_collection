@@ -25,7 +25,7 @@ from distutils.version import LooseVersion
 # from shutter import sh1
 
 
-class QASTIFFPlugin(TIFFPlugin, FileStoreTIFF,
+class QASTIFFPlugin(TIFFPlugin, FileStoreTIFFSquashing,
                     FileStoreIterativeWrite):
     pass
 
@@ -43,8 +43,8 @@ class QASPerkinElmer(SingleTriggerV33, PerkinElmerDetector):
     tiff = C(QASTIFFPlugin, 'TIFF1:',
              write_path_template='/a/b/c/',
              read_path_template='/a/b/c',
-             #cam_name='cam',  # used to configure "tiff squashing"
-             #proc_name='proc',  # ditto
+             cam_name='cam',  # used to configure "tiff squashing"
+             proc_name='proc',  # ditto
              read_attrs=[],
              root='/nsls2/xf07bm/')
 
@@ -224,9 +224,6 @@ class PerkinElmerContinuous(ContinuousAcquisitionTrigger, QASPerkinElmer):
 pe1_pv_prefix = 'XF:07BM-ES{Det:PE1}'
 pe1 = QASPerkinElmer(pe1_pv_prefix, name='pe1',
                      read_attrs=['tiff', 'stats1.total'])
-pe1c = PerkinElmerContinuous(pe1_pv_prefix, name='pe1',
-                             read_attrs=['tiff', 'stats1.total'],
-                             plugin_name='tiff')
 
 
 # Check the version of ADCore and raise if it's less than 3.3
@@ -259,7 +256,7 @@ def check_adcore_version(det, min_adcore_version='3.3'):
 
 
 # Update read/write paths for all the detectors in once:
-for det in [pe1, pe1c]:
+for det in [pe1]:
     check_adcore_version(det, min_adcore_version='3.3')
     # Read:
     det.tiff.read_path_template = f'/nsls2/xf07bm/data/{det.name}_data/%Y/%m/%d/'
