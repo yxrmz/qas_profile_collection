@@ -39,7 +39,7 @@ class QASPerkinElmer(SingleTriggerV33, PerkinElmerDetector):
     image = C(ImagePlugin, 'image1:')
     cam = C(PEDetCamWithVersions, 'cam1:')
     _default_configuration_attrs = (PerkinElmerDetector._default_configuration_attrs +
-        ('images_per_set', 'number_of_sets', 'pixel_size'))
+        ('images_per_set', 'number_of_sets', 'pixel_size', 'sample_to_detector_distance'))
     tiff = C(QASTIFFPlugin, 'TIFF1:',
              write_path_template='/a/b/c/',
              read_path_template='/a/b/c',
@@ -60,6 +60,8 @@ class QASPerkinElmer(SingleTriggerV33, PerkinElmerDetector):
     # squashing").
     images_per_set = C(Signal, value=1, add_prefix=())
     number_of_sets = C(Signal, value=1, add_prefix=())
+    # sample_to_detector_distance measured in millimeters
+    sample_to_detector_distance = C(Signal, value=300.0, add_prefix=(), kind="config")
 
     pixel_size = C(Signal, value=.0002, kind='config')
     stats1 = C(StatsPluginV33, 'Stats1:')
@@ -270,6 +272,9 @@ for det in [pe1]:
     det.cam.bin_x.kind = 'config'
     det.cam.bin_y.kind = 'config'
     det.tiff.write_file  # NOTE: needed to make a channel in caproto control layer
-    
+
+    # include QAS's special rotation in the AD pipeline
+    det.tiff.stage_sigs[det.proc.nd_array_port] = "TRANS1"
+
 # some defaults, as an example of how to use this
 # pe1.configure(dict(images_per_set=6, number_of_sets=10))
