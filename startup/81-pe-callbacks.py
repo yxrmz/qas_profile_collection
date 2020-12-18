@@ -170,11 +170,18 @@ def dark_plan_old(cam, dark_frame_cache, obsolete_secs, shutter):
 #       ), 
 #       purpose="pe1 debugging"
 #    )
-def count_qas(detectors, exposure_time, frame_count, subframe_count):
-    if pe1 in detectors:
-        yield from bps.mv(pe1.cam.acquire_time, exposure_time)
-        yield from bps.mv(pe1.images_per_set, subframe_count) 
-    return (yield from bp.count(detectors, num=frame_count))
+def count_qas(detectors, shutter, exposure_time, frame_count, subframe_count):
+    def inner_count_qas(): 
+        if pe1 in detectors:
+            yield from bps.mv(pe1.cam.acquire_time, exposure_time)
+            yield from bps.mv(pe1.images_per_set, subframe_count) 
+        yield from bps.mv(shutter, "Open")
+        return (yield from bp.count(detectors, num=frame_count))
+
+    def finally_plan():
+        yield from bps.mv(shutter, "Close")
+
+    yield from bpp.finalize_wrapper(inner_count_qas(), finally_plan)
 
 
 # new dark plan
