@@ -165,7 +165,7 @@ def dark_plan_old(cam, dark_frame_cache, obsolete_secs, shutter):
 #   RE(
 #       dark_frame_preprocessor(
 #           count_qas(
-#               [pe1], exposure_time=?, frame_count=?, subframe_count=?
+#               [pe1], shutter_fs, exposure_time=?, frame_count=?, subframe_count=?
 #           )
 #       ), 
 #       purpose="pe1 debugging"
