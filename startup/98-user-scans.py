@@ -3,7 +3,6 @@ import bluesky.plans as bp
 import os
 import sys
 
-
 def tscan(name:str, comment:str, n_cycles:int=1, delay:float=0, **kwargs):
     """
     Trajectory Scan - Runs the monochromator along the trajectory that is previously loaded in the controller N times
@@ -23,6 +22,7 @@ def tscan(name:str, comment:str, n_cycles:int=1, delay:float=0, **kwargs):
     --------
     :func:`tscanxia`
     """
+
     sys.stdout = kwargs.pop('stdout', sys.stdout)
 
     #uids = []
@@ -42,8 +42,7 @@ def tscan(name:str, comment:str, n_cycles:int=1, delay:float=0, **kwargs):
         time.sleep(float(delay))
     print('Done!')
     #return uids
-
-
+ 
 def tscan_xs3(name: str, comment: str, n_cycles: int = 1, delay: float = 0, **kwargs):
     """
     Trajectory Scan - Runs the monochromator along the trajectory that is previously loaded in the controller N times
