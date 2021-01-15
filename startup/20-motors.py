@@ -8,6 +8,8 @@ class SampleStage(Device):
     x = Cpt(EpicsMotor, '-Ax:X}Mtr')
     z = Cpt(EpicsMotor, '-Ax:Z}Mtr')
     y = Cpt(EpicsMotor, '-Ax:Y}Mtr')
+    theta = Cpt(EpicsMotor, '-Ax:Theta}Mtr')
+    chi = Cpt(EpicsMotor, '-Ax:Chi}Mtr')
 
 sample_stage1 = SampleStage('XF:07BMB-ES{Stg:1', name='sample_stage1')
 
