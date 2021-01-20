@@ -183,8 +183,12 @@ class PerkinElmerPositioner(Device):
 
 pe_pos = PerkinElmerPositioner('XF:07BMB-ES{Asm:2', name='pe_pos')
 
-class FoilWheel(Device):
+class FoilWheel1(Device):
     wheel1 = Cpt(EpicsMotor, '-Ax:RotUp}Mtr')
     wheel2 = Cpt(EpicsMotor, '-Ax:RotDn}Mtr')
 
-foil_wheel = FoilWheel('XF:07BMB-OP{FoilWheel:1', name='foil_wheel')
+class FoilWheel2(Device):
+    wheel1 = Cpt(EpicsMotor, '-Ax:Rot}Mtr')
+
+foil_wheel_pair1 = FoilWheel1('XF:07BMB-OP{FoilWheel:1', name='foil_wheel1')
+foil_wheel_pair2 = FoilWheel2('XF:07BMB-OP{FoilWheel:2', name='foil_wheel2')
