@@ -26,19 +26,19 @@ detector_dictionary = {colmirror_diag.name: {'obj': colmirror_diag, 'elements': 
                        pb1.enc1.name: {'obj': pb1.enc1, 'elements': ['pb1_enc1_pos_I']},
                       }
 
-motors_dictionary = {jj_slits.top.name: {'name': jj_slits.top.name, 'description':jj_slits.top.name, 'object': jj_slits.top},
-                     jj_slits.bottom.name: {'name': jj_slits.bottom.name, 'description':jj_slits.bottom.name, 'object': jj_slits.bottom},
-                     jj_slits.outboard.name: {'name': jj_slits.outboard.name, 'description':jj_slits.outboard.name, 'object': jj_slits.outboard},
-                     jj_slits.inboard.name: {'name': jj_slits.inboard.name, 'description':jj_slits.inboard.name, 'object': jj_slits.inboard},
+motors_dictionary = {#jj_slits.top.name: {'name': jj_slits.top.name, 'description':jj_slits.top.name, 'object': jj_slits.top},
+                    # jj_slits.bottom.name: {'name': jj_slits.bottom.name, 'description':jj_slits.bottom.name, 'object': jj_slits.bottom},
+                    # jj_slits.outboard.name: {'name': jj_slits.outboard.name, 'description':jj_slits.outboard.name, 'object': jj_slits.outboard},
+                    # jj_slits.inboard.name: {'name': jj_slits.inboard.name, 'description':jj_slits.inboard.name, 'object': jj_slits.inboard},
+                     beamstop.horizontal.name: {'name': beamstop.horizontal.name, 'description': beamstop.horizontal.name, 'object':beamstop.horizontal},
+                     beamstop.vertical.name: {'name': beamstop.vertical.name, 'description': beamstop.vertical.name, 'object': beamstop.vertical},
+                     ip_y_stage.name: {'name': ip_y_stage.name, 'description': ip_y_stage.name, 'object': ip_y_stage},
+                     sample_stage1.rotary.name: {'name': sample_stage1.rotary.name, 'description':sample_stage1.rotary.name, 'object':sample_stage1.rotary},
                      sample_stage1.x.name: {'name': sample_stage1.x.name, 'description':sample_stage1.x.name, 'object':sample_stage1.x},
                      sample_stage1.y.name: {'name': sample_stage1.y.name, 'description':sample_stage1.y.name, 'object':sample_stage1.y},
                      sample_stage1.z.name: {'name': sample_stage1.z.name, 'description':sample_stage1.z.name, 'object':sample_stage1.z},
-                     sample_stage1.rotary.name: {'name': sample_stage1.rotary.name, 'description':sample_stage1.rotary.name, 'object':sample_stage1.rotary},
                      sample_stage1.theta.name: {'name': sample_stage1.theta.name, 'description':sample_stage1.theta.name, 'object':sample_stage1.theta},
-                     sample_stage1.chi.name: {'name': sample_stage1.chi.name, 'description':sample_stage1.chi.name, 'object':sample_stage1.chi},
-                     ip_y_stage.name: {'name': ip_y_stage.name, 'description': ip_y_stage.name, 'object': ip_y_stage},
-                     beamstop.horizontal.name: {'name': beamstop.horizontal.name, 'description': beamstop.horizontal.name, 'object': beamstop.horizontal},
-                     beamstop.vertical.name: {'name': beamstop.vertical.name, 'description': beamstop.vertical.name, 'object': beamstop.vertical}, 
+                     sample_stage1.chi.name: {'name': sample_stage1.chi.name, 'description':sample_stage1.chi.name, 'object':sample_stage1.chi}, 
                     }
 
 shutters_dictionary = {
