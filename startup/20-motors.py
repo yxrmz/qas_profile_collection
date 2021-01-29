@@ -9,6 +9,8 @@ class SampleStage(Device):
     x = Cpt(EpicsMotor, '-Ax:X}Mtr')
     z = Cpt(EpicsMotor, '-Ax:Z}Mtr')
     y = Cpt(EpicsMotor, '-Ax:Y}Mtr')
+    theta = Cpt(EpicsMotor, '-Ax:Theta}Mtr')
+    chi = Cpt(EpicsMotor, '-Ax:Chi}Mtr')
 
 sample_stage1 = SampleStage('XF:07BMB-ES{Stg:1', name='sample_stage1')
 
@@ -24,7 +26,7 @@ class Monochromator(Device):
     _default_configuration_attrs = ('bragg', 'energy', 'pico', 'diag')
     _default_read_attrs = ('bragg', 'energy', 'pico', 'diag')
     "Monochromator"
-    ip = '10.7.130.93'
+    ip = '10.68.50.104'
     traj_filepath = '/home/xf07bm/trajectory/'
     bragg = Cpt(EpicsMotor, 'Mono:1-Ax:Scan}Mtr')
     energy = Cpt(EpicsMotor, 'Mono:1-Ax:E}Mtr')
@@ -200,8 +202,12 @@ class PerkinElmerPositioner(Device):
 
 pe_pos = PerkinElmerPositioner('XF:07BMB-ES{Asm:2', name='pe_pos')
 
-class FoilWheel(Device):
+class FoilWheel1(Device):
     wheel1 = Cpt(EpicsMotor, '-Ax:RotUp}Mtr')
     wheel2 = Cpt(EpicsMotor, '-Ax:RotDn}Mtr')
 
-foil_wheel = FoilWheel('XF:07BMB-OP{FoilWheel:1', name='foil_wheel')
+class FoilWheel2(Device):
+    wheel1 = Cpt(EpicsMotor, '-Ax:Rot}Mtr')
+
+foil_wheel_pair1 = FoilWheel1('XF:07BMB-OP{FoilWheel:1', name='foil_wheel1')
+foil_wheel_pair2 = FoilWheel2('XF:07BMB-OP{FoilWheel:2', name='foil_wheel2')
