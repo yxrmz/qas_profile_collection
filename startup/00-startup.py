@@ -70,6 +70,7 @@ profile_startup_dir = get_ipython().profile_dir.startup_dir
 RE.msg_hook = ts_msg_hook
 
 import caproto
+import logging
 
 logging.getLogger('caproto').setLevel('ERROR')
 logging.getLogger('caproto.ch').setLevel('ERROR')
