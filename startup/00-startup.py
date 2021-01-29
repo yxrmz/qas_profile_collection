@@ -50,10 +50,6 @@ import numpy as np
 
 from pyOlog.ophyd_tools import *
 
-# Temporary fix before it's fixed in ophyd
-import logging
-logger = logging.getLogger('ophyd')
-logger.setLevel('WARNING')
 
 import os
 import sys
