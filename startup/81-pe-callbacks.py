@@ -171,12 +171,13 @@ def darksubtraction_serializer_factory(name, doc):
     # and then tearing it down when we're done with this run.
     subtractor = DarkSubtraction('pe1_image')
     serializer = Serializer(
-        '/tmp/live_exported_files/',
+        '/nsls2/xf07bm/users/{year}/{cycle}/{PROPOSAL}XRD'.format(**doc),
         file_prefix=(
             '{start[sample_name]}-'
             '{start[exposure_time]:.1f}s-'
             '{descriptor[configuration][pe1][data][pe1_sample_to_detector_distance]}mm-'
-            '{event[data][mono1_energy]:.1f}eV-'
+            #'{event[data][mono1_energy]:.1f}eV-'
+            '{start[scan_id]}-'
         )
     )
 
@@ -186,11 +187,11 @@ def darksubtraction_serializer_factory(name, doc):
     # documents *for this run* through here.
     def subtract_and_serialize(name, doc):
         name, doc = subtractor(name, doc)
-        if name == "descriptor":
-            stream_map[doc["uid"]] = doc["name"]
-        if "event" in name:
-            if stream_map[doc["descriptor"]] != "primary":
-                return
+        #if name == "descriptor":
+        #    stream_map[doc["uid"]] = doc["name"]
+        #if "event" in name:
+        #    if stream_map[doc["descriptor"]] != "primary":
+        #        return
         serializer(name, doc)
 
     return [subtract_and_serialize], []
