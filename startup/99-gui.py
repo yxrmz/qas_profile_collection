@@ -55,11 +55,12 @@ newApp = PyQt5.QtWidgets.QApplication(sys.argv)
 
 xlive_gui = isstools.xlive.XliveGui(plan_funcs=[tscan, tscan_xs3, get_offsets, xs_count],
                                     prep_traj_plan=prep_traj_plan,
-                                    diff_plans=[pe_count], 
+                                    diff_plans=[count_qas, dark_frame_preprocessor], 
                                     RE=RE,
                                     db=db, 
                                     accelerator=nsls_ii,
                                     mono=mono1,
+                                    pe=pe1,
                                     sdd = xs,
                                     shutters_dict=shutters_dictionary,
                                     det_dict=detector_dictionary,

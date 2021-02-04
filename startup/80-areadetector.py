@@ -222,7 +222,7 @@ class PerkinElmerContinuous(ContinuousAcquisitionTrigger, QASPerkinElmer):
     pass
 
 
-# PE1c detector configurations:
+# PE1 detector configurations:
 pe1_pv_prefix = 'XF:07BM-ES{Det:PE1}'
 pe1 = QASPerkinElmer(pe1_pv_prefix, name='pe1',
                      read_attrs=['tiff', 'stats1.total'])

@@ -248,6 +248,7 @@ def count_qas(detectors, shutter, sample_name, frame_count, subframe_time, subfr
                 detectors,
                 num=frame_count,
                 md={
+                    "experiment": 'diffraction',
                     "sample_name": sample_name,
                     "exposure_time": subframe_time * subframe_count
                 }
