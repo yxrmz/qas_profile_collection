@@ -615,6 +615,7 @@ class DualAdcFS(TriggerAdc):
                      what will put to adc1's trigger)
         '''
         self._asset_docs_cache = deque()
+        self._full_path = ''
         self._resource_uid = None
         self._datum_counter = None
         self._twin_adc = twin_adc
@@ -625,14 +626,18 @@ class DualAdcFS(TriggerAdc):
         self._complete_adc = False
         super().__init__(*args, **kwargs)
         self._data_docs_cache = deque()
+        self._in_fly_code = False
 
     def collect_asset_docs(self):
+        if not self._in_fly_code:
+            return
         self.generate_those_documents()
         items = list(self._asset_docs_cache)
         print(f"DOCS!!! for DualAdcFS {self}", items)
         self._asset_docs_cache.clear()
         for item in items:
             yield item
+        self._in_fly_code = False
 
     def stage(self):
         "Set the filename and record it in a 'resource' document in the filestore database."
@@ -797,6 +802,7 @@ class DualAdcFS(TriggerAdc):
                        'timestamps': {key: now for key in data}, 'time': now}
         
         self._data_docs_cache.clear()
+        self._in_fly_code = True
         #else:
         #    print('collect {}: File was not created'.format(self.name))
         #    print("filename : {}".format(self._full_path))
