@@ -209,7 +209,7 @@ darksubtraction_serializer_rr = RunRouter([darksubtraction_serializer_factory], 
 #       purpose="pe1 debugging"
 #    )
 
-def count_qas(detectors, shutter, sample_name, frame_count, subframe_time, subframe_count):
+def _count_qas(detectors, shutter, sample_name, frame_count, subframe_time, subframe_count):
     """
     Diffraction count plan averaging subframe_count exposures for each frame.
 
@@ -285,6 +285,37 @@ def dark_plan(cam):
 dark_frame_preprocessor = bluesky_darkframes.DarkFramePreprocessor(
     dark_plan=dark_plan, detector=pe1, max_age=0)
 
+
+def count_qas(sample_name, frame_count, subframe_time, subframe_count):
+    """
+    Diffraction count plan averaging subframe_count exposures for each frame.
+
+    Open the specified shutter before bp.count()'ing, close it when the plan ends.
+
+    Parameters
+    ----------
+    detectors: list
+        list of devices to be bp.count()'d, should include pe1
+    shutter: Device (but a shutter)
+        the shutter to close for background exposures
+    sample_name: str
+        added to the start document with key "sample_name"
+    frame_count: int
+        passed to bp.count(..., num=frame_count)
+    subframe_time: float
+        exposure time for each subframe, total exposure time will be subframe_time*subframe_count
+    subframe_count: int
+        number of exposures to average for each frame 
+
+    Returns
+    -------
+    run start id
+    """
+
+    return (yield from dark_frame_preprocessor(
+        _count_qas([pe1], shutter_fs, sample_name, frame_count, subframe_time, subframe_count)
+        )
+        )
 
 def subtract_dark(light_img, dark_img):
     res = np.asarray(light_img, dtype=int) - np.asarray(dark_img, dtype=int)
