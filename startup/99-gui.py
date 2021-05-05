@@ -60,7 +60,7 @@ xlive_gui = isstools.xlive.XliveGui(plan_funcs=[tscan, tscan_xs3, get_offsets, x
                                     db=db, 
                                     accelerator=nsls_ii,
                                     mono=mono1,
-                                    pe=pe1,
+                                    #pe=pe1,
                                     sdd = xs,
                                     shutters_dict=shutters_dictionary,
                                     det_dict=detector_dictionary,
