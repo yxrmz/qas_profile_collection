@@ -642,6 +642,7 @@ class DualAdcFS(TriggerAdc):
     def stage(self):
         "Set the filename and record it in a 'resource' document in the filestore database."
 
+        self._in_fly_code = False
 
         if self.connected:
             # NOTE: master MUST be done before slave. need to fix this later
@@ -700,7 +701,9 @@ class DualAdcFS(TriggerAdc):
             return super().unstage()
 
     def kickoff(self):
+        print('==' * 70)
         print('kickoff', self.name)
+        print('==' * 59)
         if self._twin_adc is None:
             raise ValueError("ADC must have a twin")
 
@@ -728,10 +731,19 @@ class DualAdcFS(TriggerAdc):
         now = ttime.time()
         #ttime.sleep(1)  # wait for file to be written by pizza box
         #if os.path.isfile(self._full_path):
-        with open(self._full_path, 'r') as f:
-            linecount = 0
-            for ln in f:
-                linecount += 1
+        for _ in range(5):
+            print(f'trying to open {self._full_path} round {_}')
+            try:
+                with open(self._full_path, 'r') as f:
+                    linecount = 0
+                    for ln in f:
+                        linecount += 1
+            except FileNotFoundError:
+                time.sleep(1)
+                continue
+            break
+        else:
+            raise FileNotFoundError(self._full_path)
         chunk_count = linecount // self.chunk_size + int(linecount % self.chunk_size != 0)
         for chunk_num in range(chunk_count):
     
