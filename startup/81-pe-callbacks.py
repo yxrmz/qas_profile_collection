@@ -170,6 +170,7 @@ def darksubtraction_serializer_factory(name, doc):
     # enough to cross-reference them (e.g. light frames and dark frames),
     # and then tearing it down when we're done with this run.
     subtractor = DarkSubtraction('pe1_image')
+    # CHANGE HERE TO ADJUST HOW THE EXPORTED FILES ARE NAMED
     serializer = Serializer(
         '/nsls2/xf07bm/users/{year}/{cycle}/{PROPOSAL}XRD'.format(**doc),
         file_prefix=(
@@ -209,7 +210,7 @@ darksubtraction_serializer_rr = RunRouter([darksubtraction_serializer_factory], 
 #       purpose="pe1 debugging"
 #    )
 
-def _count_qas(detectors, shutter, sample_name, frame_count, subframe_time, subframe_count):
+def _count_qas(detectors, shutter, sample_name, frame_count, subframe_time, subframe_count, delay):
     """
     Diffraction count plan averaging subframe_count exposures for each frame.
 
@@ -234,6 +235,14 @@ def _count_qas(detectors, shutter, sample_name, frame_count, subframe_time, subf
     -------
     run start id
     """
+    from bluesky.plan_stubs import one_shot
+
+    def shuttered_oneshot(dets):
+        yield from bps.mv(shutter, 'Open')
+        ret = yield from one_shot(dets)
+        yield from bps.mv(shutter, 'Close')
+        return ret
+
     @bpp.subs_decorator(darksubtraction_serializer_rr)
     def inner_count_qas(): 
         if pe1 in detectors:
@@ -242,7 +251,7 @@ def _count_qas(detectors, shutter, sample_name, frame_count, subframe_time, subf
             # to avoid spending a lot of time after the exposure just waiting around
             yield from bps.mv(pe1.cam.acquire_period, subframe_time + 0.1)
             yield from bps.mv(pe1.images_per_set, subframe_count) 
-        yield from bps.mv(shutter, "Open")
+        
         return (
             yield from bp.count(
                 detectors,
@@ -251,7 +260,9 @@ def _count_qas(detectors, shutter, sample_name, frame_count, subframe_time, subf
                     "experiment": 'diffraction',
                     "sample_name": sample_name,
                     "exposure_time": subframe_time * subframe_count
-                }
+                },
+                per_shot=shuttered_oneshot,
+                delay=delay
             )
         )
 
@@ -267,11 +278,14 @@ def dark_plan(cam):
     yield from bps.unstage(cam)
     yield from bps.stage(cam)
 
+    # TO TWEAK NUMBER OF FRAME FOR DARK FRAME ADD CHECKS HERE
+
     tmp = yield from bps.read(shutter_fs.status)
     init_shutter_state = tmp[shutter_fs.status.name]['value'] if tmp is not None else None
     yield from bps.mv(shutter_fs, 'Close')
-    yield from bps.trigger(cam, group='bluesky-darkframes-trigger')
-    yield from bps.wait('bluesky-darkframes-trigger')
+    # MAY NEED A SLEEP HERE INCASE THE FAST SHUTTER IS LYING TO US
+    yield from bps.trigger(cam, group='dark-plan-trigger')
+    yield from bps.wait('dark-plan-trigger')
     yield from bps.mv(shutter_fs, init_shutter_state)
 
     snapshot = bluesky_darkframes.SnapshotDevice(cam)
@@ -281,13 +295,23 @@ def dark_plan(cam):
     return snapshot
 
 
-# Always take a fresh dark frame at the beginning of each run.
+# Always take a fresh dark frame at the beginning of each frame.
 dark_frame_preprocessor = bluesky_darkframes.DarkFramePreprocessor(
-    dark_plan=dark_plan, detector=pe1, max_age=0)
+    dark_plan=dark_plan, 
+    detector=pe1, 
+    # HOW LONG IS THE DARKFRAME GOOD FOR IN SECONDS
+    max_age=0, 
+    # ANY SIGNALS TO WATCH THAT IF THEY CHANGE INVALIDATE THE DARKFRAME CACHE
+    locked_signals=()
+    )
 
 
-def count_qas(sample_name, frame_count, subframe_time, subframe_count):
+def count_qas(sample_name, frame_count, subframe_time, subframe_count, delay=None):
     """
+
+    **If we want to use different number of sub-frames for light and dark averaging,
+    it has to be done inside this function call, I think - CD**
+    
     Diffraction count plan averaging subframe_count exposures for each frame.
 
     Open the specified shutter before bp.count()'ing, close it when the plan ends.
@@ -313,7 +337,7 @@ def count_qas(sample_name, frame_count, subframe_time, subframe_count):
     """
 
     return (yield from dark_frame_preprocessor(
-        _count_qas([pe1], shutter_fs, sample_name, frame_count, subframe_time, subframe_count)
+        _count_qas([pe1], shutter_fs, sample_name, frame_count, subframe_time, subframe_count, delay)
         )
         )
 
