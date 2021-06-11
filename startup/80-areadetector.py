@@ -266,7 +266,7 @@ for det in [pe1]:
 
     # Write
     # det.tiff.write_path_template = f'G:\\{det.name}_data\\%Y\\%m\\%d\\'
-    det.tiff.write_path_template = f'Z:\\data\\{det.name}_data\\%Y\\%m\\%d\\'
+    det.tiff.write_path_template = f'Y:\\{det.name}_data\\%Y\\%m\\%d\\'
     # det.tiff.write_path_template = f'C:/Users/xf07bm/DiffractionData/PE_DATA1/%Y/%m/%d/\\'  # for WINDOWS local directory
 
     det.cam.bin_x.kind = 'config'
