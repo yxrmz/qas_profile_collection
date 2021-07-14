@@ -33,6 +33,8 @@ class EPS_Shutter(Device):
 
 
 class TwoButtonShutterQAS(TwoButtonShutter):
+    # RETRY_PERIOD = 15
+
     def stop(self, success=False):
         pass
 

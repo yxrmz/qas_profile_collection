@@ -6,8 +6,8 @@ from bluesky.suspenders import (SuspendBoolHigh,
                                 SuspendInBand, SuspendOutBand)
 
 
-fe_shut_suspender = SuspendBoolHigh(EpicsSignalRO(shutter_fe.status.pvname), sleep=10*60)
-ph_shut_suspender = SuspendBoolHigh(EpicsSignalRO(shutter_ph.status.pvname), sleep=10*60)
+fe_shut_suspender = SuspendBoolHigh(EpicsSignalRO(shutter_fe.status.pvname), sleep=1*60)
+ph_shut_suspender = SuspendBoolHigh(EpicsSignalRO(shutter_ph.status.pvname), sleep=1*60)
 
 
 # suspender for beamline current is mA
@@ -15,8 +15,10 @@ beam_current_suspender = SuspendFloor(nsls_ii.beam_current,
                                       suspend_thresh = 300, sleep = 10*60)
 suspenders = [fe_shut_suspender,
               ph_shut_suspender,
-              beam_current_suspender,
+              #beam_current_suspender,
               ]
+
+#RE.install_suspender(fe_shut_suspender)
 
 ''' Some help on suspenders /bluesky
 # how to add a suspender:

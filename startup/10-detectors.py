@@ -766,6 +766,7 @@ class DualAdcFS(TriggerAdc):
             # Stop adding new data to the file.
             #set_and_wait(self.enable_sel, 1)
             self.enable_sel.put(1)
+            print(f'>>>>>>>>>>>> ADC stops writing {ttime.time()}')
             self._complete_adc = True
         else:
             print("Device already stopped by {}".format(self._twin_adc.name))
@@ -966,6 +967,7 @@ class PizzaBoxDualAnalogFS(Device):
                 new_status = compound_status
             else:
                 new_status = ophyd.AndStatus(compound_status, new_status)
+        print('>>>>>>>>>>>>>>>>>>>>>>>>>>> THIS IS COMPLETE SEQUENCE')
         return new_status
 
     def collect(self):
