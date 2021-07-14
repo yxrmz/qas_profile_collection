@@ -53,7 +53,7 @@ print(mono1)
 
 newApp = PyQt5.QtWidgets.QApplication(sys.argv)
 
-xlive_gui = isstools.xlive.XliveGui(plan_funcs=[tscan, tscan_xs3, get_offsets, xs_count],
+xlive_gui = isstools.xlive.XliveGui(plan_funcs=[tscan, fly_scan_with_apb, tscan_xs3, get_offsets, xs_count],
                                     prep_traj_plan=prep_traj_plan,
                                     diff_plans=[count_qas, dark_frame_preprocessor], 
                                     RE=RE,

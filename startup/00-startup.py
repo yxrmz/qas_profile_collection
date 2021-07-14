@@ -202,3 +202,10 @@ for key, default in zip(keys, defaults):
         RE.md[key] = default
 
 RE.is_aborted = False
+
+
+def print_now():
+    return datetime.strftime(datetime.now(), '%Y-%m-%d %H:%M:%S.%f')
+    if timeout is DEFAULT_CONNECTION_TIMEOUT:
+        timeout = self.connection_timeout
+    # print(f'{print_now()}: waiting for {self.name} to connect within {timeout:.4f} s...')

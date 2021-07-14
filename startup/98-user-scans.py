@@ -42,6 +42,9 @@ def tscan(name:str, comment:str, n_cycles:int=1, delay:float=0, **kwargs):
         time.sleep(float(delay))
     print('Done!')
     #return uids
+
+
+
  
 def tscan_xs3(name: str, comment: str, n_cycles: int = 1, delay: float = 0, **kwargs):
     """
