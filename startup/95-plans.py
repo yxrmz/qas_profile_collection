@@ -141,7 +141,7 @@ def execute_trajectory(name, ignore_shutter=True, **metadata):
         yield from bps.open_run(md=md)
 
         # TODO Replace this with actual status object logic.
-        yield from bps.clear_checkpoint()
+        #yield from bps.clear_checkpoint()
         #yield from shutter.open_plan()
         #yield from xia1.start_trigger()
         # this must be a float
