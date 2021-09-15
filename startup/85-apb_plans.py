@@ -110,7 +110,7 @@ def get_traj_duration():
 def get_md_for_scan(name, mono_scan_type, plan_name, experiment, **metadata):
         interp_fn = f"{ROOT_PATH}/{USER_FILEPATH}/{RE.md['year']}/{RE.md['cycle']}/{RE.md['PROPOSAL']}/{name}.raw"
         interp_fn = validate_file_exists(interp_fn)
-        print(f'Storing data at {interp_fn}')
+        #print(f'Storing data at {interp_fn}')
         curr_traj = getattr(mono1, 'traj{:.0f}'.format(mono1.lut_number_rbv.value))
 
         i0_gainB  = i0_amp.get_gain()
@@ -185,7 +185,7 @@ def get_md_for_scan(name, mono_scan_type, plan_name, experiment, **metadata):
             #     md[f'ch{indx+1}_amp_gain']= amp.get_gain()[0]
             # else:
             #     md[f'ch{indx+1}_amp_gain']=0
-        print(f'METADATA \n {md} \n')
+        #print(f'METADATA \n {md} \n')
         md.update(**metadata)
         return md
 

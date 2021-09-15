@@ -56,20 +56,20 @@ def fly_scan_with_apb_trigger(name: str, comment: str, n_cycles: int = 1, delay:
     if autofoil:
         current_element = getattr(mono1, f'traj{int(mono1.lut_number_rbv.value)}').elem.value
         try:
-            yield from set_reference_foil(current_element)
+            RE(set_reference_foil(current_element))
         except:
             pass
 
     for indx in range(int(n_cycles)):
         name_n = '{} {:04d}'.format(name, indx + 1)
-        yield from prep_traj_plan()
+        RE(prep_traj_plan())
         print(f'Trajectory preparation complete at {print_now()}')
         #yield from shutter_fs.open_plan()
-        uid = (yield from execute_trajectory_apb_trigger(name_n, comment=comment))
+        uid =RE(execute_trajectory_apb_trigger(name_n, comment=comment))
         uids.append(uid)
         #yield from shutter_fs.close_plan()
         print(f'Trajectory is complete {print_now()}')
-        yield from bps.sleep(float(delay))
+        RE(bps.sleep(float(delay)))
     return uids
 
 
@@ -97,20 +97,20 @@ def fly_scan_with_xs3(name: str, comment: str, n_cycles: int = 1, delay: float =
     if True:
         current_element = getattr(mono1, f'traj{int(mono1.lut_number_rbv.value)}').elem.value
         try:
-            yield from set_reference_foil(current_element)
+            RE(set_reference_foil(current_element))
         except:
             pass
 
     for indx in range(int(n_cycles)):
         name_n = '{} {:04d}'.format(name, indx + 1)
-        yield from prep_traj_plan()
+        RE(prep_traj_plan())
         print(f'Trajectory preparation complete at {print_now()}')
         #TODO add qas shutter
         #yield from shutter_fs.open_plan()
-        uid = (yield from execute_trajectory_xs(name_n, comment=comment))
+        uid = RE(execute_trajectory_xs(name_n, comment=comment))
         uids.append(uid)
         #yield from shutter_fs.close_plan()
         print(f'Trajectory is complete {print_now()}')
-        yield from bps.sleep(float(delay))
+        RE(bps.sleep(float(delay)))
     return uids
 
