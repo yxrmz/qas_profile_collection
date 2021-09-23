@@ -28,7 +28,7 @@ def fly_scan_with_apb(name: str, comment: str, n_cycles: int = 1, delay: float =
         uids.append(uid)
         print(f'Trajectory is complete {print_now()}')
         RE(bps.sleep(float(delay)))
-
+    RE.md['experiment'] = ''
     return uids
 
 
@@ -70,6 +70,7 @@ def fly_scan_with_apb_trigger(name: str, comment: str, n_cycles: int = 1, delay:
         #yield from shutter_fs.close_plan()
         print(f'Trajectory is complete {print_now()}')
         RE(bps.sleep(float(delay)))
+    RE.md['experiment'] = ''
     return uids
 
 
@@ -112,5 +113,7 @@ def fly_scan_with_xs3(name: str, comment: str, n_cycles: int = 1, delay: float =
         #yield from shutter_fs.close_plan()
         print(f'Trajectory is complete {print_now()}')
         RE(bps.sleep(float(delay)))
+    RE.md['experiment'] = ''
     return uids
+
 

@@ -298,20 +298,47 @@ def execute_trajectory_xs3(name, ignore_shutter=True, **metadata):
     yield from xs_plan()
 
 
-def get_offsets_plan(detectors, num = 1, name = '', **metadata):
-    """
-    Example
-    -------
-    >>> RE(get_offset([pba1.adc1, pba1.adc6, pba1.adc7, pba2.adc6]))
-    """
+# def get_offsets_plan(detectors, num = 1, name = '', **metadata):
+#     """
+#     Example
+#     -------
+#     >>> RE(get_offset([pba1.adc1, pba1.adc6, pba1.adc7, pba2.adc6]))
+#     """
+#
+#     flyers = detectors
+#
+#     plan = bp.count(detectors, num, md={'plan_name': 'get_offset', 'name': name}, delay = 0.5)
+#
+#     def set_offsets():
+#         for flyer in flyers:
+#             ret = flyer.volt.get()
+#             yield from bps.abs_set(flyer.offset, ret, wait=True)
+#
+#     yield from bpp.fly_during_wrapper(bpp.finalize_wrapper(plan, set_offsets()), flyers)
 
-    flyers = detectors 
 
-    plan = bp.count(detectors, num, md={'plan_name': 'get_offset', 'name': name}, delay = 0.5)
+def get_offsets_plan(detectors = [apb_ave], time = 2):
+   for detector in detectors:
+       # detector.divide_old = detector.divide.get()
+       detector.save_current_status()
 
-    def set_offsets():
-        for flyer in flyers:
-            ret = flyer.volt.get()
-            yield from bps.abs_set(flyer.offset, ret, wait=True)
+       yield from bps.abs_set(detector.divide,375) # set sampling to 1 kHz
+       yield from bps.abs_set(detector.sample_len, int(time)*1e3)
+       yield from bps.abs_set(detector.wf_len, int(time) * 1e3)
 
-    yield from bpp.fly_during_wrapper(bpp.finalize_wrapper(plan, set_offsets()), flyers)
+   uid = (yield from bp.count(detectors, 1, md={"plan_name": "get_offsets"}))
+
+   for detector in detectors:
+       # yield from bps.abs_set(detector.divide, detector.divide_old)
+       yield from detector.restore_to_saved_status()
+
+   table = db[uid].table()
+
+   for detector in detectors:
+       for i in range(0,8):
+           mean =  float(table[f'apb_ave_ch{i+1}_mean'])
+           print(f'Mean {(mean)}')
+           ch_offset = getattr(detector, f'ch{i+1}_offset')
+           yield from bps.abs_set(ch_offset, mean)
+
+   return uid
