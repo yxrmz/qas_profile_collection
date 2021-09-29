@@ -1,6 +1,6 @@
 print(__file__)
 print("Loading isstools, preparing GUI...")
-
+from PyQt5.QtWidgets import QApplication
 import functools
 import isstools.xlive
 import collections
@@ -60,22 +60,21 @@ service_plan_funcs = {
 sample_stages = [{'x': sample_stage1.x.name, 'y': sample_stage1.y.name}]
 
 aux_plan_funcs = {
-    'set_reference_foil': set_reference_foil,
-    'get_reference_foil': get_reference_foil,
-    'general_scan': general_scan,
+    'Set Refernce Foil': set_reference_foil,
+    'Get Reference Foil': get_reference_foil,
+    'General Scan': general_scan,
 }
 
+plan_funcs = {
+    'Fly scan': fly_scan_with_apb,
+    'Fly scan w/SDD': fly_scan_with_xs3,
+}
 
-
-print(mono1)
+app = QApplication(sys.argv)
 
 newApp = PyQt5.QtWidgets.QApplication(sys.argv)
 
-xlive_gui = isstools.xlive.XliveGui(plan_funcs=[tscan,
-                                                fly_scan_with_apb,
-                                                fly_scan_with_xs3,
-                                                tscan_xs3,
-                                                xs_count],
+xlive_gui = isstools.xlive.XliveGui(plan_funcs=plan_funcs,
                                     prep_traj_plan=prep_traj_plan,
                                     diff_plans=[count_qas, dark_frame_preprocessor], 
                                     RE=RE,
@@ -91,7 +90,7 @@ xlive_gui = isstools.xlive.XliveGui(plan_funcs=[tscan,
                                     motors_dict=motors_dictionary,
                                     general_scan_func=general_scan,
                                     sample_stages = sample_stages,
-                                    window_title="XLive @QAS/7-BM NSLS-II",
+                                    window_title="XLive@QAS/7-BM NSLS-II",
                                    )
 
 sys.stdout = xlive_gui.emitstream_out
@@ -99,19 +98,6 @@ sys.stdout = xlive_gui.emitstream_out
 def xlive():
     xlive_gui.show()
 
-#sys.stdout = xlive_gui.emitstream_out
-#sys.stderr = xlive_gui.emitstream_err
 
-#from isstools.xview import XviewGui
-#xview_gui = XviewGui(PB_PULSES_PER_DEGREE)
-
-## jlynch 8/30
-#import pyinstrument
-
-#profiler = pyinstrument.Profiler()
-#profiler.start()
-
-#print('starting pyinstrument profiler')
-## jlynch 8/30
 
 xlive()
