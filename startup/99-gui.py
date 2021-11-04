@@ -60,7 +60,7 @@ service_plan_funcs = {
 sample_stages = [{'x': sample_stage1.x.name, 'y': sample_stage1.y.name}]
 
 aux_plan_funcs = {
-    'Set Refernce Foil': set_reference_foil,
+    'Set Reference Foil': set_reference_foil,
     'Get Reference Foil': get_reference_foil,
     'General Scan': general_scan,
 }
@@ -75,8 +75,10 @@ app = QApplication(sys.argv)
 newApp = PyQt5.QtWidgets.QApplication(sys.argv)
 
 xlive_gui = isstools.xlive.XliveGui(plan_funcs=plan_funcs,
-                                    prep_traj_plan=prep_traj_plan,
-                                    diff_plans=[count_qas, dark_frame_preprocessor], 
+                                    diff_plans=[count_qas, dark_frame_preprocessor],
+                                    aux_plan_funcs =aux_plan_funcs,
+                                    service_plan_funcs=service_plan_funcs,
+                                    prep_traj_plan= prep_traj_plan,
                                     RE=RE,
                                     db=db,
                                     apb = apb,
@@ -85,11 +87,9 @@ xlive_gui = isstools.xlive.XliveGui(plan_funcs=plan_funcs,
                                     sdd = xs,
                                     shutters_dict=shutters_dictionary,
                                     det_dict=detector_dictionary,
-                                    service_plan_funcs=service_plan_funcs,
-                                    aux_plan_funcs =aux_plan_funcs,
                                     motors_dict=motors_dictionary,
                                     general_scan_func=general_scan,
-                                    sample_stages = sample_stages,
+                                    sample_stage = sample_stage1,
                                     window_title="XLive@QAS/7-BM NSLS-II",
                                    )
 

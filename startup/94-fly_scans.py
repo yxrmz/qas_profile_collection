@@ -22,12 +22,13 @@ def fly_scan_with_apb(name: str, comment: str, n_cycles: int = 1, delay: float =
 
     for indx in range(int(n_cycles)):
         name_n = '{} {:04d}'.format(name, indx + 1)
-        RE(prep_traj_plan())
+        yield from prep_traj_plan()
         print(f'Trajectory preparation complete at {print_now()}')
-        uid = RE(execute_trajectory_apb(name_n, comment=comment))
+        uid = (yield from (execute_trajectory_apb(name_n, comment=comment)))
         uids.append(uid)
         print(f'Trajectory is complete {print_now()}')
-        RE(bps.sleep(float(delay)))
+        yield from bps.sleep(float(delay))
+
     RE.md['experiment'] = ''
     return uids
 
