@@ -54,8 +54,9 @@ shutters_dictionary = {
                        }
 
 service_plan_funcs = {
-                      'get_offsets': get_offsets,
-                     }
+    'get_offsets': get_offsets,
+    'xs_count': xs_count,
+    }
 
 sample_stages = [{'x': sample_stage1.x.name, 'y': sample_stage1.y.name}]
 
