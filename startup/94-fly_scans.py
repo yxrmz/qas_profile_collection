@@ -55,7 +55,7 @@ def fly_scan_with_apb_trigger(name: str, comment: str, n_cycles: int = 1, delay:
     sys.stdout = kwargs.pop('stdout', sys.stdout)
     uids = []
     if autofoil:
-        current_element = getattr(mono1, f'traj{int(mono1.lut_number_rbv.value)}').elem.value
+        current_element = getattr(mono1, f'traj{int(mono1.lut_number_rbv.get())}').elem.get()
         try:
             RE(set_reference_foil(current_element))
         except:
@@ -97,7 +97,7 @@ def fly_scan_with_xs3(name: str, comment: str, n_cycles: int = 1, delay: float =
     uids = []
     # if autofoil:
     if True:
-        current_element = getattr(mono1, f'traj{int(mono1.lut_number_rbv.value)}').elem.value
+        current_element = getattr(mono1, f'traj{int(mono1.lut_number_rbv.get())}').elem.get()
         try:
             RE(set_reference_foil(current_element))
         except:
