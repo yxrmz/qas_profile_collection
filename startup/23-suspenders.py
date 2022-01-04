@@ -9,7 +9,7 @@ from bluesky.suspenders import (SuspendBoolHigh,
                                 SuspendInBand, SuspendOutBand)
 
 
-fe_shut_suspender = SuspendBoolHigh(EpicsSignalRO(shutter_fe.status.pvname), sleep=1*60)
+fe_shut_suspender = SuspendBoolHigh(EpicsSignalRO(shutter_fe.status.pvname), sleep=15*60)
 ph_shut_suspender = SuspendBoolHigh(EpicsSignalRO(shutter_ph.status.pvname), sleep=1*60)
 #fs_shut_suspender = SuspendBoolLow(EpicsSignalRO(shutter_fs.status.pvname), sleep=1*20)
 
@@ -22,7 +22,7 @@ suspenders = [fe_shut_suspender,
               #beam_current_suspender,
               ]
 
-RE.install_suspender(fe_shut_suspender)
+#RE.install_suspender(fe_shut_suspender)
 
 ''' Some help on suspenders /bluesky
 # how to add a suspender:
