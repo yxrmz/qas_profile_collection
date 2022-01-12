@@ -7,7 +7,7 @@ from collections import deque
 
 import numpy as np
 
-from ophyd import Component as Cpt, Device, EpicsSignal, Kind
+from ophyd import Component as Cpt, Device, EpicsSignal, EpicsSignalRO, Kind
 from ophyd.sim import NullStatus
 from ophyd.status import SubscriptionStatus
 from bluesky.utils import new_uid
@@ -134,6 +134,29 @@ class AnalogPizzaBoxAverage(AnalogPizzaBox):
         yield from bps.abs_set(self.divide, self.saved_status['divide'])
         yield from bps.abs_set(self.sample_len, self.saved_status['sample_len'])
         yield from bps.abs_set(self.wf_len, self.saved_status['wf_len'])
+
+    def check_apb_gpfs_status(self,
+                            mount_root="/nsls2/xf07bm/data/apb",
+                            test_prefix="test",
+                            year_offset=0,
+                            wait_time=3.0):
+        year = str(datetime.now().year + year_offset)
+
+        self.filename_bin.put(os.path.join(mount_root, year, f"{test_prefix}.bin"))
+        self.filename_txt.put(os.path.join(mount_root, year, f"{test_prefix}.txt"))
+
+        self.stream.put(1)
+        # TODO: rework it with conditional SubscriptionStatus
+        # to avoid potentially long wait.
+        ttime.sleep(wait_time)
+
+        bin_st = apb.filebin_status.get()  # 2=BAD status, 1=OK
+        txt_st = apb.filetxt_status.get()
+
+        if bin_st == 1 and txt_st == 1:
+            return True  # files saved correctly
+        else:
+            return False  # at least one file not saved
 
 
 apb_ave = AnalogPizzaBoxAverage(prefix="XF:07BMB-CT{PBA:1}:", name="apb_ave")
