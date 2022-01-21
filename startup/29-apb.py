@@ -145,6 +145,10 @@ class AnalogPizzaBoxAverage(AnalogPizzaBox):
         self.filename_bin.put(os.path.join(mount_root, year, f"{test_prefix}.bin"))
         self.filename_txt.put(os.path.join(mount_root, year, f"{test_prefix}.txt"))
 
+        # We need a very short scan to check the mount.
+        # 2000 samples is the minimum supported by the detector as of Jan. 2022.
+        self.stream_samples.put(2000)
+
         self.stream.put(1)
         # TODO: rework it with conditional SubscriptionStatus
         # to avoid potentially long wait.
