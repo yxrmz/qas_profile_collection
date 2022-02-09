@@ -49,7 +49,7 @@ class FlyerXS(FlyerAPBwithTrigger):
         super().__init__( det, pbs, motor, trigger)
         self.xs_det = xs_det
 
-    def kickoff(self, traj_duration=None):
+    def kickoff(self, traj_duration=None):  
         traj_duration = get_traj_duration()
         acq_rate = self.trigger.freq.get()
         self.xs_det.stage(acq_rate, traj_duration)

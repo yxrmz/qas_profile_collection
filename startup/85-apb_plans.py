@@ -26,17 +26,17 @@ class FlyerAPB:
         # set_and_wait(self.motor, 'prepare')
 
         # Check that the GPFS is mounted at "/nsls2/xf07bm/data/apb" on "xf07bmb-anpb1":
-        if not self._mount_exists:
-            msg = "\n\n    /nsls2/xf07bm/data/apb is {}mounted correctly @ xf07bmb-anpb1{}\n"
-            status = self.det.check_apb_gpfs_status()  # returns True for mounted, and False for not-mounted
-            if not status:
-                self._mount_exists = False
-                error_msg = colored(msg.format("NOT ", ".\n    Contact Beamline staff for instructions."), "red")
-                print(error_msg, file=sys.stdout, flush=True)
-                raise GPFSNotConnectedError(error_msg)
-            else:
-                self._mount_exists = True
-                print(colored(msg.format("", ""), "green"), file=sys.stdout, flush=True)
+        #if not self._mount_exists:
+         #   msg = "\n\n    /nsls2/xf07bm/data/apb is {}mounted correctly @ xf07bmb-anpb1{}\n"
+           # status = self.det.check_apb_gpfs_status()  # returns True for mounted, and False for not-mounted
+            #if not status:
+             #   self._mount_exists = False
+              #  error_msg = colored(msg.format("NOT ", ".\n    Contact Beamline staff for instructions."), "red")
+               # print(error_msg, file=sys.stdout, flush=True)
+                #raise GPFSNotConnectedError(error_msg)
+            #else:
+             #   self._mount_exists = True
+             #   print(colored(msg.format("", ""), "green"), file=sys.stdout, flush=True)
 
         def callback(value, old_value, **kwargs):
 
@@ -149,12 +149,12 @@ def get_md_for_scan(name, mono_scan_type, plan_name, experiment, **metadata):
         mfc4B_n2 = mfc4_n2.flow_rb.get()
         mfc5B_ar = mfc5_ar.flow_rb.get()
 
-        incident_beampathB_y = ip_y_stage.user_readback.get()
+        incident_beampathB_y = ibp_hutchB.user_readback.get()
 
-        incident_slitsB_top = jj_slits.top.user_readback.get()
-        incident_slitsB_bottom = jj_slits.bottom.user_readback.get()
-        incident_slitsB_inboard = jj_slits.inboard.user_readback.get()
-        incident_slitsB_outboard = jj_slits.outboard.user_readback.get()
+        incident_slitsB_top = jj_slits_hutchB.top.user_readback.get()
+        incident_slitsB_bottom = jj_slits_hutchB.bottom.user_readback.get()
+        incident_slitsB_inboard = jj_slits_hutchB.inboard.user_readback.get()
+        incident_slitsB_outboard = jj_slits_hutchB.outboard.user_readback.get()
 
         sample_stageB_rot = sample_stage1.rotary.user_readback.get()
         sample_stageB_x = sample_stage1.x.user_readback.get()

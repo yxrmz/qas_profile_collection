@@ -167,8 +167,18 @@ class Slits(Device):
     inboard = Cpt(EpicsMotor, '-Ax:I}Mtr')
 
 foe_slits = Slits('XF:07BMA-OP{Slt:1', name='foe_slits')
-jj_slits = Slits('XF:07BMB-OP{Slt:1', name='jj_slits')
 
+
+class SlitsVA(Device):
+    top = Cpt(EpicsMotor, '-Ax:T}Mtr')
+    bottom = Cpt(EpicsMotor, '-Ax:B}Mtr')
+    outboard = Cpt(EpicsMotor, '-Ax:O}Mtr')
+    inboard = Cpt(EpicsMotor, '-Ax:I}Mtr')
+    xctr = Cpt(EpicsMotor, '-Ax:XCtr}Mtr')
+    xgap = Cpt(EpicsMotor, '-Ax:XGap}Mtr')
+
+jj_slits_hutchB = SlitsVA('XF:07BMB-OP{Slt:1', name='jj_slits_hutchB')
+jj_slits_hutchC = SlitsVA('XF:07BMC-OP{Slt:1', name='jj_slits_hutchC')
 
 class FE_Slits(Device):
     top = Cpt(EpicsMotor, '1-Ax:T}Mtr')
@@ -177,9 +187,6 @@ class FE_Slits(Device):
     inboard = Cpt(EpicsMotor, '2-Ax:I}Mtr')
 
 fe_slits = FE_Slits('FE:C07B-OP{Slt:', name = 'fe_slits')
-
-ip_y_stage = EpicsMotor('XF:07BMB-OP{IBP:1-Ax:Y}Mtr', name='ip_y_stage')
-
 
 class Table(Device):
     hor_up = Cpt(EpicsMotor, '-Ax:XU}Mtr')
@@ -191,23 +198,39 @@ class Table(Device):
 
 exp_table = Table('XF:07BMB-OP{Asm:1', name='exp_table')
 
+
 class BeamStop(Device):
     horizontal = Cpt(EpicsMotor, '-Ax:X}Mtr')
     vertical   = Cpt(EpicsMotor, '-Ax:Y}Mtr')
 
 beamstop = BeamStop('XF:07BMB-OP{Stg:PE', name='beamstop')
 
+
 class PerkinElmerPositioner(Device):
     vertical = Cpt(EpicsMotor, '-Ax:Y}Mtr')
 
 pe_pos = PerkinElmerPositioner('XF:07BMB-ES{Asm:2', name='pe_pos')
 
+
 class FoilWheel1(Device):
     wheel1 = Cpt(EpicsMotor, '-Ax:RotUp}Mtr')
     wheel2 = Cpt(EpicsMotor, '-Ax:RotDn}Mtr')
+
 
 class FoilWheel2(Device):
     wheel1 = Cpt(EpicsMotor, '-Ax:Rot}Mtr')
 
 foil_wheel_pair1 = FoilWheel1('XF:07BMB-OP{FoilWheel:1', name='foil_wheel1')
 foil_wheel_pair2 = FoilWheel2('XF:07BMB-OP{FoilWheel:2', name='foil_wheel2')
+
+
+class Drifts(Device):
+    drifts_rot = Cpt(EpicsMotor, '-Ax:Theta}Mtr')
+    drifts_x   = Cpt(EpicsMotor, '-Ax:X}Mtr')
+
+drifts = Drifts('XF:07BMC-OP{Stg:1', name='drifts')
+
+
+ibp_hutchB = EpicsMotor('XF:07BMB-OP{IBP:1-Ax:Y}Mtr', name='ibp_hutchB')
+ibp_hutchC = EpicsMotor('XF:07BMC-OP{IBP:1-Ax:Y}Mtr', name='ibp_hutchC')
+

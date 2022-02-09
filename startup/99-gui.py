@@ -32,13 +32,14 @@ detector_dictionary = {#colmirror_diag.name: {'obj': colmirror_diag, 'elements':
 
 
 
-motors_dictionary = {#jj_slits.top.name: {'name': jj_slits.top.name, 'description':JJ Slit top, 'object': jj_slits.top},
-                    # jj_slits.bottom.name: {'name': jj_slits.bottom.name, 'description':jj_slits.bottom.name, 'object': jj_slits.bottom},
-                    # jj_slits.outboard.name: {'name': jj_slits.outboard.name, 'description':jj_slits.outboard.name, 'object': jj_slits.outboard},
-                    # jj_slits.inboard.name: {'name': jj_slits.inboard.name, 'description':jj_slits.inboard.name, 'object': jj_slits.inboard},
+motors_dictionary = {jj_slits_hutchB.xctr.name: {'name': jj_slits_hutchB.xctr.name, 'description':jj_slits_hutchB.xctr.name, 'object': jj_slits_hutchB.xctr},
+                     jj_slits_hutchC.xctr.name: {'name': jj_slits_hutchC.xctr.name, 'description':jj_slits_hutchC.xctr.name, 'object': jj_slits_hutchC.xctr},
+                     drifts.drifts_rot.name: {'name': drifts.drifts_rot.name, 'description':drifts.drifts_rot.name, 'object': drifts.drifts_rot},
+                     drifts.drifts_x.name: {'name': drifts.drifts_x.name, 'description':drifts.drifts_x.name, 'object': drifts.drifts_x},
                      beamstop.horizontal.name: {'name': beamstop.horizontal.name, 'description': 'Beamstop Horizontal', 'object':beamstop.horizontal},
                      beamstop.vertical.name: {'name': beamstop.vertical.name, 'description': beamstop.vertical.name, 'object': beamstop.vertical},
-                     ip_y_stage.name: {'name': ip_y_stage.name, 'description': ip_y_stage.name, 'object': ip_y_stage},
+                     ibp_hutchB.name: {'name': ibp_hutchB.name, 'description': ibp_hutchB.name, 'object': ibp_hutchB},
+                     ibp_hutchC.name: {'name': ibp_hutchC.name, 'description': ibp_hutchC.name, 'object': ibp_hutchC},
                      sample_stage1.rotary.name: {'name': sample_stage1.rotary.name, 'description':sample_stage1.rotary.name, 'object':sample_stage1.rotary},
                      sample_stage1.x.name: {'name': sample_stage1.x.name, 'description':sample_stage1.x.name, 'object':sample_stage1.x},
                      sample_stage1.y.name: {'name': sample_stage1.y.name, 'description':sample_stage1.y.name, 'object':sample_stage1.y},
