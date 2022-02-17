@@ -1,5 +1,9 @@
 print(__file__)
 
+# Try to capture 'core dump' reasons.
+import faulthandler
+faulthandler.enable()
+
 import psutil
 
 import nslsii
@@ -19,6 +23,10 @@ if len(bsui_processes) > 1:
     input("Press CTRL-C to quit (recommended) or ENTER to continue")
 
 import ophyd
+
+# This enables counters of PVs.
+ophyd.set_cl(pv_telemetry=True)
+
 try:
     ophyd.signal.EpicsSignalBase.set_default_timeout(timeout=60, connection_timeout=60)
 except AttributeError:
