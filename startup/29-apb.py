@@ -139,7 +139,7 @@ class AnalogPizzaBoxAverage(AnalogPizzaBox):
                             mount_root="/nsls2/xf07bm/data/apb",
                             test_prefix="test",
                             year_offset=0,
-                            wait_time=3.0):
+                            wait_time=5.0):
         year = str(datetime.now().year + year_offset)
 
         self.filename_bin.put(os.path.join(mount_root, year, f"{test_prefix}.bin"))
