@@ -1,5 +1,3 @@
-
-
 def fly_scan_with_apb(name: str, comment: str, n_cycles: int = 1, delay: float = 0,  **kwargs):
     '''
     Trajectory Scan - Runs the monochromator along the trajectory that is previously loaded in the controller N times
@@ -19,21 +17,17 @@ def fly_scan_with_apb(name: str, comment: str, n_cycles: int = 1, delay: float =
     sys.stdout = kwargs.pop('stdout', sys.stdout)
     uids = []
 
-
     for indx in range(int(n_cycles)):
         name_n = '{} {:04d}'.format(name, indx + 1)
         yield from prep_traj_plan()
         print(f'Trajectory preparation complete at {print_now()}')
-        uid = (yield from (execute_trajectory_apb(name_n, comment=comment)))
+        uid = (yield from execute_trajectory_apb(name_n, comment=comment))
         uids.append(uid)
         print(f'Trajectory is complete {print_now()}')
         yield from bps.sleep(float(delay))
 
     RE.md['experiment'] = ''
     return uids
-
-
-
 
 
 def fly_scan_with_apb_trigger(name: str, comment: str, n_cycles: int = 1, delay: float = 0, autofoil :bool= False, **kwargs):
@@ -57,24 +51,23 @@ def fly_scan_with_apb_trigger(name: str, comment: str, n_cycles: int = 1, delay:
     if autofoil:
         current_element = getattr(mono1, f'traj{int(mono1.lut_number_rbv.get())}').elem.get()
         try:
-            RE(set_reference_foil(current_element))
+            yield from set_reference_foil(current_element)
         except:
             pass
 
     for indx in range(int(n_cycles)):
         name_n = '{} {:04d}'.format(name, indx + 1)
-        RE(prep_traj_plan())
+        yield from prep_traj_plan()
         print(f'Trajectory preparation complete at {print_now()}')
         #yield from shutter_fs.open_plan()
-        uid =RE(execute_trajectory_apb_trigger(name_n, comment=comment))
+        uid = (yield from execute_trajectory_apb_trigger(name_n, comment=comment))
         uids.append(uid)
         #yield from shutter_fs.close_plan()
         print(f'Trajectory is complete {print_now()}')
-        RE(bps.sleep(float(delay)))
+        yield from bps.sleep(float(delay))
+
     RE.md['experiment'] = ''
     return uids
-
-
 
 
 def fly_scan_with_xs3(name: str, comment: str, n_cycles: int = 1, delay: float = 0, autofoil :bool= False, **kwargs):
@@ -99,22 +92,21 @@ def fly_scan_with_xs3(name: str, comment: str, n_cycles: int = 1, delay: float =
     if True:
         current_element = getattr(mono1, f'traj{int(mono1.lut_number_rbv.get())}').elem.get()
         try:
-            RE(set_reference_foil(current_element))
+            yield from set_reference_foil(current_element)
         except:
             pass
 
     for indx in range(int(n_cycles)):
         name_n = '{} {:04d}'.format(name, indx + 1)
-        RE(prep_traj_plan())
+        yield from prep_traj_plan()
         print(f'Trajectory preparation complete at {print_now()}')
         #TODO add qas shutter
         #yield from shutter_fs.open_plan()
-        uid = RE(execute_trajectory_xs(name_n, comment=comment))
+        uid = (yield from execute_trajectory_xs(name_n, comment=comment))
         uids.append(uid)
         #yield from shutter_fs.close_plan()
         print(f'Trajectory is complete {print_now()}')
-        RE(bps.sleep(float(delay)))
+        yield from bps.sleep(float(delay))
+
     RE.md['experiment'] = ''
     return uids
-
-
