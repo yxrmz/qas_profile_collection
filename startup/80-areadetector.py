@@ -222,11 +222,6 @@ class PerkinElmerContinuous(ContinuousAcquisitionTrigger, QASPerkinElmer):
     pass
 
 
-# PE1 detector configurations:
-pe1_pv_prefix = 'XF:07BM-ES{Det:PE1}'
-pe1 = QASPerkinElmer(pe1_pv_prefix, name='pe1',
-                     read_attrs=['tiff', 'stats1.total'])
-
 
 # Check the version of ADCore and raise if it's less than 3.3
 # pe1_adcore_version = EpicsSignalRO('XF:07BM-ES{Det:PE1}cam1:ADCoreVersion_RBV', name='pe1_adcore_version')
@@ -276,5 +271,11 @@ def configure_detectors(det):
     # include QAS's special rotation in the AD pipeline
     det.tiff.stage_sigs[det.proc.nd_array_port] = "TRANS1"
 
+ 
+# PE1 detector configurations:
+pe1_pv_prefix = 'XF:07BM-ES{Det:PE1}'
+# pe1 = QASPerkinElmer(pe1_pv_prefix, name='pe1',
+#                      read_attrs=['tiff', 'stats1.total'])
+# configure_detectors(pe1c)
 # some defaults, as an example of how to use this
 # pe1.configure(dict(images_per_set=6, number_of_sets=10))

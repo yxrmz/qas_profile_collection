@@ -77,7 +77,7 @@ app = QApplication(sys.argv)
 newApp = PyQt5.QtWidgets.QApplication(sys.argv)
 
 xlive_gui = isstools.xlive.XliveGui(plan_funcs=plan_funcs,
-                                    diff_plans=[count_qas, dark_frame_preprocessor],
+                                    diff_plans=[], #[count_qas, dark_frame_preprocessor],
                                     aux_plan_funcs =aux_plan_funcs,
                                     service_plan_funcs=service_plan_funcs,
                                     prep_traj_plan= prep_traj_plan,
