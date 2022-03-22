@@ -172,7 +172,7 @@ def darksubtraction_serializer_factory(name, doc):
     subtractor = DarkSubtraction('pe1_image')
     # CHANGE HERE TO ADJUST HOW THE EXPORTED FILES ARE NAMED
     serializer = Serializer(
-        '/nsls2/xf07bm/users/{year}/{cycle}/{PROPOSAL}XRD'.format(**doc),
+        '/data/nsls2/qas-new/shared/legacy/users/{year}/{cycle}/{PROPOSAL}XRD'.format(**doc),
         file_prefix=(
             '{start[sample_name]}-'
             '{start[exposure_time]:.1f}s-'
@@ -362,7 +362,7 @@ def plot_image(data, **kwargs):
     from tifffile import TiffWriter
     
     ##File saving needs to be done properly via suite-case
-    with open('/nsls2/xf07bm/data/pe1_data/2019/05/23/Diffraction_Image.tiff', 'xb') as f:
+    with open('/data/nsls2/qas-new/shared/legacy/pe1_data/2019/05/23/Diffraction_Image.tiff', 'xb') as f:
         tw = TiffWriter(f)
         tw.save(data)
 

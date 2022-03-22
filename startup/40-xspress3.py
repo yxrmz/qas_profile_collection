@@ -108,9 +108,9 @@ class QASXspress3Detector(XspressTrigger, Xspress3Detector):
     mca4 = Cpt(EpicsSignal, 'ARR4:ArrayData')
     #TODO change folder to xspress3
     hdf5 = Cpt(Xspress3FileStoreFlyable, 'HDF5:',
-               read_path_template='/nsls2/xf07bm/data/x3m/%Y/%m/%d/',
-               root='/nsls2/xf07bm/data/',
-               write_path_template='/nsls2/xf07bm/data/x3m/%Y/%m/%d/',
+               read_path_template='/data/nsls2/qas-new/shared/legacy/x3m/%Y/%m/%d/',
+               root='/data/nsls2/qas-new/shared/legacy/',
+               write_path_template='/data/nsls2/qas-new/shared/legacy/x3m/%Y/%m/%d/',
                )
 
     def __init__(self, prefix, *, configuration_attrs=None, read_attrs=None,

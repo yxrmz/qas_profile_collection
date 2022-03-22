@@ -9,7 +9,7 @@ from random import random
 from xas.trajectory import trajectory_manager
 import json
 
-json_file_path = '/nsls2/xf07bm/settings/json/foil_wheel.json'
+json_file_path = '/data/nsls2/qas-new/shared/config/settings/json/foil_wheel.json'
 
 with open(json_file_path) as fp:
     reference_foils = json.load(fp)
