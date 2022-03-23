@@ -119,7 +119,7 @@ def make_filename(filename):
 class EncoderFS(Encoder):
     "Encoder Device, when read, returns references to data in filestore."
     chunk_size = 2**20
-    write_path_template = '/data/nsls2/qas-new/shared/legacy/pizza_box_data/%Y/%m/%d/'
+    write_path_template = '/data/nsls2/qas-new/legacy/raw/pizza_box_data/%Y/%m/%d/'
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -138,7 +138,7 @@ class EncoderFS(Encoder):
 
         if self.connected:
             print('Staging of {} starting'.format(self.name))
-            #write_path_template = '/data/nsls2/qas-new/shared/legacy/pizza_box_data/%Y/%m/%d/'
+            #write_path_template = '/data/nsls2/qas-new/legacy/raw/pizza_box_data/%Y/%m/%d/'
 
             filename = 'en_' + str(uuid.uuid4())[:6]
             write_path_template = os.path.join('pizza_box_data/%Y/%m/%d', filename)
@@ -297,7 +297,7 @@ class DigitalInput(Device):
 class DIFS(DigitalInput):
     "Encoder Device, when read, returns references to data in filestore."
     chunk_size = 2**20
-    write_path_template = '/data/nsls2/qas-new/shared/legacy/pizza_box_data/%Y/%m/%d/'
+    write_path_template = '/data/nsls2/qas-new/legacy/raw/pizza_box_data/%Y/%m/%d/'
 
     def stage(self):
         "Set the filename and record it in a 'resource' document in the filestore database."
@@ -305,7 +305,7 @@ class DIFS(DigitalInput):
 
         print(self.name, 'stage')
         DIRECTORY = datetime.now().strftime(self.write_path_template)
-        #DIRECTORY = "/data/nsls2/qas-new/shared/legacy/pb_data"
+        #DIRECTORY = "/data/nsls2/qas-new/legacy/raw/pb_data"
 
         filename = 'di_' + str(uuid.uuid4())[:6]
         self._full_path = os.path.join(DIRECTORY, filename)  # stash for future reference
@@ -480,7 +480,7 @@ class Adc(TriggerAdc):
 class AdcFS(Adc):
     "Adc Device, when read, returns references to data in filestore."
     chunk_size = 2**20
-    write_path_template = '/data/nsls2/qas-new/shared/legacy/pizza_box_data/%Y/%m/%d/'
+    write_path_template = '/data/nsls2/qas-new/legacy/raw/pizza_box_data/%Y/%m/%d/'
 
     def __init__(self, *args, reg, **kwargs):
         self._reg = reg
@@ -491,7 +491,7 @@ class AdcFS(Adc):
         if(self.connected):
             print(self.name, 'stage')
             DIRECTORY = datetime.now().strftime(self.write_path_template)
-            #DIRECTORY = "/data/nsls2/qas-new/shared/legacy/pb_data"
+            #DIRECTORY = "/data/nsls2/qas-new/legacy/raw/pb_data"
 
             filename = 'an_' + str(uuid.uuid4())[:6]
             self._full_path = os.path.join(DIRECTORY, filename)  # stash for future reference
@@ -592,7 +592,7 @@ class DualAdcFS(TriggerAdc):
     # column is the column and enable_sel is what triggers the collection
     # rename because of existing children pv's
     chunk_size = 2**20
-    write_path_template = '/data/nsls2/qas-new/shared/legacy/pizza_box_data/%Y/%m/%d/'
+    write_path_template = '/data/nsls2/qas-new/legacy/raw/pizza_box_data/%Y/%m/%d/'
     volt = FC(EpicsSignal, '{self._adc_read}}}E-I')
     offset = FC(EpicsSignal, '{self._adc_read}}}Offset')
     dev_name = FC(EpicsSignal, '{self._adc_read}}}DevName')
