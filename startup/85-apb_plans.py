@@ -25,9 +25,10 @@ class FlyerAPB:
         # TODO: handle it on the plan level
         # set_and_wait(self.motor, 'prepare')
 
-        # Check that the GPFS is mounted at "/nsls2/xf07bm/data/apb" on "xf07bmb-anpb1":
+        # Check that the filesystem is mounted at
+        # "/nsls2/data/qas-new/legacy/raw/apb" on "xf07bmb-anpb1":
         if not self._mount_exists:
-            msg = "\n\n    /nsls2/xf07bm/data/apb is {}mounted correctly @ xf07bmb-anpb1{}\n"
+            msg = "\n\n    /nsls2/data/qas-new/legacy/raw/apb is {}mounted correctly @ xf07bmb-anpb1{}\n"
             status = self.det.check_apb_gpfs_status()  # returns True for mounted, and False for not-mounted
             if not status:
                 self._mount_exists = False
@@ -216,4 +217,3 @@ def execute_trajectory_apb(name, **metadata):
                          'fly_energy_scan_apb',
                          **metadata)
     yield from bp.fly([flyer_apb], md=md)
-

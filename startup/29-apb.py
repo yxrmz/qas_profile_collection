@@ -136,7 +136,7 @@ class AnalogPizzaBoxAverage(AnalogPizzaBox):
         yield from bps.abs_set(self.wf_len, self.saved_status['wf_len'])
 
     def check_apb_gpfs_status(self,
-                            mount_root="/nsls2/xf07bm/data/apb",
+                            mount_root="/nsls2/data/qas-new/legacy/raw/apb",
                             test_prefix="test",
                             year_offset=0,
                             wait_time=5.0):

@@ -94,8 +94,8 @@ logging.getLogger('caproto.ch').setLevel('ERROR')
 # print(f'\nThe caproto logs will be written to {caproto_log}')
 # print(f'The bluesky logs will be written to {bluesky_log}\n')
 
-ROOT_PATH = '/nsls2/xf07bm'
-RAW_FILEPATH = 'data'
+ROOT_PATH = '/nsls2/data/qas-new/legacy'
+RAW_FILEPATH = 'raw'
 USER_FILEPATH = 'users'
 
 #def print_to_gui(string, stdout=sys.stdout):
