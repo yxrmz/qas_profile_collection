@@ -356,15 +356,15 @@ def get_subtracted_image(scan_id=-1, img_field='pe1_image'):
     return sub
 
 
-def plot_image(data, **kwargs):
-    p = functools.partial(plt.imshow, cmap='gray', clim=(0, 500))  # noqa
-    p(data, **kwargs)
-    from tifffile import TiffWriter
-    
-    ##File saving needs to be done properly via suite-case
-    with open('/data/nsls2/qas-new/shared/legacy/pe1_data/2019/05/23/Diffraction_Image.tiff', 'xb') as f:
-        tw = TiffWriter(f)
-        tw.save(data)
+# def plot_image(data, **kwargs):
+#     p = functools.partial(plt.imshow, cmap='gray', clim=(0, 500))  # noqa
+#     p(data, **kwargs)
+#     from tifffile import TiffWriter
+#
+#     ##File saving needs to be done properly via suite-case
+#     with open('/data/nsls2/qas-new/legacy/raw/pe1_data/2019/05/23/Diffraction_Image.tiff', 'xb') as f:
+#         tw = TiffWriter(f)
+#         tw.save(data)
 
 # RE(dark_frame_aware_plan(cam, dc))
 # # BOILERPLATE SETUP
