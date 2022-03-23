@@ -96,7 +96,7 @@ logging.getLogger('caproto.ch').setLevel('ERROR')
 
 ROOT_PATH = '/nsls2/data/qas-new/legacy'
 RAW_FILEPATH = 'raw'
-USER_FILEPATH = 'users'
+USER_FILEPATH = 'processed'
 
 #def print_to_gui(string, stdout=sys.stdout):
 #    print(string, file=stdout, flush=True)
