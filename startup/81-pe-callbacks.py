@@ -20,7 +20,7 @@ RE.msg_hook = ts_msg_hook  # noqa
 def _ensure_trailing_slash(path, path_semantics=None):
     """
     'a/b/c' -> 'a/b/c/'
- 
+
     EPICS adds the trailing slash itself if we do not, so in order for the
     setpoint filepath to match the readback filepath, we need to add the
     trailing slash ourselves.
@@ -30,7 +30,7 @@ def _ensure_trailing_slash(path, path_semantics=None):
         # make it a windows slash
         newpath = newpath[:-1]
     return newpath
- 
+
 ophyd.areadetector.filestore_mixins._ensure_trailing_slash = _ensure_trailing_slash
 
 
@@ -172,7 +172,7 @@ def darksubtraction_serializer_factory(name, doc):
     subtractor = DarkSubtraction('pe1_image')
     # CHANGE HERE TO ADJUST HOW THE EXPORTED FILES ARE NAMED
     serializer = Serializer(
-        '/data/nsls2/qas-new/shared/legacy/users/{year}/{cycle}/{PROPOSAL}XRD'.format(**doc),
+        '/data/nsls2/qas-new/shared/users/{year}/{cycle}/{PROPOSAL}XRD'.format(**doc),
         file_prefix=(
             '{start[sample_name]}-'
             '{start[exposure_time]:.1f}s-'
@@ -206,7 +206,7 @@ darksubtraction_serializer_rr = RunRouter([darksubtraction_serializer_factory], 
 #               [pe1, mono1.energy], shutter_fs, sample_name=?,
 #               frame_count=?, subframe_time, subframe_count=?
 #           )
-#       ), 
+#       ),
 #       purpose="pe1 debugging"
 #    )
 
@@ -229,7 +229,7 @@ def _count_qas(detectors, shutter, sample_name, frame_count, subframe_time, subf
     subframe_time: float
         exposure time for each subframe, total exposure time will be subframe_time*subframe_count
     subframe_count: int
-        number of exposures to average for each frame 
+        number of exposures to average for each frame
 
     Returns
     -------
@@ -244,14 +244,14 @@ def _count_qas(detectors, shutter, sample_name, frame_count, subframe_time, subf
         return ret
 
     @bpp.subs_decorator(darksubtraction_serializer_rr)
-    def inner_count_qas(): 
+    def inner_count_qas():
         if pe1 in detectors:
             yield from bps.mv(pe1.cam.acquire_time, subframe_time)
             # set acquire_period to slightly longer than exposure_time
             # to avoid spending a lot of time after the exposure just waiting around
             yield from bps.mv(pe1.cam.acquire_period, subframe_time + 0.1)
-            yield from bps.mv(pe1.images_per_set, subframe_count) 
-        
+            yield from bps.mv(pe1.images_per_set, subframe_count)
+
         return (
             yield from bp.count(
                 detectors,
@@ -297,10 +297,10 @@ def dark_plan(cam):
 
 # # Always take a fresh dark frame at the beginning of each frame.
 # dark_frame_preprocessor = bluesky_darkframes.DarkFramePreprocessor(
-#     dark_plan=dark_plan, 
-#     detector=pe1, 
+#     dark_plan=dark_plan,
+#     detector=pe1,
 #     # HOW LONG IS THE DARKFRAME GOOD FOR IN SECONDS
-#     max_age=0, 
+#     max_age=0,
 #     # ANY SIGNALS TO WATCH THAT IF THEY CHANGE INVALIDATE THE DARKFRAME CACHE
 #     locked_signals=()
 #     )
@@ -311,7 +311,7 @@ def count_qas(sample_name, frame_count, subframe_time, subframe_count, delay=Non
 
     **If we want to use different number of sub-frames for light and dark averaging,
     it has to be done inside this function call, I think - CD**
-    
+
     Diffraction count plan averaging subframe_count exposures for each frame.
 
     Open the specified shutter before bp.count()'ing, close it when the plan ends.
@@ -329,7 +329,7 @@ def count_qas(sample_name, frame_count, subframe_time, subframe_count, delay=Non
     subframe_time: float
         exposure time for each subframe, total exposure time will be subframe_time*subframe_count
     subframe_count: int
-        number of exposures to average for each frame 
+        number of exposures to average for each frame
 
     Returns
     -------
