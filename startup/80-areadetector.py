@@ -46,7 +46,7 @@ class QASPerkinElmer(SingleTriggerV33, PerkinElmerDetector):
              cam_name='cam',  # used to configure "tiff squashing"
              proc_name='proc',  # ditto
              read_attrs=[],
-             root='/data/nsls2/qas-new/shared/legacy/')
+             root='/data/nsls2/qas-new/legacy/raw/')
 
     # hdf5 = C(QASHDF5Plugin, 'HDF1:',
     #          write_path_template='G:/pe1_data/%Y/%m/%d/',
@@ -256,7 +256,7 @@ def check_adcore_version(det, min_adcore_version='3.3'):
 def configure_detectors(det):
     check_adcore_version(det, min_adcore_version='3.3')
     # Read:
-    det.tiff.read_path_template = f'/data/nsls2/qas-new/shared/legacy/{det.name}_data/%Y/%m/%d/'
+    det.tiff.read_path_template = f'/data/nsls2/qas-new/legacy/raw/{det.name}_data/%Y/%m/%d/'
     # det.tiff.read_path_template = f'C:/Users/xf07bm/DiffractionData/PE_DATA1/%Y/%m/%d/\\' # for WINDOWS local directory
 
     # Write
