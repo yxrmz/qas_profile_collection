@@ -72,12 +72,15 @@ plan_funcs = {
     'Fly scan w/SDD': fly_scan_with_xs3,
 }
 
+for shutter in shutters_dictionary.values():
+    shutter.status.wait_for_connection()
+
 app = QApplication(sys.argv)
 
 newApp = PyQt5.QtWidgets.QApplication(sys.argv)
 
 xlive_gui = isstools.xlive.XliveGui(plan_funcs=plan_funcs,
-                                    diff_plans=[], #[count_qas, dark_frame_preprocessor],
+                                    diff_plans=[None], #[count_qas, dark_frame_preprocessor],
                                     aux_plan_funcs =aux_plan_funcs,
                                     service_plan_funcs=service_plan_funcs,
                                     prep_traj_plan= prep_traj_plan,
@@ -86,7 +89,7 @@ xlive_gui = isstools.xlive.XliveGui(plan_funcs=plan_funcs,
                                     apb = apb,
                                     accelerator=nsls_ii,
                                     mono=mono1,
-                                    sdd = xs,
+                                    sdd = None,  # xs,  # put back to get xs back!
                                     shutters_dict=shutters_dictionary,
                                     det_dict=detector_dictionary,
                                     motors_dict=motors_dictionary,

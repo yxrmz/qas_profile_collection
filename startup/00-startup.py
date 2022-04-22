@@ -25,12 +25,12 @@ if len(bsui_processes) > 1:
 import ophyd
 
 # This enables counters of PVs.
-ophyd.set_cl(pv_telemetry=True)
+# ophyd.set_cl(pv_telemetry=True)
 
-try:
-    ophyd.signal.EpicsSignalBase.set_default_timeout(timeout=60, connection_timeout=60)
-except AttributeError:
-    pass
+
+ophyd.signal.EpicsSignalBase.set_defaults(timeout=60, connection_timeout=60)
+ophyd.signal.EpicsSignal.set_defaults(timeout=60, connection_timeout=60)
+ophyd.signal.EpicsSignalRO.set_defaults(timeout=60, connection_timeout=60)
 
 beamline_id = 'qas'
 

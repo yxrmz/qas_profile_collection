@@ -257,7 +257,6 @@ class QASXspress3Detector(XspressTrigger, Xspress3Detector):
     # channel8 = C(Xspress3Channel, 'C8_', channel_num=8)
 
 
-xs = QASXspress3Detector('XF:07BMB-ES{Xsp:1}:', name='xs')
 
 
 def initialize_Xspress3(xs, hdf5_warmup=True):
@@ -306,7 +305,6 @@ def initialize_Xspress3(xs, hdf5_warmup=True):
             getattr(d.rois, roi_n).value_sum.kind = 'omitted'
 
 
-initialize_Xspress3(xs)
 
 
 def xs_count(acq_time: float = 1, num_frames: int = 1):
@@ -364,8 +362,7 @@ class QASXspress3DetectorStream(QASXspress3Detector):
             yield item
 
 
-xs_stream = QASXspress3DetectorStream('XF:07BMB-ES{Xsp:1}:', name='xs_stream')
-initialize_Xspress3(xs_stream, hdf5_warmup=True)
+
 
 from itertools import product
 import pandas as pd
@@ -409,9 +406,7 @@ class QASXspress3HDF5Handler(Xspress3HDF5Handler):
         return {**return_dict, **return_dict_rois}
 
 
-# heavy-weight file handler
-db.reg.register_handler(QASXspress3HDF5Handler.HANDLER_NAME,
-                        QASXspress3HDF5Handler, overwrite=True)
+
 
 
 class QASXspress3HDF5Handler_light(Xspress3HDF5Handler):
@@ -454,3 +449,14 @@ class QASXspress3HDF5Handler_light(Xspress3HDF5Handler):
     # db.reg.register_handler(QASXspress3HDF5Handler_light.HANDLER_NAME,
     #                         QASXspress3HDF5Handler_light, overwrite=True)
 
+
+#xs = QASXspress3Detector('XF:07BMB-ES{Xsp:1}:', name='xs')
+
+#initialize_Xspress3(xs)
+
+#xs_stream = QASXspress3DetectorStream('XF:07BMB-ES{Xsp:1}:', name='xs_stream')
+#initialize_Xspress3(xs_stream, hdf5_warmup=True)
+
+# heavy-weight file handler
+#db.reg.register_handler(QASXspress3HDF5Handler.HANDLER_NAME,
+#                        QASXspress3HDF5Handler, overwrite=True)

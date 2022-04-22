@@ -2,6 +2,7 @@ print(__file__)
 import bluesky.plans as bp
 import os
 import sys
+from bluesky.utils import FailedStatus
 
 def tscan(name:str, comment:str, n_cycles:int=1, delay:float=0, **kwargs):
     """
