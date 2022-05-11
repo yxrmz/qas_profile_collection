@@ -36,7 +36,8 @@ beamline_id = 'qas'
 
 from databroker.v0 import Broker
 db = Broker.named(beamline_id)
-nslsii.configure_base(get_ipython().user_ns, db, bec=False)
+nslsii.configure_base(get_ipython().user_ns, db, bec=False, publish_documents_with_kafka=False)
+nslsii.configure_kafka_publisher(RE, 'qas')
 
 # nslsii.configure_base(get_ipython().user_ns, beamline_id, bec=False)
 

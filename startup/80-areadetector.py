@@ -41,12 +41,12 @@ class QASPerkinElmer(SingleTriggerV33, PerkinElmerDetector):
     _default_configuration_attrs = (PerkinElmerDetector._default_configuration_attrs +
         ('images_per_set', 'number_of_sets', 'pixel_size', 'sample_to_detector_distance'))
     tiff = C(QASTIFFPlugin, 'TIFF1:',
-             write_path_template='/a/b/c/',
-             read_path_template='/a/b/c',
+             write_path_template='a/b/c/d',
+             read_path_template='/a/b/c/d',
              cam_name='cam',  # used to configure "tiff squashing"
              proc_name='proc',  # ditto
              read_attrs=[],
-             root='/data/nsls2/qas-new/legacy/raw/')
+             root='/nsls2/data/qas-new/legacy/raw/')
 
     # hdf5 = C(QASHDF5Plugin, 'HDF1:',
     #          write_path_template='G:/pe1_data/%Y/%m/%d/',
@@ -221,6 +221,10 @@ class ContinuousAcquisitionTrigger(BlueskyInterface):
 class PerkinElmerContinuous(ContinuousAcquisitionTrigger, QASPerkinElmer):
     pass
 
+# PE1 detector configurations:
+pe1_pv_prefix = 'XF:07BM-ES{Det:PE1}'
+pe1 = QASPerkinElmer(pe1_pv_prefix, name='pe1',
+                     read_attrs=['tiff', 'stats1.total'])
 
 
 # Check the version of ADCore and raise if it's less than 3.3
@@ -256,12 +260,12 @@ def check_adcore_version(det, min_adcore_version='3.3'):
 def configure_detectors(det):
     check_adcore_version(det, min_adcore_version='3.3')
     # Read:
-    det.tiff.read_path_template = f'/data/nsls2/qas-new/legacy/raw/{det.name}_data/%Y/%m/%d/'
+    det.tiff.read_path_template = f'/nsls2/data/qas-new/legacy/raw/{det.name}_data/%Y/%m/%d/'
     # det.tiff.read_path_template = f'C:/Users/xf07bm/DiffractionData/PE_DATA1/%Y/%m/%d/\\' # for WINDOWS local directory
 
     # Write
     # det.tiff.write_path_template = f'G:\\{det.name}_data\\%Y\\%m\\%d\\'
-    det.tiff.write_path_template = f'Y:\\{det.name}_data\\%Y\\%m\\%d\\'
+    det.tiff.write_path_template = f'J:\\%Y\\%m\\%d\\'
     # det.tiff.write_path_template = f'C:/Users/xf07bm/DiffractionData/PE_DATA1/%Y/%m/%d/\\'  # for WINDOWS local directory
 
     det.cam.bin_x.kind = 'config'
@@ -273,9 +277,9 @@ def configure_detectors(det):
 
  
 # PE1 detector configurations:
-pe1_pv_prefix = 'XF:07BM-ES{Det:PE1}'
-# pe1 = QASPerkinElmer(pe1_pv_prefix, name='pe1',
-#                      read_attrs=['tiff', 'stats1.total'])
-# configure_detectors(pe1c)
+## pe1_pv_prefix = 'XF:07BM-ES{Det:PE1}'
+## pe1 = QASPerkinElmer(pe1_pv_prefix, name='pe1',
+##        read_attrs=['tiff', 'stats1.total'])
+configure_detectors(pe1)
 # some defaults, as an example of how to use this
 # pe1.configure(dict(images_per_set=6, number_of_sets=10))

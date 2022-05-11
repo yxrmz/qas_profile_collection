@@ -172,7 +172,7 @@ def darksubtraction_serializer_factory(name, doc):
     subtractor = DarkSubtraction('pe1_image')
     # CHANGE HERE TO ADJUST HOW THE EXPORTED FILES ARE NAMED
     serializer = Serializer(
-        '/data/nsls2/qas-new/shared/users/{year}/{cycle}/{PROPOSAL}XRD'.format(**doc),
+        '/nsls2/data/qas-new/legacy/processed/{year}/{cycle}/{PROPOSAL}XRD'.format(**doc),
         file_prefix=(
             '{start[sample_name]}-'
             '{start[exposure_time]:.1f}s-'
@@ -295,15 +295,15 @@ def dark_plan(cam):
     return snapshot
 
 
-# # Always take a fresh dark frame at the beginning of each frame.
-# dark_frame_preprocessor = bluesky_darkframes.DarkFramePreprocessor(
-#     dark_plan=dark_plan,
-#     detector=pe1,
-#     # HOW LONG IS THE DARKFRAME GOOD FOR IN SECONDS
-#     max_age=0,
-#     # ANY SIGNALS TO WATCH THAT IF THEY CHANGE INVALIDATE THE DARKFRAME CACHE
-#     locked_signals=()
-#     )
+    # Always take a fresh dark frame at the beginning of each frame.
+dark_frame_preprocessor = bluesky_darkframes.DarkFramePreprocessor(
+                          dark_plan=dark_plan,
+                          detector=pe1,
+                          # HOW LONG IS THE DARKFRAME GOOD FOR IN SECONDS
+                          max_age=0,
+                          # ANY SIGNALS TO WATCH THAT IF THEY CHANGE INVALIDATE THE DARKFRAME CACHE
+                          locked_signals=()
+                          )
 
 
 def count_qas(sample_name, frame_count, subframe_time, subframe_count, delay=None):

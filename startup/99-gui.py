@@ -32,20 +32,20 @@ detector_dictionary = {#colmirror_diag.name: {'obj': colmirror_diag, 'elements':
 
 
 
-motors_dictionary = {jj_slits_hutchB.xctr.name: {'name': jj_slits_hutchB.xctr.name, 'description':jj_slits_hutchB.xctr.name, 'object': jj_slits_hutchB.xctr},
-                     jj_slits_hutchC.xctr.name: {'name': jj_slits_hutchC.xctr.name, 'description':jj_slits_hutchC.xctr.name, 'object': jj_slits_hutchC.xctr},
-                     drifts.drifts_rot.name: {'name': drifts.drifts_rot.name, 'description':drifts.drifts_rot.name, 'object': drifts.drifts_rot},
-                     drifts.drifts_x.name: {'name': drifts.drifts_x.name, 'description':drifts.drifts_x.name, 'object': drifts.drifts_x},
-                     beamstop.horizontal.name: {'name': beamstop.horizontal.name, 'description': 'Beamstop Horizontal', 'object':beamstop.horizontal},
-                     beamstop.vertical.name: {'name': beamstop.vertical.name, 'description': beamstop.vertical.name, 'object': beamstop.vertical},
-                     ibp_hutchB.name: {'name': ibp_hutchB.name, 'description': ibp_hutchB.name, 'object': ibp_hutchB},
-                     ibp_hutchC.name: {'name': ibp_hutchC.name, 'description': ibp_hutchC.name, 'object': ibp_hutchC},
-                     sample_stage1.rotary.name: {'name': sample_stage1.rotary.name, 'description':sample_stage1.rotary.name, 'object':sample_stage1.rotary},
-                     sample_stage1.x.name: {'name': sample_stage1.x.name, 'description':sample_stage1.x.name, 'object':sample_stage1.x},
-                     sample_stage1.y.name: {'name': sample_stage1.y.name, 'description':sample_stage1.y.name, 'object':sample_stage1.y},
-                     sample_stage1.z.name: {'name': sample_stage1.z.name, 'description':sample_stage1.z.name, 'object':sample_stage1.z},
-                     sample_stage1.theta.name: {'name': sample_stage1.theta.name, 'description':sample_stage1.theta.name, 'object':sample_stage1.theta},
-                     sample_stage1.chi.name: {'name': sample_stage1.chi.name, 'description':sample_stage1.chi.name, 'object':sample_stage1.chi},
+motors_dictionary = {jj_slits_hutchB.xctr.name: {'name': jj_slits_hutchB.xctr.name, 'description':'B hutch_inc_slits_xcenter', 'object': jj_slits_hutchB.xctr},
+                     jj_slits_hutchC.xctr.name: {'name': jj_slits_hutchC.xctr.name, 'description':'C hutch_inc_slits_xcenter', 'object': jj_slits_hutchC.xctr},
+                     drifts.drifts_x.name: {'name': drifts.drifts_x.name, 'description':'C hutch_DRIFTS_horiz', 'object': drifts.drifts_x},
+                     drifts.drifts_rot.name: {'name': drifts.drifts_rot.name, 'description':'C hutch_DRIFTS_rotation', 'object': drifts.drifts_rot},
+                     beamstop.horizontal.name: {'name': beamstop.horizontal.name, 'description': 'B hutch_beamstop_horiz', 'object':beamstop.horizontal},
+                     beamstop.vertical.name: {'name': beamstop.vertical.name, 'description': 'B hutch_beamstop_vertical', 'object': beamstop.vertical},
+                     ibp_hutchB.name: {'name': ibp_hutchB.name, 'description': 'B hutch_inc_beam_path', 'object': ibp_hutchB},
+                     ibp_hutchC.name: {'name': ibp_hutchC.name, 'description': 'C hutch_inc_beam_path', 'object': ibp_hutchC},
+                     sample_stage1.rotary.name: {'name': sample_stage1.rotary.name, 'description':'B hutch_sample_stage_rotation', 'object':sample_stage1.rotary},
+                     sample_stage1.x.name: {'name': sample_stage1.x.name, 'description':'B hutch_sample_stage_x', 'object':sample_stage1.x},
+                     sample_stage1.y.name: {'name': sample_stage1.y.name, 'description':'B hutch_sample_stage_y', 'object':sample_stage1.y},
+                     sample_stage1.z.name: {'name': sample_stage1.z.name, 'description':'B hutch_sample_stage_z', 'object':sample_stage1.z},
+                     sample_stage1.theta.name: {'name': sample_stage1.theta.name, 'description':'B hutch_sample_stage_theta', 'object':sample_stage1.theta},
+                     sample_stage1.chi.name: {'name': sample_stage1.chi.name, 'description':'B hutch_sample_stage_chi', 'object':sample_stage1.chi},
                     }
 
 shutters_dictionary = {
@@ -80,7 +80,7 @@ app = QApplication(sys.argv)
 newApp = PyQt5.QtWidgets.QApplication(sys.argv)
 
 xlive_gui = isstools.xlive.XliveGui(plan_funcs=plan_funcs,
-                                    diff_plans=[None], #[count_qas, dark_frame_preprocessor],
+                                    diff_plans=[count_qas, dark_frame_preprocessor],
                                     aux_plan_funcs =aux_plan_funcs,
                                     service_plan_funcs=service_plan_funcs,
                                     prep_traj_plan= prep_traj_plan,
