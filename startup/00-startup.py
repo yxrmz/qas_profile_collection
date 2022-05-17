@@ -212,6 +212,7 @@ for key, default in zip(keys, defaults):
 
 RE.is_aborted = False
 
+ophyd.set_cl(pv_telemetry=True)
 
 def print_now():
     return datetime.strftime(datetime.now(), '%Y-%m-%d %H:%M:%S.%f')
