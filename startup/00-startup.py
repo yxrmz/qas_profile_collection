@@ -24,9 +24,6 @@ if len(bsui_processes) > 1:
 
 import ophyd
 
-# This enables counters of PVs.
-# ophyd.set_cl(pv_telemetry=True)
-
 
 ophyd.signal.EpicsSignalBase.set_defaults(timeout=60, connection_timeout=60)
 ophyd.signal.EpicsSignal.set_defaults(timeout=60, connection_timeout=60)
@@ -95,7 +92,8 @@ logging.getLogger('caproto.ch').setLevel('ERROR')
 # print(f'\nThe caproto logs will be written to {caproto_log}')
 # print(f'The bluesky logs will be written to {bluesky_log}\n')
 
-ROOT_PATH = '/nsls2/data/qas-new/legacy'
+ROOT_PATH        = '/nsls2/data/qas-new/legacy'
+ROOT_PATH_SHARED = '/nsls2/data/qas-new/shared'
 RAW_FILEPATH = 'raw'
 USER_FILEPATH = 'processed'
 
@@ -186,10 +184,9 @@ except ImportError:
             """Force a reload from disk, overwriting current cache"""
             self._cache = dict(super().items())
 
-runengine_metadata_dir = appdirs.user_data_dir(appname="bluesky") / Path("runengine-metadata")
-
-# PersistentDict will create the directory if it does not exist
-RE.md = PersistentDict(runengine_metadata_dir)
+# runengine_metadata_dir = appdirs.user_data_dir(appname="bluesky") / Path("runengine-metadata")  # writes to ~/.local/...
+runengine_metadata_dir = Path(f'{ROOT_PATH_SHARED}/config/bluesky/') / Path("runengine-metadata")
+RE.md = PersistentDict(runengine_metadata_dir) # PersistentDict will create the directory if it does not exist
 
 # these should *always* be QAS
 RE.md['group'] = beamline_id
@@ -212,6 +209,7 @@ for key, default in zip(keys, defaults):
 
 RE.is_aborted = False
 
+# This enables counters of PVs.
 ophyd.set_cl(pv_telemetry=True)
 
 def print_now():
