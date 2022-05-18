@@ -99,7 +99,7 @@ db
 log
 pid
 security
-history.sqlite
+history*.sqlite
 profile_default
 static
 
