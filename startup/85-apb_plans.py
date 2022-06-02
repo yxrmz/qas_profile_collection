@@ -52,13 +52,16 @@ class FlyerAPB:
 
         streaming_st = SubscriptionStatus(self.det.streaming, callback)
 
+        # Staging analog detector:
         self.det.stage()
-        # Start apb after encoder pizza-boxes, which will trigger the motor.
-        self.det.stream.set(1)
 
+        # Staging all encoder detectors:
         for pb in self.pbs:
             pb.stage()
             pb.kickoff()
+
+        # Start apb after encoder pizza-boxes, which will trigger the motor.
+        self.det.stream.set(1)
 
         return streaming_st
 
@@ -104,6 +107,7 @@ class FlyerAPB:
         yield from self.det.collect_asset_docs()
         for pb in self.pbs:
             yield from pb.collect_asset_docs()
+
     def collect(self):
         self.det.unstage()
         for pb in self.pbs:
