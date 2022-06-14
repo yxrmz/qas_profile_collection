@@ -56,6 +56,56 @@ class AnalogPizzaBox(Device):
     ch7_adc_offset = Cpt(EpicsSignal, 'ADC7:Offset-SP')
     ch8_adc_offset = Cpt(EpicsSignal, 'ADC8:Offset-SP')
 
+    pulse1_status = Cpt(EpicsSignal, 'Pulse:1:Status-I')
+    pulse2_status = Cpt(EpicsSignal, 'Pulse:2:Status-I')
+    pulse3_status = Cpt(EpicsSignal, 'Pulse:3:Status-I')
+    pulse4_status = Cpt(EpicsSignal, 'Pulse:4:Status-I')
+
+    pulse1_stream_status = Cpt(EpicsSignal, 'Pulse:1:Stream:Status-I')
+    pulse2_stream_status = Cpt(EpicsSignal, 'Pulse:2:Stream:Status-I')
+    pulse3_stream_status = Cpt(EpicsSignal, 'Pulse:3:Stream:Status-I')
+    pulse4_stream_status = Cpt(EpicsSignal, 'Pulse:4:Stream:Status-I')
+
+    pulse1_file_status = Cpt(EpicsSignal, 'Pulse:1:File:Status-I')
+    pulse2_file_status = Cpt(EpicsSignal, 'Pulse:2:File:Status-I')
+    pulse3_file_status = Cpt(EpicsSignal, 'Pulse:3:File:Status-I')
+    pulse4_file_status = Cpt(EpicsSignal, 'Pulse:4:File:Status-I')
+
+    pulse1_stream_count = Cpt(EpicsSignal, 'Pulse:1:Stream:Count-I')
+    pulse2_stream_count = Cpt(EpicsSignal, 'Pulse:2:Stream:Count-I')
+    pulse3_stream_count = Cpt(EpicsSignal, 'Pulse:3:Stream:Count-I')
+    pulse4_stream_count = Cpt(EpicsSignal, 'Pulse:4:Stream:Count-I')
+
+    pulse1_max_count = Cpt(EpicsSignal, 'Pulse:1:MaxCount-SP')
+    pulse2_max_count = Cpt(EpicsSignal, 'Pulse:2:MaxCount-SP')
+    pulse3_max_count = Cpt(EpicsSignal, 'Pulse:3:MaxCount-SP')
+    pulse4_max_count = Cpt(EpicsSignal, 'Pulse:4:MaxCount-SP')
+
+    pulse1_op_mode_sp = Cpt(EpicsSignal, 'Pulse:1:Mode-SP')
+    pulse2_op_mode_sp = Cpt(EpicsSignal, 'Pulse:2:Mode-SP')
+    pulse3_op_mode_sp = Cpt(EpicsSignal, 'Pulse:3:Mode-SP')
+    pulse4_op_mode_sp = Cpt(EpicsSignal, 'Pulse:4:Mode-SP')
+
+    pulse1_stream_mode_sp = Cpt(EpicsSignal, 'Pulse:1:Stream:Mode-SP')
+    pulse2_stream_mode_sp = Cpt(EpicsSignal, 'Pulse:2:Stream:Mode-SP')
+    pulse3_stream_mode_sp = Cpt(EpicsSignal, 'Pulse:3:Stream:Mode-SP')
+    pulse4_stream_mode_sp = Cpt(EpicsSignal, 'Pulse:4:Stream:Mode-SP')
+
+    pulse1_frequency_sp = Cpt(EpicsSignal, 'Pulse:1:Frequency-SP')
+    pulse2_frequency_sp = Cpt(EpicsSignal, 'Pulse:2:Frequency-SP')
+    pulse3_frequency_sp = Cpt(EpicsSignal, 'Pulse:3:Frequency-SP')
+    pulse4_frequency_sp = Cpt(EpicsSignal, 'Pulse:4:Frequency-SP')
+
+    pulse1_dutycycle_sp = Cpt(EpicsSignal, 'Pulse:1:DutyCycle-SP')
+    pulse2_dutycycle_sp = Cpt(EpicsSignal, 'Pulse:2:DutyCycle-SP')
+    pulse3_dutycycle_sp = Cpt(EpicsSignal, 'Pulse:3:DutyCycle-SP')
+    pulse4_dutycycle_sp = Cpt(EpicsSignal, 'Pulse:4:DutyCycle-SP')
+
+    pulse1_delay_sp = Cpt(EpicsSignal, 'Pulse:1:Delay-SP')
+    pulse2_delay_sp = Cpt(EpicsSignal, 'Pulse:2:Delay-SP')
+    pulse3_delay_sp = Cpt(EpicsSignal, 'Pulse:3:Delay-SP')
+    pulse4_delay_sp = Cpt(EpicsSignal, 'Pulse:4:Delay-SP')
+
     acquire = Cpt(EpicsSignal, 'FA:SoftTrig-SP', kind=Kind.omitted)
     acquiring = Cpt(EpicsSignal, 'FA:Busy-I', kind=Kind.omitted)
 
@@ -95,6 +145,7 @@ class AnalogPizzaBoxAverage(AnalogPizzaBox):
     ch8_mean = Cpt(EpicsSignal, 'FA:Ch8:Mean-I', kind=Kind.hinted)
 
     time_wf = Cpt(EpicsSignal, 'FA:Time-Wfm', kind=Kind.hinted)
+
     ch1_wf = Cpt(EpicsSignal, 'FA:Ch1-Wfm', kind=Kind.hinted)
     ch2_wf = Cpt(EpicsSignal, 'FA:Ch2-Wfm', kind=Kind.hinted)
     ch3_wf = Cpt(EpicsSignal, 'FA:Ch3-Wfm', kind=Kind.hinted)
