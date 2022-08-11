@@ -261,6 +261,16 @@ def execute_trajectory_xs3(name, ignore_shutter=True, **metadata):
     roi2_ch4_hi = xs.channel4.rois.roi02.bin_high.get()
     roi3_ch4_hi = xs.channel4.rois.roi03.bin_high.get()
     roi4_ch4_hi = xs.channel4.rois.roi04.bin_high.get()
+
+    roi1_ch6_lo = xs.channel6.rois.roi01.bin_low.get()
+    roi2_ch6_lo = xs.channel6.rois.roi02.bin_low.get()
+    roi3_ch6_lo = xs.channel6.rois.roi03.bin_low.get()
+    roi4_ch6_lo = xs.channel6.rois.roi04.bin_low.get()
+
+    roi1_ch6_hi = xs.channel6.rois.roi01.bin_high.get()
+    roi2_ch6_hi = xs.channel6.rois.roi02.bin_high.get()
+    roi3_ch6_hi = xs.channel6.rois.roi03.bin_high.get()
+    roi4_ch6_hi = xs.channel6.rois.roi04.bin_high.get()
     # end of terrible hack
 
     xs_fn = xs.hdf5.full_file_name.get()
@@ -289,13 +299,14 @@ def execute_trajectory_xs3(name, ignore_shutter=True, **metadata):
           'rois': [[roi1_ch1_lo, roi1_ch1_hi, roi2_ch1_lo, roi2_ch1_hi, roi3_ch1_lo, roi3_ch1_hi, roi4_ch1_lo, roi4_ch1_hi],
                    [roi1_ch2_lo, roi1_ch2_hi, roi2_ch2_lo, roi2_ch2_hi, roi3_ch2_lo, roi3_ch2_hi, roi4_ch2_lo, roi4_ch2_hi],
                    [roi1_ch3_lo, roi1_ch3_hi, roi2_ch3_lo, roi2_ch3_hi, roi3_ch3_lo, roi3_ch3_hi, roi4_ch3_lo, roi4_ch3_hi],
-                   [roi1_ch4_lo, roi1_ch4_hi, roi2_ch4_lo, roi2_ch4_hi, roi3_ch4_lo, roi3_ch4_hi, roi4_ch4_lo, roi4_ch4_hi]]}
+                   [roi1_ch4_lo, roi1_ch4_hi, roi2_ch4_lo, roi2_ch4_hi, roi3_ch4_lo, roi3_ch4_hi, roi4_ch4_lo, roi4_ch4_hi],
+                   [roi1_ch6_lo, roi1_ch6_hi, roi2_ch6_lo, roi2_ch6_hi, roi3_ch6_lo, roi3_ch6_hi, roi4_ch6_lo, roi4_ch6_hi]]}
     for flyer in flyers:
         if hasattr(flyer, 'offset'):
             md['{} offset'.format(flyer.name)] = flyer.offset.get()
     md.update(metadata)
     RE.md.update(md)
-    yield from xs_plan()
+    #yield from xs_plan()
 
 
 # def get_offsets_plan(detectors, num = 1, name = '', **metadata):

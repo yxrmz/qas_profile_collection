@@ -88,8 +88,8 @@ def fly_scan_with_xs3(name: str, comment: str, n_cycles: int = 1, delay: float =
     '''
     sys.stdout = kwargs.pop('stdout', sys.stdout)
     uids = []
-    # if autofoil:
-    if True:
+    if autofoil:
+    #if True:
         current_element = getattr(mono1, f'traj{int(mono1.lut_number_rbv.get())}').elem.get()
         try:
             yield from set_reference_foil(current_element)

@@ -95,22 +95,25 @@ class QASXspress3Detector(XspressTrigger, Xspress3Detector):
     channel2 = Cpt(Xspress3Channel, 'C2_', channel_num=2, read_attrs=['rois'])
     channel3 = Cpt(Xspress3Channel, 'C3_', channel_num=3, read_attrs=['rois'])
     channel4 = Cpt(Xspress3Channel, 'C4_', channel_num=4, read_attrs=['rois'])
+    channel6 = Cpt(Xspress3Channel, 'C6_', channel_num=6, read_attrs=['rois'])
     # create_dir = Cpt(EpicsSignal, 'HDF5:FileCreateDir')
 
     mca1_sum = Cpt(EpicsSignal, 'ARRSUM1:ArrayData')
     mca2_sum = Cpt(EpicsSignal, 'ARRSUM2:ArrayData')
     mca3_sum = Cpt(EpicsSignal, 'ARRSUM3:ArrayData')
     mca4_sum = Cpt(EpicsSignal, 'ARRSUM4:ArrayData')
+    mca6_sum = Cpt(EpicsSignal, 'ARRSUM6:ArrayData')
 
     mca1 = Cpt(EpicsSignal, 'ARR1:ArrayData')
     mca2 = Cpt(EpicsSignal, 'ARR2:ArrayData')
     mca3 = Cpt(EpicsSignal, 'ARR3:ArrayData')
     mca4 = Cpt(EpicsSignal, 'ARR4:ArrayData')
+    mca6 = Cpt(EpicsSignal, 'ARR6:ArrayData')
     #TODO change folder to xspress3
     hdf5 = Cpt(Xspress3FileStoreFlyable, 'HDF5:',
-               read_path_template='/data/nsls2/qas-new/legacy/raw/x3m/%Y/%m/%d/',
-               root='/data/nsls2/qas-new/legacy/raw/',
-               write_path_template='/data/nsls2/qas-new/legacy/raw/x3m/%Y/%m/%d/',
+               read_path_template='/nsls2/data/qas-new/legacy/raw/x3m/%Y/%m/%d/',
+               root='/nsls2/data/qas-new/legacy/raw/',
+               write_path_template='/nsls2/data/qas-new/legacy/raw/x3m/%Y/%m/%d/',
                )
 
     def __init__(self, prefix, *, configuration_attrs=None, read_attrs=None,
@@ -120,7 +123,7 @@ class QASXspress3Detector(XspressTrigger, Xspress3Detector):
                                    'spectra_per_point', 'settings',
                                    'rewindable']
         if read_attrs is None:
-            read_attrs = ['channel1', 'channel2', 'channel3', 'channel4', 'hdf5', 'settings.acquire_time']
+            read_attrs = ['channel1', 'channel2', 'channel3', 'channel4', 'channel6', 'hdf5', 'settings.acquire_time']
         super().__init__(prefix, configuration_attrs=configuration_attrs,
                          read_attrs=read_attrs, **kwargs)
         self.set_channels_for_hdf5()
@@ -235,7 +238,7 @@ class QASXspress3Detector(XspressTrigger, Xspress3Detector):
 
     # The collect_asset_docs(...) method was removed as it exists on the hdf5 component and should be used there.
 
-    def set_channels_for_hdf5(self, channels=(1, 2, 3, 4)):
+    def set_channels_for_hdf5(self, channels=(1, 2, 3, 4, 6)):
         """
         Configure which channels' data should be saved in the resulted hdf5 file.
         Parameters
@@ -245,7 +248,7 @@ class QASXspress3Detector(XspressTrigger, Xspress3Detector):
         """
         # The number of channel
         for n in channels:
-            getattr(self, f'channel{n}').rois.read_attrs = ['roi{:02}'.format(j) for j in [1, 2, 3, 4]]
+            getattr(self, f'channel{n}').rois.read_attrs = ['roi{:02}'.format(j) for j in [1, 2, 3, 4, 6]]
         self.hdf5.num_extra_dims.put(0)
         self.settings.num_channels.put(len(channels))
 
@@ -257,13 +260,14 @@ class QASXspress3Detector(XspressTrigger, Xspress3Detector):
     # channel8 = C(Xspress3Channel, 'C8_', channel_num=8)
 
 
-
+xs = QASXspress3Detector('XF:07BMB-ES{Xsp:1}:', name='xs')
 
 def initialize_Xspress3(xs, hdf5_warmup=True):
     # TODO: do not put on startup or do it conditionally, if on beamline.
     xs.channel2.vis_enabled.put(1)
     xs.channel3.vis_enabled.put(1)
     xs.channel4.vis_enabled.put(1)
+    xs.channel6.vis_enabled.put(1)
     xs.total_points.put(1)
 
     # This is necessary for when the ioc restarts
@@ -298,13 +302,14 @@ def initialize_Xspress3(xs, hdf5_warmup=True):
                                        'trigger_signal']
 
     for n, d in xs.channels.items():
-        roi_names = ['roi{:02}'.format(j) for j in [1, 2, 3, 4]]
+        roi_names = ['roi{:02}'.format(j) for j in [1, 2, 3, 4, 6]]
         d.rois.read_attrs = roi_names
         d.rois.configuration_attrs = roi_names
         for roi_n in roi_names:
             getattr(d.rois, roi_n).value_sum.kind = 'omitted'
 
 
+initialize_Xspress3(xs)
 
 
 def xs_count(acq_time: float = 1, num_frames: int = 1):
@@ -361,7 +366,8 @@ class QASXspress3DetectorStream(QASXspress3Detector):
         for item in items:
             yield item
 
-
+xs_stream = QASXspress3DetectorStream('XF:07BMB-ES{Xsp:1}:', name='xs_stream')
+initialize_Xspress3(xs_stream, hdf5_warmup=True)
 
 
 from itertools import product
@@ -393,7 +399,7 @@ class QASXspress3HDF5Handler(Xspress3HDF5Handler):
         if self._roi_data is not None:
             return
         print('reading ROI data')
-        self.chanrois = [f'CHAN{c}ROI{r}' for c, r in product([1, 2, 3, 4], [1, 2, 3, 4])]
+        self.chanrois = [f'CHAN{c}ROI{r}' for c, r in product([1, 2, 3, 4, 6], [1, 2, 3, 4, 6])]
         _data_columns = [self._file['/entry/instrument/detector/NDAttributes'][chanroi][()] for chanroi in
                          self.chanrois]
         data_columns = np.vstack(_data_columns).T
@@ -406,7 +412,9 @@ class QASXspress3HDF5Handler(Xspress3HDF5Handler):
         return {**return_dict, **return_dict_rois}
 
 
-
+# heavy-weight file handler
+db.reg.register_handler(QASXspress3HDF5Handler.HANDLER_NAME,
+                        QASXspress3HDF5Handler, overwrite=True)
 
 
 class QASXspress3HDF5Handler_light(Xspress3HDF5Handler):
@@ -433,7 +441,7 @@ class QASXspress3HDF5Handler_light(Xspress3HDF5Handler):
         if self._roi_data is not None:
             return
         print('reading ROI data')
-        self.chanrois = [f'CHAN{c}ROI{r}' for c, r in product([1, 2, 3, 4], [1, 2, 3, 4])]
+        self.chanrois = [f'CHAN{c}ROI{r}' for c, r in product([1, 2, 3, 4, 6], [1, 2, 3, 4, 6])]
         _data_columns = [self._file['/entry/instrument/detector/NDAttributes'][chanroi][()] for chanroi in
                          self.chanrois]
         data_columns = np.vstack(_data_columns).T
@@ -450,13 +458,3 @@ class QASXspress3HDF5Handler_light(Xspress3HDF5Handler):
     #                         QASXspress3HDF5Handler_light, overwrite=True)
 
 
-#xs = QASXspress3Detector('XF:07BMB-ES{Xsp:1}:', name='xs')
-
-#initialize_Xspress3(xs)
-
-#xs_stream = QASXspress3DetectorStream('XF:07BMB-ES{Xsp:1}:', name='xs_stream')
-#initialize_Xspress3(xs_stream, hdf5_warmup=True)
-
-# heavy-weight file handler
-#db.reg.register_handler(QASXspress3HDF5Handler.HANDLER_NAME,
-#                        QASXspress3HDF5Handler, overwrite=True)

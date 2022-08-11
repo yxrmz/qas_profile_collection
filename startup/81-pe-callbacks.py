@@ -267,7 +267,7 @@ def _count_qas(detectors, shutter, sample_name, frame_count, subframe_time, subf
         )
 
     def finally_plan():
-        yield from bps.mv(shutter, "Close")
+        yield from bps.mv(shutter, "Open")
 
     return (yield from bpp.finalize_wrapper(inner_count_qas(), finally_plan))
 

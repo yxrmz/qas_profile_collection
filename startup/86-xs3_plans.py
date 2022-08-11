@@ -39,7 +39,7 @@ class FlyerAPBwithTrigger(FlyerAPB):
         yield from self.trigger.collect()
 
 
-
+flyer_apb_trigger = FlyerAPBwithTrigger(det=apb_stream, pbs=[pb1.enc1], motor=mono1, trigger=apb_trigger)
 
 
 class FlyerXS(FlyerAPBwithTrigger):
@@ -82,8 +82,7 @@ class FlyerXS(FlyerAPBwithTrigger):
         yield from self.xs_det.collect()
 
 
-#flyer_apb_trigger = FlyerAPBwithTrigger(det=apb_stream, pbs=[pb1.enc1], motor=mono1, trigger=apb_trigger)
-#flyer_xs = FlyerXS(det=apb_stream, pbs=[pb1.enc1], motor=mono1, trigger=apb_trigger, xs_det=xs_stream)
+flyer_xs = FlyerXS(det=apb_stream, pbs=[pb1.enc1], motor=mono1, trigger=apb_trigger, xs_det=xs_stream)
 
 
 def execute_trajectory_apb_trigger(name, **metadata):
@@ -93,9 +92,6 @@ def execute_trajectory_apb_trigger(name, **metadata):
                          'fly_energy_scan_apb_trigger',
                          **metadata)
     yield from bp.fly([flyer_apb_trigger], md=md)
-
-
-
 
 
 def execute_trajectory_xs(name, **metadata):
