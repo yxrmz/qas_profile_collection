@@ -95,6 +95,7 @@ class QASXspress3Detector(XspressTrigger, Xspress3Detector):
     channel2 = Cpt(Xspress3Channel, 'C2_', channel_num=2, read_attrs=['rois'])
     channel3 = Cpt(Xspress3Channel, 'C3_', channel_num=3, read_attrs=['rois'])
     channel4 = Cpt(Xspress3Channel, 'C4_', channel_num=4, read_attrs=['rois'])
+    channel5 = Cpt(Xspress3Channel, 'C5_', channel_num=5, read_attrs=['rois'])
     channel6 = Cpt(Xspress3Channel, 'C6_', channel_num=6, read_attrs=['rois'])
     # create_dir = Cpt(EpicsSignal, 'HDF5:FileCreateDir')
 
@@ -102,12 +103,14 @@ class QASXspress3Detector(XspressTrigger, Xspress3Detector):
     mca2_sum = Cpt(EpicsSignal, 'ARRSUM2:ArrayData')
     mca3_sum = Cpt(EpicsSignal, 'ARRSUM3:ArrayData')
     mca4_sum = Cpt(EpicsSignal, 'ARRSUM4:ArrayData')
+    mca5_sum = Cpt(EpicsSignal, 'ARRSUM5:ArrayData')
     mca6_sum = Cpt(EpicsSignal, 'ARRSUM6:ArrayData')
 
     mca1 = Cpt(EpicsSignal, 'ARR1:ArrayData')
     mca2 = Cpt(EpicsSignal, 'ARR2:ArrayData')
     mca3 = Cpt(EpicsSignal, 'ARR3:ArrayData')
     mca4 = Cpt(EpicsSignal, 'ARR4:ArrayData')
+    mca5 = Cpt(EpicsSignal, 'ARR5:ArrayData')
     mca6 = Cpt(EpicsSignal, 'ARR6:ArrayData')
     #TODO change folder to xspress3
     hdf5 = Cpt(Xspress3FileStoreFlyable, 'HDF5:',
@@ -267,6 +270,7 @@ def initialize_Xspress3(xs, hdf5_warmup=True):
     xs.channel2.vis_enabled.put(1)
     xs.channel3.vis_enabled.put(1)
     xs.channel4.vis_enabled.put(1)
+    xs.channel5.vis_enabled.put(1)
     xs.channel6.vis_enabled.put(1)
     xs.total_points.put(1)
 
@@ -302,7 +306,7 @@ def initialize_Xspress3(xs, hdf5_warmup=True):
                                        'trigger_signal']
 
     for n, d in xs.channels.items():
-        roi_names = ['roi{:02}'.format(j) for j in [1, 2, 3, 4, 6]]
+        roi_names = ['roi{:02}'.format(j) for j in [1, 2, 3, 4, 5, 6]]
         d.rois.read_attrs = roi_names
         d.rois.configuration_attrs = roi_names
         for roi_n in roi_names:
@@ -441,7 +445,7 @@ class QASXspress3HDF5Handler_light(Xspress3HDF5Handler):
         if self._roi_data is not None:
             return
         print('reading ROI data')
-        self.chanrois = [f'CHAN{c}ROI{r}' for c, r in product([1, 2, 3, 4, 6], [1, 2, 3, 4, 6])]
+        self.chanrois = [f'CHAN{c}ROI{r}' for c, r in product([1, 2, 3, 4, 5, 6], [1, 2, 3, 4, 5, 6])]
         _data_columns = [self._file['/entry/instrument/detector/NDAttributes'][chanroi][()] for chanroi in
                          self.chanrois]
         data_columns = np.vstack(_data_columns).T
