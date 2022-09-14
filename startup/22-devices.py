@@ -44,7 +44,7 @@ class QASFastShutter(Device):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setmap = {'Open': 1, 'Close': 0}
-        self.readmap = {1: 'Open', 0: 'Close'}
+        self.readmap = {v: k for k, v in self.setmap.items()}
         self.status.get = self.get
         self.status.set = self.set
 
@@ -64,7 +64,7 @@ shutter_fe = TwoButtonShutterQAS('XF:07BM-PPS{Sh:FE}', name = 'FE Shutter')
 shutter_fe.shutter_type = 'FE'
 shutter_ph = TwoButtonShutterQAS('XF:07BMA-PPS{Sh:A}', name = 'PH Shutter')
 shutter_ph.shutter_type = 'PH'
-shutter_fs = QASFastShutter('XF:07BMB-CT{Enc02-DO:0}Dflt-Sel',
+shutter_fs = QASFastShutter('XF:07BMB-CT{PBA:1}:GPIO:0-SP',
                             name='Fast Shutter')
 shutter_fs.shutter_type = 'FS'
 
