@@ -2,9 +2,27 @@ print(__file__)
 
 # Try to capture 'core dump' reasons.
 import faulthandler
+from pprint import pprint
 faulthandler.enable()
 
+import sys
 import psutil
+import subprocess
+
+def audit(event, args):
+    if event == "open":
+        print(f"Opening file: {args}")
+
+def stop_callback(name, doc):
+    if name == 'stop':
+        res = subprocess.run("cat /proc/sys/fs/file-nr".split(), capture_output=True)
+        nums = res.stdout.decode().split()
+
+        proc = psutil.Process()
+
+        print(f"\nCurrent open files: {nums[0]}  |  Max open files: {nums[-1]}\n")
+        pprint(proc.open_files())
+
 
 import nslsii
 
@@ -35,6 +53,10 @@ from databroker.v0 import Broker
 db = Broker.named(beamline_id)
 nslsii.configure_base(get_ipython().user_ns, db, bec=False, publish_documents_with_kafka=False)
 nslsii.configure_kafka_publisher(RE, 'qas')
+
+# TODO: remove after testing.
+sys.addaudithook(audit)
+RE.subscribe(stop_callback)
 
 # nslsii.configure_base(get_ipython().user_ns, beamline_id, bec=False)
 
