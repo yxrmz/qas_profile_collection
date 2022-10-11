@@ -19,12 +19,14 @@ logger_open_files.setLevel(logging.DEBUG)
 # logger_open_files.setLevel(logging.INFO)
 debug_log_file = str(Path(appdirs.user_log_dir(appname="bluesky")) / Path("debug-open-files.log"))
 handler1 = TimedRotatingFileHandler(debug_log_file, when="W0", backupCount=10)
+handler1.setLevel(logging.DEBUG)
 log_file_format = (
     "[%(levelname)1.1s %(asctime)s.%(msecs)03d %(name)s"
     "  %(module)s:%(lineno)d] %(message)s"
 )
 handler1.setFormatter(logging.Formatter(fmt=log_file_format))
 logger_open_files.addHandler(handler1)
+logger_open_files.propagate = False
 
 
 def audit(event, args):
@@ -74,7 +76,7 @@ nslsii.configure_base(get_ipython().user_ns, db, bec=False, publish_documents_wi
 nslsii.configure_kafka_publisher(RE, 'qas')
 
 # TODO: remove after testing.
-sys.addaudithook(audit)
+# sys.addaudithook(audit)
 RE.subscribe(stop_callback, name='stop')
 
 # nslsii.configure_base(get_ipython().user_ns, beamline_id, bec=False)
