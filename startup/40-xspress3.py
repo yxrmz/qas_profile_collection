@@ -253,12 +253,13 @@ class QASXspress3Detector(XspressTrigger, Xspress3Detector):
         for n in channels:
             getattr(self, f'channel{n}').rois.read_attrs = ['roi{:02}'.format(j) for j in [1, 2, 3, 4, 6]]
         self.hdf5.num_extra_dims.put(0)
-        self.settings.num_channels.put(len(channels))
+        # self.settings.num_channels.put(len(channels))
+        self.settings.num_channels.put(6)
 
     # Currently only using four channels. Uncomment these to enable more
     # channels:
     # channel5 = C(Xspress3Channel, 'C5_', channel_num=5)
-    # channel6 = C(Xspress3Channel, 'C6_', channel_num=6)
+    channel6 = C(Xspress3Channel, 'C6_', channel_num=6)
     # channel7 = C(Xspress3Channel, 'C7_', channel_num=7)
     # channel8 = C(Xspress3Channel, 'C8_', channel_num=8)
 
