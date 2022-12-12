@@ -225,8 +225,8 @@ foil_wheel_pair2 = FoilWheel2('XF:07BMB-OP{FoilWheel:2', name='foil_wheel2')
 
 
 class Drifts(Device):
-    drifts_rot = Cpt(EpicsMotor, '-Ax:Theta}Mtr')
-    drifts_x   = Cpt(EpicsMotor, '-Ax:X}Mtr')
+    drifts_z = Cpt(EpicsMotor, '-Ax:Z}Mtr')
+    drifts_x = Cpt(EpicsMotor, '-Ax:X}Mtr')
 
 drifts = Drifts('XF:07BMC-OP{Stg:1', name='drifts')
 

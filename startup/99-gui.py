@@ -35,7 +35,7 @@ detector_dictionary = {#colmirror_diag.name: {'obj': colmirror_diag, 'elements':
 motors_dictionary = {jj_slits_hutchB.xctr.name: {'name': jj_slits_hutchB.xctr.name, 'description':'B hutch_inc_slits_xcenter', 'object': jj_slits_hutchB.xctr},
                      jj_slits_hutchC.xctr.name: {'name': jj_slits_hutchC.xctr.name, 'description':'C hutch_inc_slits_xcenter', 'object': jj_slits_hutchC.xctr},
                      drifts.drifts_x.name: {'name': drifts.drifts_x.name, 'description':'C hutch_DRIFTS_horiz', 'object': drifts.drifts_x},
-                     drifts.drifts_rot.name: {'name': drifts.drifts_rot.name, 'description':'C hutch_DRIFTS_rotation', 'object': drifts.drifts_rot},
+                     drifts.drifts_z.name: {'name': drifts.drifts_z.name, 'description':'C hutch_DRIFTS_z', 'object': drifts.drifts_z},
                      beamstop.horizontal.name: {'name': beamstop.horizontal.name, 'description': 'B hutch_beamstop_horiz', 'object':beamstop.horizontal},
                      beamstop.vertical.name: {'name': beamstop.vertical.name, 'description': 'B hutch_beamstop_vertical', 'object': beamstop.vertical},
                      ibp_hutchB.name: {'name': ibp_hutchB.name, 'description': 'B hutch_inc_beam_path', 'object': ibp_hutchB},
