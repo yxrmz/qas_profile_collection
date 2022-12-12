@@ -75,7 +75,7 @@ class FlyerAPB:
                 return False
         streaming_st = SubscriptionStatus(self.det.streaming, callback_det)
 
-        def callback_motor():
+        def callback_motor(status):
             # print(f'     !!!!! {datetime.now()} callback_motor')
 
             # print('      I am sleeping for 10 seconds')
