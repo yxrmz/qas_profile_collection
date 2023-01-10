@@ -121,6 +121,7 @@ class FlyerAPB:
         return collect_all()
 
 flyer_apb = FlyerAPB(det=apb_stream, pbs=[pb1.enc1], motor=mono1)
+flyer_apb_c = FlyerAPB(det=apb_stream_c, pbs=[pb1.enc1], motor=mono1)
 
 
 def get_traj_duration():
@@ -130,7 +131,7 @@ def get_traj_duration():
     return int(info[lut]['size']) / 16000
 
 
-def get_md_for_scan(name, mono_scan_type, plan_name, experiment, **metadata):
+def get_md_for_scan(name, mono_scan_type, plan_name, experiment, detector=None, hutch=None, **metadata):
         interp_fn = f"{ROOT_PATH}/{USER_FILEPATH}/{RE.md['year']}/{RE.md['cycle']}/{RE.md['PROPOSAL']}/{name}.raw"
         interp_fn = validate_file_exists(interp_fn)
         #print(f'Storing data at {interp_fn}')
@@ -197,10 +198,11 @@ def get_md_for_scan(name, mono_scan_type, plan_name, experiment, **metadata):
                                  incident_slitsB_outboard],
               'sample_stageB': [sample_stageB_rot, sample_stageB_x, sample_stageB_y, sample_stageB_z],
               'pe_vertical': [pe_y],
-              'cm_horizontal': [cm_xu, cm_xd]
+              'cm_horizontal': [cm_xu, cm_xd],
+              'hutch': hutch,
               }
         for indx in range(8):
-            md[f'ch{indx+1}_offset'] = getattr(apb, f'ch{indx+1}_offset').get()
+            md[f'ch{indx+1}_offset'] = getattr(detector, f'ch{indx+1}_offset').get()
             # amp = getattr(apb, f'amp_ch{indx+1}')
 
 
@@ -219,5 +221,18 @@ def execute_trajectory_apb(name, **metadata):
                          'fly_scan',
                          'execute_trajectory_apb',
                          'fly_energy_scan_apb',
+                         detector = apb,
+                         hutch='b',
                          **metadata)
     yield from bp.fly([flyer_apb], md=md)
+
+
+def execute_trajectory_apb_c(name, **metadata):
+    md = get_md_for_scan(name,
+                         'fly_scan',
+                         'execute_trajectory_apb',
+                         'fly_energy_scan_apb',
+                         detector=apb_c,
+                         hutch='c',
+                         **metadata)
+    yield from bp.fly([flyer_apb_c], md=md)    

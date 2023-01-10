@@ -1,4 +1,4 @@
-def fly_scan_with_apb(name: str, comment: str, n_cycles: int = 1, delay: float = 0,  **kwargs):
+def fly_scan_with_apb(name: str, comment: str, n_cycles: int = 1, delay: float = 0, hutch_c: bool = False, **kwargs):
     '''
     Trajectory Scan - Runs the monochromator along the trajectory that is previously loaded in the controller N times
     Parameters
@@ -14,6 +14,7 @@ def fly_scan_with_apb(name: str, comment: str, n_cycles: int = 1, delay: float =
     uid : list(str)
         Lists containing the unique ids of the scans
     '''
+    print(f'Hutch C is {hutch_c}')
     sys.stdout = kwargs.pop('stdout', sys.stdout)
     uids = []
 
@@ -21,7 +22,10 @@ def fly_scan_with_apb(name: str, comment: str, n_cycles: int = 1, delay: float =
         name_n = '{} {:04d}'.format(name, indx + 1)
         yield from prep_traj_plan()
         print(f'Trajectory preparation complete at {print_now()}')
-        uid = (yield from execute_trajectory_apb(name_n, comment=comment))
+        if hutch_c:
+            uid = (yield from execute_trajectory_apb_c(name_n, comment=comment))
+        else:
+            uid = (yield from execute_trajectory_apb(name_n, comment=comment))
         uids.append(uid)
         print(f'Trajectory is complete {print_now()}')
         yield from bps.sleep(float(delay))

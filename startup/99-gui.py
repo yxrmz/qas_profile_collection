@@ -28,6 +28,11 @@ detector_dictionary = {#colmirror_diag.name: {'obj': colmirror_diag, 'elements':
                     'It': {'device': apb_ave, 'channels': ['apb_ave_ch2_mean']},
                     'Ir': {'device': apb_ave, 'channels': ['apb_ave_ch3_mean']},
                     'If': {'device': apb_ave, 'channels': ['apb_ave_ch4_mean']},
+                    'I0 Hutch C': {'device': apb_ave_c, 'channels': ['apb_ave_c_ch1_mean']},
+                    'It Hutch C': {'device': apb_ave_c, 'channels': ['apb_ave_c_ch2_mean']},
+                    'Ir Hutch C': {'device': apb_ave_c, 'channels': ['apb_ave_c_ch3_mean']},
+                    'If Hutch C': {'device': apb_ave_c, 'channels': ['apb_ave_c_ch4_mean']},
+
 }
 
 
@@ -68,8 +73,10 @@ aux_plan_funcs = {
 }
 
 plan_funcs = {
-    'Fly scan': fly_scan_with_apb,
-    'Fly scan w/SDD': fly_scan_with_xs3,
+    'XAS fly scan': fly_scan_with_apb,
+    # 'Fly scan in C': fly_scan_with_apb_c,
+    'XAS fly scan w/SDD': fly_scan_with_xs3,
+    'XRD take pattern': count_qas
 }
 
 for shutter in shutters_dictionary.values():
@@ -87,6 +94,7 @@ xlive_gui = isstools.xlive.XliveGui(plan_funcs=plan_funcs,
                                     RE=RE,
                                     db=db,
                                     apb = apb,
+                                    apb_c = apb_c ,
                                     accelerator=nsls_ii,
                                     mono=mono1,
                                     sdd = xs,  # xs or None # put back to get xs back or opt out!

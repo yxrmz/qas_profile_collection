@@ -132,6 +132,7 @@ class AnalogPizzaBox(Device):
 
 
 apb = AnalogPizzaBox(prefix="XF:07BMB-CT{PBA:1}:", name="apb")
+apb_c = AnalogPizzaBox(prefix="XF:07BMC-CT{PBA:1}:", name="apb_c")
 
 class AnalogPizzaBoxAverage(AnalogPizzaBox):
 
@@ -215,6 +216,7 @@ class AnalogPizzaBoxAverage(AnalogPizzaBox):
 
 
 apb_ave = AnalogPizzaBoxAverage(prefix="XF:07BMB-CT{PBA:1}:", name="apb_ave")
+apb_ave_c = AnalogPizzaBoxAverage(prefix="XF:07BMC-CT{PBA:1}:", name="apb_ave_c")
 
 
 class AnalogPizzaBoxStream(AnalogPizzaBoxAverage):
@@ -363,6 +365,7 @@ class AnalogPizzaBoxStream(AnalogPizzaBoxAverage):
 
 
 apb_stream = AnalogPizzaBoxStream(prefix="XF:07BMB-CT{PBA:1}:", name="apb_stream")
+apb_stream_c = AnalogPizzaBoxStream(prefix="XF:07BMC-CT{PBA:1}:", name="apb_stream_c")
 
 apb.amp_ch1 = i0_amp
 apb.amp_ch2 = it_amp

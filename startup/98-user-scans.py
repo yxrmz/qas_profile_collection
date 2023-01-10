@@ -205,14 +205,17 @@ def tscan_xs3(name: str, comment: str, n_cycles: int = 1, delay: float = 0, **kw
 #     print('Done!')
 #     yield uid
 
-def get_offsets(time:int = 2, *args, **kwargs):
+def get_offsets(time:int = 2, *args, hutch_c=False, **kwargs):
     sys.stdout = kwargs.pop('stdout', sys.stdout)
 
     try:
         yield from bps.mv(shutter_ph, 'Close')
     except FailedStatus:
         raise CannotActuateShutter(f'Error: Photon shutter failed to close.')
-    detectors = [apb_ave]
+    if hutch_c:
+        detectors = [apb_ave_c]
+    else:
+        detectors = [apb_ave]
     uid = (yield from get_offsets_plan(detectors, time))
 
     try:
