@@ -302,11 +302,11 @@ dark_frame_preprocessor = bluesky_darkframes.DarkFramePreprocessor(
                           # HOW LONG IS THE DARKFRAME GOOD FOR IN SECONDS
                           max_age=0,
                           # ANY SIGNALS TO WATCH THAT IF THEY CHANGE INVALIDATE THE DARKFRAME CACHE
-                          locked_signals=()
+                          locked_signals=(),
                           )
 
 
-def count_qas(sample_name, frame_count, subframe_time, subframe_count, delay=None):
+def count_qas(sample_name, frame_count, subframe_time, subframe_count, delay=None, **kwargs):
     """
 
     **If we want to use different number of sub-frames for light and dark averaging,

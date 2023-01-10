@@ -3,7 +3,6 @@ from ophyd import EpicsMotor, Device, Component as Cpt, EpicsSignal
 from ophyd.status import SubscriptionStatus
 import time as ttime
 
-
 class SampleStage(Device):
     rotary = Cpt(EpicsMotor, '-Ax:aY}Mtr')
     x = Cpt(EpicsMotor, '-Ax:X}Mtr')
@@ -13,7 +12,6 @@ class SampleStage(Device):
     chi = Cpt(EpicsMotor, '-Ax:Chi}Mtr')
 
 sample_stage1 = SampleStage('XF:07BMB-ES{Stg:1', name='sample_stage1')
-
 
 class MonoTrajDesc(Device):
     filename = Cpt(EpicsSignal, '-Name')
