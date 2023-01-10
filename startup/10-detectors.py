@@ -8,7 +8,7 @@ from ophyd import (ProsilicaDetector, SingleTrigger, Component as Cpt, Device,
                    EpicsSignal, EpicsSignalRO, ImagePlugin, StatsPlugin, ROIPlugin,
                    DeviceStatus)
 from ophyd.status import Status
-from ophyd import DeviceStatus, set_and_wait
+from ophyd import DeviceStatus
 from bluesky.examples import NullStatus
 
 from databroker.assets.handlers_base import HandlerBase
@@ -173,8 +173,8 @@ class EncoderFS(Encoder):
             print('Staging of {} complete'.format(self.name))
 
     def unstage(self):
-        if(self.connected):
-            set_and_wait(self.ignore_sel, 1)
+        if self.connected:
+            self.ignore_sel.set(1).wait()
             self._datum_counter = None
             return super().unstage()
 
@@ -183,7 +183,7 @@ class EncoderFS(Encoder):
         self._ready_to_collect = True
         "Start writing data into the file."
 
-        set_and_wait(self.ignore_sel, 0)
+        self.ignore_sel.set(0).wait()
 
         # Return a 'status object' that immediately reports we are 'done' ---
         # ready to collect at any time.
@@ -194,7 +194,7 @@ class EncoderFS(Encoder):
         if not self._ready_to_collect:
             raise RuntimeError("must called kickoff() method before calling complete()")
         # Stop adding new data to the file.
-        set_and_wait(self.ignore_sel, 1)
+        self.ignore_sel.set(1).wait()
         #while not os.path.isfile(self._full_path):
         #    ttime.sleep(.1)
 
@@ -319,7 +319,7 @@ class DIFS(DigitalInput):
         super().stage()
 
     def unstage(self):
-        set_and_wait(self.ignore_sel, 1)
+        self.ignore_sel.set(1).wait()
         return super().unstage()
 
     def kickoff(self):
@@ -327,7 +327,6 @@ class DIFS(DigitalInput):
         self._ready_to_collect = True
         "Start writing data into the file."
 
-        # set_and_wait(self.ignore_sel, 0)
         st = self.ignore_sel.set(0)
 
         # Return a 'status object' that immediately reports we are 'done' ---
@@ -340,7 +339,7 @@ class DIFS(DigitalInput):
         if not self._ready_to_collect:
             raise RuntimeError("must called kickoff() method before calling complete()")
         # Stop adding new data to the file.
-        set_and_wait(self.ignore_sel, 1)
+        self.ignore_sel.set(1).wait()
         #while not os.path.isfile(self._full_path):
         #    ttime.sleep(.1)
         return NullStatus()
@@ -413,7 +412,7 @@ class PizzaBoxFS(Device):
         "Call encoder.collect() for every encoder."
         # Stop writing data to the file in all encoders.
         for attr_name in ['enc1', 'enc2', 'enc3', 'enc4']:
-            set_and_wait(getattr(self, attr_name).ignore_sel, 1)
+            getattr(self, attr_name).ignore_sel.set(1).wait()
         # Now collect the data accumulated by all encoders.
         for attr_name in ['enc1', 'enc2', 'enc3', 'enc4']:
             yield from getattr(self, attr_name).collect()
@@ -508,8 +507,8 @@ class AdcFS(Adc):
             print("{} not staged".format(self.name))
 
     def unstage(self):
-        if(self.connected):
-            set_and_wait(self.enable_sel, 1)
+        if self.connected:
+            self.enable_sel.set(1).wait()
             return super().unstage()
 
     def kickoff(self):
@@ -517,7 +516,6 @@ class AdcFS(Adc):
         self._ready_to_collect = True
         "Start writing data into the file."
 
-        # set_and_wait(self.enable_sel, 0)
         st = self.enable_sel.set(0)
 
         # Return a 'status object' that immediately reports we are 'done' ---
@@ -530,7 +528,7 @@ class AdcFS(Adc):
         if not self._ready_to_collect:
             raise RuntimeError("must called kickoff() method before calling complete()")
         # Stop adding new data to the file.
-        set_and_wait(self.enable_sel, 1)
+        self.enable_sel.set(1).wait()
         return NullStatus()
 
     def collect(self):
@@ -691,8 +689,8 @@ class DualAdcFS(TriggerAdc):
 
 
     def unstage(self):
-        if(self.connected):
-            set_and_wait(self.enable_sel, 1)
+        if self.connected:
+            self.enable_sel.set(1).wait()
             # either master or slave can unstage if needed, safer
             self._staged_adc = False
             self._kickoff_adc = False
@@ -711,7 +709,6 @@ class DualAdcFS(TriggerAdc):
             self._ready_to_collect = True
             "Start writing data into the file."
        
-            # set_and_wait(self.enable_sel, 0)
             st = self.enable_sel.set(0)
             self._kickoff_adc = True
             return st
@@ -764,7 +761,6 @@ class DualAdcFS(TriggerAdc):
         
         if self._twin_adc._complete_adc is False:
             # Stop adding new data to the file.
-            #set_and_wait(self.enable_sel, 1)
             self.enable_sel.put(1)
             self._complete_adc = True
         else:
@@ -854,7 +850,7 @@ class PizzaBoxAnalogFS(Device):
         "Call adc.collect() for every encoder."
         # Stop writing data to the file in all encoders.
         for attr_name in ['adc1']: #, 'adc2', 'adc3', 'adc4']:
-            set_and_wait(getattr(self, attr_name).enable_sel, 0)
+            getattr(self, attr_name).enable_sel.set(0).wait()
         # Now collect the data accumulated by all encoders.
         for attr_name in ['adc1']: #, 'adc2', 'adc3', 'adc4']:
             yield from getattr(self, attr_name).collect()

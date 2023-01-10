@@ -21,9 +21,6 @@ class FlyerAPB:
         self._mount_exists = False
 
     def kickoff(self, *args, **kwargs):
-        # set_and_wait(self.det.trig_source, 1)
-        # TODO: handle it on the plan level
-        # set_and_wait(self.motor, 'prepare')
 
         # Check that the filesystem is mounted at
         # "/nsls2/data/qas-new/legacy/raw/apb" on "xf07bmb-anpb1":

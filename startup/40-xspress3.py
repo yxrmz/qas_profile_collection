@@ -13,7 +13,7 @@ from ophyd.areadetector.filestore_mixins import (FileStoreIterativeWrite,
 from ophyd import Signal, EpicsSignal, EpicsSignalRO
 from ophyd.status import SubscriptionStatus
 from ophyd.sim import NullStatus  # TODO: remove after complete/collect are defined
-from ophyd import Component as Cpt, set_and_wait
+from ophyd import Component as Cpt
 from ophyd.status import SubscriptionStatus, DeviceStatus
 
 from pathlib import PurePath
@@ -44,7 +44,7 @@ class Xspress3FileStoreFlyable(Xspress3FileStore):
         Also modified the stage sigs.
         """
         print("warming up the hdf5 plugin...")
-        set_and_wait(self.enable, 1)
+        self.enable.set(1).wait()
         sigs = OrderedDict([(self.parent.settings.array_callbacks, 1),
                             (self.parent.settings.trigger_mode, 'Internal'),
                             # just in case the acquisition time is set very long...
@@ -59,13 +59,13 @@ class Xspress3FileStoreFlyable(Xspress3FileStore):
 
         for sig, val in sigs.items():
             ttime.sleep(0.1)  # abundance of caution
-            set_and_wait(sig, val)
+            sig.set(val).wait()
 
         ttime.sleep(2)  # wait for acquisition
 
         for sig, val in reversed(list(original_vals.items())):
             ttime.sleep(0.1)
-            set_and_wait(sig, val)
+            sig.set(val).wait()
         print("done")
 
     # def unstage(self):
