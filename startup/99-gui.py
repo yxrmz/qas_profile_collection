@@ -27,11 +27,11 @@ detector_dictionary = {#colmirror_diag.name: {'obj': colmirror_diag, 'elements':
                     'I0': {'device': apb_ave, 'channels': ['apb_ave_ch1_mean']},
                     'It': {'device': apb_ave, 'channels': ['apb_ave_ch2_mean']},
                     'Ir': {'device': apb_ave, 'channels': ['apb_ave_ch3_mean']},
-                    'If': {'device': apb_ave, 'channels': ['apb_ave_ch4_mean']},
+                    'PIPS': {'device': apb_ave, 'channels': ['apb_ave_ch4_mean']},
                     'I0 Hutch C': {'device': apb_ave_c, 'channels': ['apb_ave_c_ch1_mean']},
                     'It Hutch C': {'device': apb_ave_c, 'channels': ['apb_ave_c_ch2_mean']},
                     'Ir Hutch C': {'device': apb_ave_c, 'channels': ['apb_ave_c_ch3_mean']},
-                    'If Hutch C': {'device': apb_ave_c, 'channels': ['apb_ave_c_ch4_mean']},
+                    'PIPS Hutch C': {'device': apb_ave_c, 'channels': ['apb_ave_c_ch4_mean']},
 
 }
 

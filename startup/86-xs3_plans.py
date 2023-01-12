@@ -99,6 +99,8 @@ def execute_trajectory_xs(name, **metadata):
                          'fly_scan',
                          'execute_trajectory_xs',
                          'fly_energy_scan_xs3',
+                         detector = apb,
+                         hutch='b',
                          **metadata)
     md['aux_detector'] = 'XSpress3'
     yield from bp.fly([flyer_xs], md=md)
