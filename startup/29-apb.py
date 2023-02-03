@@ -173,7 +173,7 @@ class AnalogPizzaBoxAverage(AnalogPizzaBox):
                 return False
 
         status = SubscriptionStatus(self.acquiring, callback)
-        self.acquire.set(1)
+        self.acquire.set(1).wait()
         return status
 
     def save_current_status(self):
