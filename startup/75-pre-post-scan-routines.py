@@ -17,7 +17,7 @@ try:
 except FileNotFoundError:
     reference_foils = {}
 
-def set_reference_foil(element = None, **metadata):
+def set_reference_foil(element:str = None, **metadata):
     # Adding reference foil element list
     elems = [item['element'] for item in reference_foils]
     if element is None:
