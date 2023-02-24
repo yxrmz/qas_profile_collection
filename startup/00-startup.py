@@ -63,10 +63,11 @@ if len(bsui_processes) > 1:
 
 import ophyd
 
+GLOBAL_TIMEOUT = 60
 
-ophyd.signal.EpicsSignalBase.set_defaults(timeout=60, connection_timeout=60)
-ophyd.signal.EpicsSignal.set_defaults(timeout=60, connection_timeout=60)
-ophyd.signal.EpicsSignalRO.set_defaults(timeout=60, connection_timeout=60)
+ophyd.signal.EpicsSignalBase.set_defaults(timeout=GLOBAL_TIMEOUT, connection_timeout=GLOBAL_TIMEOUT)
+ophyd.signal.EpicsSignal.set_defaults(timeout=GLOBAL_TIMEOUT, connection_timeout=GLOBAL_TIMEOUT)
+ophyd.signal.EpicsSignalRO.set_defaults(timeout=GLOBAL_TIMEOUT, connection_timeout=GLOBAL_TIMEOUT)
 
 beamline_id = 'qas'
 
