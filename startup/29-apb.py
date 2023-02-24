@@ -364,38 +364,53 @@ class AnalogPizzaBoxStream(AnalogPizzaBoxAverage):
         self.num_points = int(round(acq_num_points, ndigits=-3))
 
 
-# apb_stream = AnalogPizzaBoxStream(prefix="XF:07BMB-CT{PBA:1}:", name="apb_stream")
-# apb_stream_c = AnalogPizzaBoxStream(prefix="XF:07BMC-CT{PBA:1}:", name="apb_stream_c")
+apb_stream = AnalogPizzaBoxStream(prefix="XF:07BMB-CT{PBA:1}:", name="apb_stream")
+apb_stream_c = AnalogPizzaBoxStream(prefix="XF:07BMC-CT{PBA:1}:", name="apb_stream_c")
 
-apb_dets = [
-    {"name": "apb_stream", "prefix": "XF:07BMB-CT{PBA:1}:"},
-    {"name": "apb_stream_c", "prefix": "XF:07BMC-CT{PBA:1}:"},
-]
+ttime.sleep(5.0)
 
-wait_time = 1.0  # seconds
-num_attempts = 10
-for det in apb_dets:
-    print("")
-    det_name = det["name"]
-    more_wait_time = wait_time
-    for num_attempt in range(num_attempts):
-        start_time = ttime.monotonic()
-        print(f"  Attempt #{num_attempt + 1}: Waiting for connection for '{det_name}' for {more_wait_time} seconds...")
-        try:
-            globals()[det_name] = AnalogPizzaBoxStream(prefix=det["prefix"], name=det_name)
-            globals()[det_name].wait_for_connection(timeout=more_wait_time)
-            duration = ttime.monotonic() - start_time
-            print(f"  '{det_name}' connected on attempt #{num_attempt + 1} within {duration:.3f} seconds.")
+import pprint
 
-            # Read the devices to have initial read values for the callback.
-            globals()[det_name].read()
-            globals()[det_name].streaming.read()
-            break
-        except TimeoutError:
-            duration = ttime.monotonic() - start_time
-            print(f"  '{det_name}' NOT connected on attempt #{num_attempt + 1} within {duration:.3f} seconds.")
+not_connected_signals = []
+for det in [apb_stream, apb_stream_c]:
+    print(f"\n{det.name} {det.connected = }")
+    for s in det._signals:
+        if not det._signals[s].connected:
+            not_connected_signals.append(det._signals[s])
+            print(f"{det.name}.{det._signals[s].name}.connected = {det._signals[s].connected}")
+            print(f"  {det._signals[s].name}:\n")
+            pprint.pprint(det._signals[s].metadata)
 
-        more_wait_time *= 2
+raise RuntimeError("Testing!!! remove me")
+# apb_dets = [
+#     {"name": "apb_stream", "prefix": "XF:07BMB-CT{PBA:1}:"},
+#     {"name": "apb_stream_c", "prefix": "XF:07BMC-CT{PBA:1}:"},
+# ]
+
+# wait_time = 1.0  # seconds
+# num_attempts = 10
+# for det in apb_dets:
+#     print("")
+#     det_name = det["name"]
+#     more_wait_time = wait_time
+#     for num_attempt in range(num_attempts):
+#         start_time = ttime.monotonic()
+#         print(f"  Attempt #{num_attempt + 1}: Waiting for connection for '{det_name}' for {more_wait_time} seconds...")
+#         try:
+#             globals()[det_name] = AnalogPizzaBoxStream(prefix=det["prefix"], name=det_name)
+#             globals()[det_name].wait_for_connection(timeout=more_wait_time)
+#             duration = ttime.monotonic() - start_time
+#             print(f"  '{det_name}' connected on attempt #{num_attempt + 1} within {duration:.3f} seconds.")
+
+#             # Read the devices to have initial read values for the callback.
+#             globals()[det_name].read()
+#             globals()[det_name].streaming.read()
+#             break
+#         except TimeoutError:
+#             duration = ttime.monotonic() - start_time
+#             print(f"  '{det_name}' NOT connected on attempt #{num_attempt + 1} within {duration:.3f} seconds.")
+
+#         more_wait_time *= 2
 
 
 apb.amp_ch1 = i0_amp

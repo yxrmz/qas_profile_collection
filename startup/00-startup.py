@@ -129,6 +129,14 @@ logging.getLogger('caproto.ch').setLevel('ERROR')
 # caproto_log = os.path.join(profile_startup_dir, f'{beamline_id}-caproto-{datetime.now().strftime("%Y%m%d%H%M%S")}.log')
 # caproto.set_handler(file=caproto_log)
 
+# ophyd_logger = logging.getLogger("ophyd")
+# ophyd_logger.setLevel(logging.DEBUG)
+# sh.setLevel(logging.DEBUG)
+# ophyd_logger.addHandler(sh)
+import ophyd
+ophyd_log_file = os.path.join(profile_startup_dir, f'{beamline_id}-ophyd.log')
+ophyd.set_handler(file=ophyd_log_file, level=logging.DEBUG)
+
 # logging.getLogger('bluesky').setLevel('NOTSET')
 # import bluesky
 # bluesky_log = os.path.join(profile_startup_dir, f'{beamline_id}-bluesky-{datetime.now().strftime("%Y%m%d%H%M%S")}.log')
