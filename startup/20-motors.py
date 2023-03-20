@@ -1,7 +1,16 @@
 print(__file__)
-from ophyd import EpicsMotor, Device, Component as Cpt, EpicsSignal
+
+from ophyd import EpicsMotor as _EpicsMotor
+from ophyd import Device, Component as Cpt, EpicsSignal
 from ophyd.status import SubscriptionStatus
 import time as ttime
+
+class EpicsMotorWithTweaking(_EpicsMotor):
+    twv = Cpt(EpicsSignal, '.TWV', kind='omitted')
+    twr = Cpt(EpicsSignal, '.TWR', kind='omitted')
+    twf = Cpt(EpicsSignal, '.TWF', kind='omitted')
+
+EpicsMotor = EpicsMotorWithTweaking
 
 class SampleStage(Device):
     rotary = Cpt(EpicsMotor, '-Ax:aY}Mtr')

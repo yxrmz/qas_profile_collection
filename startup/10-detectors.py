@@ -144,6 +144,7 @@ class EncoderFS(Encoder):
             write_path_template = os.path.join('pizza_box_data/%Y/%m/%d', filename)
             # path without the root
             resource_path = datetime.now().strftime(write_path_template)
+            #ROOT_PATH = '/home/xf07bm/TestData/'
             filepath = os.path.join(ROOT_PATH, RAW_FILEPATH, resource_path)
                 
             # without the root, but with data path + date folders

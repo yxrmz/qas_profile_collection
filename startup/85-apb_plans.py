@@ -66,6 +66,7 @@ class FlyerAPB:
 
         def callback_det(value, old_value, **kwargs):
             if int(round(old_value)) == 1 and int(round(value)) == 0:
+                print(f'PUT APB STREAM TO 0 - {ttime.time()}')
                 # print(f'     !!!!! {datetime.now()} callback_det')
                 return True
             else:
@@ -118,7 +119,7 @@ class FlyerAPB:
         return collect_all()
 
 flyer_apb = FlyerAPB(det=apb_stream, pbs=[pb1.enc1], motor=mono1)
-flyer_apb_c = FlyerAPB(det=apb_stream_c, pbs=[pb1.enc1], motor=mono1)
+#flyer_apb_c = FlyerAPB(det=apb_stream_c, pbs=[pb1.enc1], motor=mono1)
 
 
 def get_traj_duration():

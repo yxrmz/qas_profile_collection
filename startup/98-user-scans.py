@@ -220,7 +220,11 @@ def get_offsets(time:int = 2, *args, hutch_c=False, **kwargs):
 
     try:
         yield from bps.mv(shutter_ph, 'Open')
+    # except FailedStatus:
+    #     print('Error: Photon shutter failed to open')
     except FailedStatus:
-        print('Error: Photon shutter failed to open')
-
+         print('Error: Photon shutter failed to open')
+         pass
+        
+        
     return uid
