@@ -104,6 +104,8 @@ xlive_gui = isstools.xlive.XliveGui(plan_funcs=plan_funcs,
                                     motors_dict=motors_dictionary,
                                     general_scan_func=general_scan,
                                     sample_stage = sample_stage1,
+                                    wps = wps,
+                                    mfc = mfc,
                                     window_title="XLive@QAS/7-BM NSLS-II",
                                    )
 

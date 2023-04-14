@@ -68,36 +68,83 @@ shutter_fs = QASFastShutter('XF:07BMB-CT{PBA:1}:GPIO:0-SP',
                             name='Fast Shutter')
 shutter_fs.shutter_type = 'FS'
 
-class EPS_MFC1(Device):
-    flow_rb = Cpt(EpicsSignal, 'MFC1_FB')
 
-mfc1_he = EPS_MFC1('XF:07BMA-CT{MFC-AI}', name='mfc1_he')
+class EPS_MFC(Device):
+    ch1_he_rb = Cpt(EpicsSignal, '-AI}MFC1_FB')
+    ch1_he_sp = Cpt(EpicsSignal, '-AO}MFC1_SP')
+
+    ch2_n2_rb = Cpt(EpicsSignal, '-AI}MFC2_FB')
+    ch2_n2_sp = Cpt(EpicsSignal, '-AO}MFC2_SP')
+
+    ch3_ar_rb = Cpt(EpicsSignal, '-AI}MFC3_FB')
+    ch3_ar_sp = Cpt(EpicsSignal, '-AO}MFC3_SP')
+
+    ch4_n2_rb = Cpt(EpicsSignal, '-AI}MFC4_FB')
+    ch4_n2_sp = Cpt(EpicsSignal, '-AO}MFC4_SP')
+
+    ch5_ar_rb = Cpt(EpicsSignal, '-AI}MFC5_FB')
+    ch5_ar_sp = Cpt(EpicsSignal, '-AO}MFC5_SP')
+
+mfc = EPS_MFC('XF:07BMA-CT{MFC', name='mfc')
+
+class EPS_MFC1(Device):
+    flow_rb = Cpt(EpicsSignal, '-AI}MFC1_FB')
+    flow_sp = Cpt(EpicsSignal, '-AO}MFC1_SP')
+
+mfc1_he = EPS_MFC1('XF:07BMA-CT{MFC', name='mfc1_he')
 
 class EPS_MFC2(Device):
-    flow_rb = Cpt(EpicsSignal, 'MFC2_FB')
+    flow_rb = Cpt(EpicsSignal, '-AI}MFC2_FB')
+    flow_sp = Cpt(EpicsSignal, '-AO}MFC2_SP')
 
-mfc2_n2 = EPS_MFC2('XF:07BMA-CT{MFC-AI}', name='mfc2_n2')
+mfc2_n2 = EPS_MFC2('XF:07BMA-CT{MFC', name='mfc2_n2')
 
 class EPS_MFC3(Device):
-    flow_rb = Cpt(EpicsSignal, 'MFC3_FB')
+    flow_rb = Cpt(EpicsSignal, '-AI}MFC3_FB')
+    flow_sp = Cpt(EpicsSignal, '-AO}MFC3_SP')
 
-mfc3_ar = EPS_MFC3('XF:07BMA-CT{MFC-AI}', name='mfc3_ar')
+mfc3_ar = EPS_MFC3('XF:07BMA-CT{MFC', name='mfc3_ar')
 
 class EPS_MFC4(Device):
-    flow_rb = Cpt(EpicsSignal, 'MFC4_FB')
+    flow_rb = Cpt(EpicsSignal, '-AI}MFC4_FB')
+    flow_sp = Cpt(EpicsSignal, '-AO}MFC4_SP')
 
-mfc4_n2 = EPS_MFC4('XF:07BMA-CT{MFC-AI}', name='mfc4_n2')
+mfc4_n2 = EPS_MFC4('XF:07BMA-CT{MFC', name='mfc4_n2')
 
 class EPS_MFC5(Device):
-    flow_rb = Cpt(EpicsSignal, 'MFC5_FB')
+    flow_rb = Cpt(EpicsSignal, '-AI}MFC5_FB')
+    flow_sp = Cpt(EpicsSignal, '-AO}MFC5_SP')
 
-mfc5_ar = EPS_MFC5('XF:07BMA-CT{MFC-AI}', name='mfc5_ar')
+mfc5_ar = EPS_MFC5('XF:07BMA-CT{MFC', name='mfc5_ar')
+
+
 
 '''
 Here is the amplifier definition
 
 '''
 
+
+class WienerPowerSupply(Device):
+    i0_plate_rb = Cpt(EpicsSignal, 'u300}V-Sense')
+    i0_plate_sp = Cpt(EpicsSignal, 'u300}V-Set')
+
+    i0_grid_rb = Cpt(EpicsSignal, 'u301}V-Sense')
+    i0_grid_sp = Cpt(EpicsSignal, 'u301}V-Set')
+
+    it_plate_rb = Cpt(EpicsSignal, 'u302}V-Sense')
+    it_plate_sp = Cpt(EpicsSignal, 'u302}V-Set')
+
+    it_grid_rb = Cpt(EpicsSignal, 'u303}V-Sense')
+    it_grid_sp = Cpt(EpicsSignal, 'u303}V-Set')
+
+    ir_plate_rb = Cpt(EpicsSignal, 'u304}V-Sense')
+    ir_plate_sp = Cpt(EpicsSignal, 'u304}V-Set')
+
+    ir_grid_rb = Cpt(EpicsSignal, 'u305}V-Sense')
+    ir_grid_sp = Cpt(EpicsSignal, 'u305}V-Set')
+
+wps = WienerPowerSupply("XF:07BMB-OP{WPS:01-HV:", name='wps')
 
 class ICAmplifier(Device):
 

@@ -27,6 +27,11 @@ class AnalogPizzaBox(Device):
     ch7 = Cpt(EpicsSignal, 'SA:Ch7:mV-I')
     ch8 = Cpt(EpicsSignal, 'SA:Ch8:mV-I')
 
+    vi0 = Cpt(EpicsSignal, 'SA:Ch1:V-I')
+    vit = Cpt(EpicsSignal, 'SA:Ch2:V-I')
+    vir = Cpt(EpicsSignal, 'SA:Ch3:V-I')
+    vip = Cpt(EpicsSignal, 'SA:Ch4:V-I')
+
     ch1.polarity = ch2.polarity = ch3.polarity = ch4.polarity = 'neg'
 
     ch1_offset = Cpt(EpicsSignal, 'Ch1:User:Offset-SP', kind=Kind.config)
