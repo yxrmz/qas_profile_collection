@@ -27,7 +27,10 @@ from distutils.version import LooseVersion
 
 class QASTIFFPlugin(TIFFPlugin, FileStoreTIFFSquashing,
                     FileStoreIterativeWrite):
-    pass
+    def describe(self):
+        description = super().describe()
+        description[f"{self.parent.name}_image"]["shape"] = description[f"{self.parent.name}_image"]["shape"][1:]
+        return description
 
 
 class PEDetCamWithVersions(PerkinElmerDetectorCam):
