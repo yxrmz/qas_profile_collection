@@ -150,6 +150,7 @@ class ICAmplifier(Device):
 
     gain = Cpt(EpicsSignal,'Gain')
     risetime = Cpt(EpicsSignal,'RiseTime')
+    supr_mode = Cpt(EpicsSignal, 'SuppressionMode')
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
