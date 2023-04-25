@@ -18,7 +18,7 @@ class FlyerAPBwithTrigger(FlyerAPB):
 
     def complete(self):
         st_super = super().complete()
-        def callback_motor():
+        def callback_motor(status):
             self.trigger.complete()
 
         self._motor_status.add_callback(callback_motor)
