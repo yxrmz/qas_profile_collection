@@ -69,6 +69,123 @@ shutter_fs = QASFastShutter('XF:07BMB-CT{PBA:1}:GPIO:0-SP',
 shutter_fs.shutter_type = 'FS'
 
 
+class LinkamThermal(Device):
+
+    #Set-and-read signals
+    cmd = Cpt(EpicsSignal, 'STARTHEAT')
+    temperature_setpoint = Cpt(EpicsSignal, 'SETPOINT:SET')
+    temperature_rate_setpoint = Cpt(EpicsSignal, 'RAMPRATE:SET')
+
+    #Read-Only signals
+    status_power = Cpt(EpicsSignalRO, 'STARTHEAT')
+    status_code =  Cpt(EpicsSignalRO, 'STATUS') 
+    # status_code = Cpt(EpicsSignal, 'STATUS')
+    # done = Cpt(AtSetpoint, parent_attr = 'status_code')
+    temperature_current = Cpt(EpicsSignalRO, 'TEMP')
+    temperature_rate_current = Cpt(EpicsSignalRO, 'RAMPRATE')
+
+    #not commonly used
+    init = Cpt(EpicsSignal, 'INIT')
+    model_array = Cpt(EpicsSignal, 'MODEL')
+    serial_array = Cpt(EpicsSignal, 'SERIAL')
+    stage_model_array = Cpt(EpicsSignal, 'STAGE:MODEL')
+    stage_serial_array = Cpt(EpicsSignal, 'STAGE:SERIAL')
+    firm_ver = Cpt(EpicsSignal, 'FIRM:VER')
+    hard_ver = Cpt(EpicsSignal, 'HARD:VER')
+    ctrllr_err = Cpt(EpicsSignal, 'CTRLLR:ERR')
+    config = Cpt(EpicsSignal, 'CONFIG')
+    stage_config = Cpt(EpicsSignal, 'STAGE:CONFIG')
+    disable = Cpt(EpicsSignal, 'DISABLE')
+    dsc = Cpt(EpicsSignal, 'DSC')
+    # RR_set = Cpt(EpicsSignal, 'RAMPRATE:SET')
+    # RR = Cpt(EpicsSignal, 'RAMPRATE')
+    ramptime = Cpt(EpicsSignal, 'RAMPTIME')
+    # startheat = Cpt(EpicsSignal, 'STARTHEAT')
+    holdtime_set = Cpt(EpicsSignal, 'HOLDTIME:SET')
+    holdtime = Cpt(EpicsSignal, 'HOLDTIME')
+    power = Cpt(EpicsSignalRO, 'POWER')
+    lnp_speed = Cpt(EpicsSignal, 'LNP_SPEED')
+    lnp_mode_set = Cpt(EpicsSignal, 'LNP_MODE:SET')
+    lnp_speed_set = Cpt(EpicsSignal, 'LNP_SPEED:SET')
+
+
+    def on(self):
+        return self.cmd.put(1)
+
+    def _on(self):
+        yield from bps.mv(self.cmd,1)
+
+    def off(self):
+        return self.cmd.put(0)
+
+    def _off(self):
+        yield from bps.mv(self.cmd,0)
+
+    def setTemperature(self, temperature):
+        return self.temperature_setpoint.put(temperature)
+
+    def setTemperatureRate(self, temperature_rate):
+        return self.temperature_rate_setpoint.put(temperature_rate)
+
+    def temperature(self):
+        return self.temperature_current.get()
+
+    def temperatureRate(self):
+        return self.temperature_rate_current.get()
+
+    @property
+    def serial(self):
+        return self.arr2word(self.serial_array.get())
+
+    @property
+    def model(self):
+        return self.arr2word(self.model_array.get())
+    
+    @property
+    def stage_model(self):
+        return self.arr2word(self.stage_model_array.get())
+    
+    @property
+    def stage_serial(self):
+        return self.arr2word(self.stage_serial_array.get())
+
+    @property
+    def firmware_version(self):
+        return self.arr2word(self.firm_ver.get())
+
+    @property
+    def hardware_version(self):
+        return self.arr2word(self.hard_ver.get())
+
+    def status(self):
+        text = f'\nCurrent temperature = {self.temperature():.1f}, setpoint = {self.temperature_setpoint.get():.1f}\n\n'
+        code = int(self.status_code.get())
+        
+        if code & 1:  #Error
+            text += 'Error        : yes' + '\n'
+        else:
+            text += 'Error        : no\n'
+        if code & 2: # at setpoint 
+            text += 'At setpoint  : yes' + '\n'
+        else:
+            text += 'At setpoint  : no\n'
+        if code & 4: #heater
+            text += 'Heater       : on' + '\n'
+        else:
+            text += 'Heater       : off\n'
+        if code & 8: #pump
+            text += 'Pump         : on' + '\n'
+        else:
+            text += 'Pump         : off\n'
+        if code & 16: # pump auto
+            text += 'Pump Auto    : yes' + '\n'
+        else:
+            text += 'Pump Auto    : no\n'
+            
+        print( text )
+
+linkam = LinkamThermal('XF:07BM-B{Linkam:1}:', name='linkam')
+
 class EPS_MFC(Device):
     ch1_he_rb = Cpt(EpicsSignal, '-AI}MFC1_FB')
     ch1_he_sp = Cpt(EpicsSignal, '-AO}MFC1_SP')
