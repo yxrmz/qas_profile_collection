@@ -79,6 +79,7 @@ class AnalogPizzaBoxTrigger(Device):
     def unstage(self, *args, **kwargs):
         self._datum_counter = None
         self.acquire.put(0)
+        self.stream.put(0)
         return super().unstage(*args, **kwargs)
 
     def complete(self, *args, **kwargs):
