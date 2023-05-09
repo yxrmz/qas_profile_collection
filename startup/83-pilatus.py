@@ -43,7 +43,7 @@ class PilatusV33(SingleTriggerV33, PilatusDetector):
 
     tiff = Cpt(TIFFPluginWithFileStore,
                suffix='TIFF1:',
-               write_path_template='/nsls2/data/qas-new/legacy/raw/pilatus1_data/%Y/%m/%d/',
+               write_path_template='/nsls2/data/qas-new/legacy/raw/pilatus3_data/%Y/%m/%d/',
                root='/nsls2/data/qas-new/legacy/raw')
 
     
