@@ -196,7 +196,8 @@ class ContinuousAcquisitionTrigger(BlueskyInterface):
         self._status = DeviceStatus(self)
         self._desired_number_of_sets = self.number_of_sets.get()
         self._plugin.num_capture.put(self._desired_number_of_sets)
-        self.dispatch(self._image_name, ttime.time())
+        # self.dispatch(self._image_name, ttime.time())
+        self.generate_datum(self._image_name, ttime.time())
         # reset the proc buffer, this needs to be generalized
         self.proc.reset_filter.put(1)
         self._plugin.capture.put(1)  # Now the TIFF plugin is capturing.
