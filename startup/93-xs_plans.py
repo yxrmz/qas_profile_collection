@@ -8,7 +8,7 @@ def xs_count(acq_time:int = 1, num_frames:int =1):
 
     yield from bps.mv(xs.settings.acquire, 1)
 
-    yield from bps.sleep(2)
+    yield from bps.sleep(1)
     while xs.settings.status_message.get()=='Acquiring Data':
         print("Waiting")
         yield from bps.sleep(1)
