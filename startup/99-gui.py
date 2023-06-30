@@ -32,6 +32,10 @@ detector_dictionary = {#colmirror_diag.name: {'obj': colmirror_diag, 'elements':
                     'It Hutch C': {'device': apb_ave_c, 'channels': ['apb_ave_c_ch2_mean']},
                     'Ir Hutch C': {'device': apb_ave_c, 'channels': ['apb_ave_c_ch3_mean']},
                     'PIPS Hutch C': {'device': apb_ave_c, 'channels': ['apb_ave_c_ch4_mean']},
+                    'xspress3 Hutch B' : {'device': xs, 'channels': ['xs_channel1_rois_roi01_value',
+                                                                     'xs_channel1_rois_roi02_value',
+                                                                     'xs_channel1_rois_roi03_value',
+                                                                     'xs_channel1_rois_roi04_value']}
 
 }
 
@@ -62,7 +66,8 @@ shutters_dictionary = {
 service_plan_funcs = {
     'get_offsets': get_offsets,
     'xs_count': xs_count,
-    'set Reference foil': set_reference_foil
+    'set Reference foil': set_reference_foil,
+    'sleep': sleep_plan,
     }
 
 sample_stages = [{'x': sample_stage1.x.name, 'y': sample_stage1.y.name}]

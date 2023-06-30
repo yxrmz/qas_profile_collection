@@ -1,7 +1,9 @@
 def general_scan_plan(detectors, motor, rel_start, rel_stop, num):
     plan = bp.relative_scan(detectors, motor, rel_start, rel_stop, num)
 
-    if hasattr(detectors[0], 'kickoff'):
+    if detectors[0].name == 'xs':
+        plan = plan
+    elif hasattr(detectors[0], 'kickoff'):
         plan = bpp.fly_during_wrapper(plan, detectors)
 
     yield from plan

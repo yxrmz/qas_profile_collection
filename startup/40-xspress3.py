@@ -112,6 +112,9 @@ class QASXspress3Detector(XspressTrigger, Xspress3Detector):
     mca4 = Cpt(EpicsSignal, 'ARR4:ArrayData')
     mca5 = Cpt(EpicsSignal, 'ARR5:ArrayData')
     mca6 = Cpt(EpicsSignal, 'ARR6:ArrayData')
+
+    cnt_time = Cpt(EpicsSignal, 'C1_SCA0:Value_RBV')
+
     #TODO change folder to xspress3
     hdf5 = Cpt(Xspress3FileStoreFlyable, 'HDF5:',
                read_path_template='/nsls2/data/qas-new/legacy/raw/x3m/%Y/%m/%d/',
@@ -126,7 +129,7 @@ class QASXspress3Detector(XspressTrigger, Xspress3Detector):
                                    'spectra_per_point', 'settings',
                                    'rewindable']
         if read_attrs is None:
-            read_attrs = ['channel1', 'channel2', 'channel3', 'channel4', 'channel6', 'hdf5', 'settings.acquire_time']
+            read_attrs = ['channel1', 'channel2', 'channel3', 'channel4', 'channel5', 'channel6', 'hdf5', 'settings.acquire_time']
         super().__init__(prefix, configuration_attrs=configuration_attrs,
                          read_attrs=read_attrs, **kwargs)
         self.set_channels_for_hdf5()
@@ -241,7 +244,7 @@ class QASXspress3Detector(XspressTrigger, Xspress3Detector):
 
     # The collect_asset_docs(...) method was removed as it exists on the hdf5 component and should be used there.
 
-    def set_channels_for_hdf5(self, channels=(1, 2, 3, 4, 6)):
+    def set_channels_for_hdf5(self, channels=(1, 2, 3, 4, 5, 6)):
         """
         Configure which channels' data should be saved in the resulted hdf5 file.
         Parameters
@@ -251,7 +254,7 @@ class QASXspress3Detector(XspressTrigger, Xspress3Detector):
         """
         # The number of channel
         for n in channels:
-            getattr(self, f'channel{n}').rois.read_attrs = ['roi{:02}'.format(j) for j in [1, 2, 3, 4, 6]]
+            getattr(self, f'channel{n}').rois.read_attrs = ['roi{:02}'.format(j) for j in [1, 2, 3, 4, 5, 6]]
         self.hdf5.num_extra_dims.put(0)
         # self.settings.num_channels.put(len(channels))
         self.settings.num_channels.put(6)
@@ -404,7 +407,7 @@ class QASXspress3HDF5Handler(Xspress3HDF5Handler):
         if self._roi_data is not None:
             return
         print('reading ROI data')
-        self.chanrois = [f'CHAN{c}ROI{r}' for c, r in product([1, 2, 3, 4, 6], [1, 2, 3, 4, 6])]
+        self.chanrois = [f'CHAN{c}ROI{r}' for c, r in product([1, 2, 3, 4, 5, 6], [1, 2, 3, 4])]
         _data_columns = [self._file['/entry/instrument/detector/NDAttributes'][chanroi][()] for chanroi in
                          self.chanrois]
         data_columns = np.vstack(_data_columns).T
@@ -446,7 +449,7 @@ class QASXspress3HDF5Handler_light(Xspress3HDF5Handler):
         if self._roi_data is not None:
             return
         print('reading ROI data')
-        self.chanrois = [f'CHAN{c}ROI{r}' for c, r in product([1, 2, 3, 4, 5, 6], [1, 2, 3, 4, 5, 6])]
+        self.chanrois = [f'CHAN{c}ROI{r}' for c, r in product([1, 2, 3, 4, 5, 6], [1, 2, 3, 4])]
         _data_columns = [self._file['/entry/instrument/detector/NDAttributes'][chanroi][()] for chanroi in
                          self.chanrois]
         data_columns = np.vstack(_data_columns).T

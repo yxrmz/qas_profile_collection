@@ -353,3 +353,8 @@ def get_offsets_plan(detectors = [apb_ave], time = 2):
            yield from bps.abs_set(ch_offset, mean)
 
    return uid
+
+
+def sleep_plan(delay: float = 1.0, *args, **kwargs):
+    yield from bps.sleep(float(delay))
+

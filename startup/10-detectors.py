@@ -115,11 +115,149 @@ def make_filename(filename):
     return filepath
 
 
+# class EncoderFS(Encoder):
+#     "Encoder Device, when read, returns references to data in filestore."
+#     chunk_size = 2 ** 20
+#     write_path_template = '/data/nsls2/qas-new/legacy/raw/pizza_box_data/%Y/%m/%d/'
+#
+#     def __init__(self, *args, **kwargs):
+#         super().__init__(*args, **kwargs)
+#         self._asset_docs_cache = deque()
+#         self._resource_uid = None
+#         self._datum_counter = None
+#
+#     def collect_asset_docs(self):
+#         items = list(self._asset_docs_cache)
+#         self._asset_docs_cache.clear()
+#         for item in items:
+#             yield item
+#
+#     def stage(self):
+#         "Set the filename and record it in a 'resource' document in the filestore database."
+#
+#         if self.connected:
+#             print('Staging of {} starting'.format(self.name))
+#             # write_path_template = '/data/nsls2/qas-new/legacy/raw/pizza_box_data/%Y/%m/%d/'
+#
+#             filename = 'en_' + str(uuid.uuid4())[:6]
+#             write_path_template = os.path.join('pizza_box_data/%Y/%m/%d', filename)
+#             # path without the root
+#             resource_path = datetime.now().strftime(write_path_template)
+#             # ROOT_PATH = '/home/xf07bm/TestData/'
+#             filepath = os.path.join(ROOT_PATH, RAW_FILEPATH, resource_path)
+#
+#             # without the root, but with data path + date folders
+#             self._full_path = filepath
+#             # FIXME: Quick TEMPORARY fix for beamline disaster
+#             # we are writing the file to a temp directory in the ioc and
+#             # then moving it to the GPFS system.
+#             #
+#             # ioc_file_root = '/home/softioc/tmp/'
+#             # self._ioc_full_path = os.path.join(ioc_file_root, filename)
+#             # self._filename = filename
+#
+#             self.filepath.put(self._full_path)  # commented out during disaster
+#             # self.filepath.put(self._ioc_full_path)
+#
+#             self._resource_uid = str(uuid.uuid4())
+#             resource = {'spec': 'PIZZABOX_ENC_FILE_TXT',
+#                         'root': os.path.join(ROOT_PATH, RAW_FILEPATH),
+#                         'resource_path': resource_path,
+#                         'resource_kwargs': {'chunk_size': self.chunk_size},
+#                         'path_semantics': {'posix': 'posix', 'nt': 'windows'}[os.name],
+#                         'uid': self._resource_uid}
+#             self._asset_docs_cache.append(('resource', resource))
+#             self._datum_counter = itertools.count()
+#
+#             super().stage()
+#             print('Staging of {} complete'.format(self.name))
+#
+#     def unstage(self):
+#         if self.connected:
+#             self.ignore_sel.set(1).wait()
+#             self._datum_counter = None
+#             return super().unstage()
+#
+#     def kickoff(self):
+#         print('kickoff', self.name)
+#         self._ready_to_collect = True
+#         "Start writing data into the file."
+#
+#         self.ignore_sel.set(0).wait()
+#
+#         # Return a 'status object' that immediately reports we are 'done' ---
+#         # ready to collect at any time.
+#         return NullStatus()
+#
+#     def complete(self):
+#         print('storing', self.name, 'in', self._full_path)
+#         if not self._ready_to_collect:
+#             raise RuntimeError("must called kickoff() method before calling complete()")
+#         # Stop adding new data to the file.
+#         self.ignore_sel.set(1).wait()
+#         # while not os.path.isfile(self._full_path):
+#         #    ttime.sleep(.1)
+#
+#         # FIXME: beam line disaster fix.
+#         # Let's move the file to the correct place
+#         # workstation_file_root = '/mnt/xf08ida-ioc1/'
+#         # workstation_full_path = os.path.join(workstation_file_root, self._filename)
+#         # print('Moving file from {} to {}'.format(workstation_full_path, self._full_path))
+#         # cp_stat = shutil.copy(workstation_full_path, self._full_path)
+#
+#         # HACK: Make datum documents here so that they are available for collect_asset_docs
+#         # before collect() is called. May need changes to RE to do this properly. - Dan A.
+#
+#         self._datum_ids = []
+#
+#         datum_id = '{}/{}'.format(self._resource_uid, next(self._datum_counter))
+#         datum = {'resource': self._resource_uid,
+#                  'datum_kwargs': {"chunk_num": 0},
+#                  'datum_id': datum_id}
+#         self._asset_docs_cache.append(('datum', datum))
+#
+#         self._datum_ids.append(datum_id)
+#
+#         return NullStatus()
+#
+#     def collect(self):
+#         """
+#         Record a 'datum' document in the filestore database for each encoder.
+#         Return a dictionary with references to these documents.
+#         """
+#         print('Collect of {} starting'.format(self.name))
+#         self._ready_to_collect = False
+#
+#         # Create an Event document and a datum record in filestore for each line
+#         # in the text file.
+#         now = ttime.time()
+#         # ttime.sleep(1)  # wait for file to be written by pizza box
+#         # breakpoint()
+#         for datum_id in self._datum_ids:
+#             data = {self.name: datum_id}
+#             yield {'data': data,
+#                    'timestamps': {key: now for key in data},
+#                    'time': now,
+#                    'filled': {key: False for key in data}}
+#         print('Collect of {} complete'.format(self.name))
+#
+#     def describe_collect(self):
+#         # TODO Return correct shape (array dims)
+#         now = ttime.time()
+#         return {self.name: {self.name:
+#                                 {'filename': self._full_path,
+#                                  'devname': self.dev_name.get(),
+#                                  'source': 'pizzabox-enc-file',
+#                                  'external': 'FILESTORE:',
+#                                  'shape': [-1, -1],
+# #                                 'dtype': 'array'}}}
+
+
 # TODO: Move this class to ophyd.
 class EncoderFS(Encoder):
     "Encoder Device, when read, returns references to data in filestore."
     chunk_size = 2**20
-    write_path_template = '/data/nsls2/qas-new/legacy/raw/pizza_box_data/%Y/%m/%d/'
+    write_path_template = '/nsls2/data/qas-new/legacy/raw/pizza_box_data/%Y/%m/%d/'
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -127,38 +265,84 @@ class EncoderFS(Encoder):
         self._resource_uid = None
         self._datum_counter = None
 
-    def collect_asset_docs(self):
-        items = list(self._asset_docs_cache)
-        self._asset_docs_cache.clear()
-        for item in items:
-            yield item
+    # ## 3s scan testing staging method
+    # def stage(self):
+    #     "Set the filename and record it in a 'resource' document in the filestore database."
+    #
+    #     if self.connected:
+    #         print('Staging of {} starting'.format(self.name))
+    #
+    #         filename = 'en_' + str(uuid.uuid4())[:6]
+    #         #write_path_template = os.path.join('pizza_box_data/%Y/%m/%d', filename)
+    #         write_path_template = os.path.join('', filename)
+    #
+    #         # path without the root
+    #         resource_path = datetime.now().strftime(write_path_template)
+    #
+    #         print(f"{resource_path}")
+    #         ROOT_PATH_EN = '/home/softioc/tmp/'
+    #         RAW_FILEPATH_EN = ''
+    #         filepath = os.path.join(ROOT_PATH_EN, RAW_FILEPATH_EN, resource_path)
+    #
+    #         # without the root, but with data path + date folders
+    #         self._full_path = filepath
+    #         # FIXME: Quick TEMPORARY fix for beamline disaster
+    #         # we are writing the file to a temp directory in the ioc and
+    #         # then moving it to the GPFS system.
+    #         #
+    #         #ioc_file_root = '/home/softioc/tmp/'
+    #         #self._ioc_full_path = os.path.join(ioc_file_root, filename)
+    #         #self._filename = filename
+    #
+    #         self.filepath.put(filepath)   # commented out during disaster
+    #         #self.filepath.put(self._ioc_full_path)
+    #
+    #         self._resource_uid = str(uuid.uuid4())
+    #
+    #
+    #         resource = {'spec': 'PIZZABOX_ENC_FILE_TXT',
+    #                     'root': os.path.join('/mnt/xf07bm-ioc1/', RAW_FILEPATH_EN),
+    #                     'resource_path': resource_path,
+    #                     'resource_kwargs': {'chunk_size': self.chunk_size},
+    #                     'path_semantics': {'posix': 'posix', 'nt': 'windows'}[os.name],
+    #                     'uid': self._resource_uid}
+    #         print(f"{resource['root'] = }")
+    #         print(f"{resource['resource_path'] = }")
+    #
+    #         self._asset_docs_cache.append(('resource', resource))
+    #         self._datum_counter = itertools.count()
+    #
+    #         super().stage()
+    #         print('Staging of {} complete'.format(self.name))
+    #         print(filepath)
 
+    ## stage original
     def stage(self):
         "Set the filename and record it in a 'resource' document in the filestore database."
 
         if self.connected:
             print('Staging of {} starting'.format(self.name))
-            #write_path_template = '/data/nsls2/qas-new/legacy/raw/pizza_box_data/%Y/%m/%d/'
+            # write_path_template = '/data/nsls2/qas-new/legacy/raw/pizza_box_data/%Y/%m/%d/'
 
             filename = 'en_' + str(uuid.uuid4())[:6]
             write_path_template = os.path.join('pizza_box_data/%Y/%m/%d', filename)
             # path without the root
             resource_path = datetime.now().strftime(write_path_template)
-            #ROOT_PATH = '/home/xf07bm/TestData/'
+            # ROOT_PATH = '/home/xf07bm/TestData/'
             filepath = os.path.join(ROOT_PATH, RAW_FILEPATH, resource_path)
-                
+
             # without the root, but with data path + date folders
             self._full_path = filepath
             # FIXME: Quick TEMPORARY fix for beamline disaster
             # we are writing the file to a temp directory in the ioc and
             # then moving it to the GPFS system.
             #
-            #ioc_file_root = '/home/softioc/tmp/'
-            #self._ioc_full_path = os.path.join(ioc_file_root, filename)
-            #self._filename = filename
+            # ioc_file_root = '/home/softioc/tmp/'
+            # self._ioc_full_path = os.path.join(ioc_file_root, filename)
+            # self._filename = filename
 
-            self.filepath.put(self._full_path)   # commented out during disaster
-            #self.filepath.put(self._ioc_full_path)
+            self.filepath.put(self._full_path)  # commented out during disaster
+            # self.filepath.put(self._ioc_full_path)
 
             self._resource_uid = str(uuid.uuid4())
             resource = {'spec': 'PIZZABOX_ENC_FILE_TXT',
@@ -169,9 +353,10 @@ class EncoderFS(Encoder):
                         'uid': self._resource_uid}
             self._asset_docs_cache.append(('resource', resource))
             self._datum_counter = itertools.count()
-            
+
             super().stage()
             print('Staging of {} complete'.format(self.name))
+
 
     def unstage(self):
         if self.connected:
@@ -222,6 +407,40 @@ class EncoderFS(Encoder):
 
         return NullStatus()
 
+    # def complete(self):
+    #     print_to_gui(f'{ttime.ctime()} >>> {self.name} complete starting...')
+    #     self.ignore_sel.set(1).wait()
+    #
+    #     # print(f'     !!!!! {datetime.now()} complete in {self.name} after stop writing')
+    #
+    #     # while not os.path.isfile(self._full_path):
+    #     #    ttime.sleep(.1)
+    #
+    #     # FIXME: beam line disaster fix.
+    #     # Let's move the file to the correct place
+    #     workstation_file_root = '/mnt/xf07bm-ioc1/'
+    #     workstation_full_path = os.path.join(workstation_file_root, self._filename)
+    #     # print('Moving file from {} to {}'.format(workstation_full_path, self._full_path))
+    #     print(f'{ttime.ctime()} Moving file from {workstation_full_path} to {self._full_path}')
+    #
+    #     # print_to_gui(f'Here')
+    #     cp_stat = shutil.copy(workstation_full_path, self._full_path)
+    #     # print_to_gui(f'Copy done')
+    #     # HACK: Make datum documents here so that they are available for collect_asset_docs
+    #     # before collect() is called. May need changes to RE to do this properly. - Dan A.
+    #
+    #     self._datum_ids = []
+    #
+    #     datum_id = '{}/{}'.format(self._resource_uid, next(self._datum_counter))
+    #     datum = {'resource': self._resource_uid,
+    #              'datum_kwargs': {},
+    #              'datum_id': datum_id}
+    #     self._asset_docs_cache.append(('datum', datum))
+    #
+    #     self._datum_ids.append(datum_id)
+    #     #print_to_gui(f'{ttime.ctime()} >>> {self.name} complete complete')
+    #     return NullStatus()
+
     def collect(self):
         """
         Record a 'datum' document in the filestore database for each encoder.
@@ -254,7 +473,11 @@ class EncoderFS(Encoder):
                       'external': 'FILESTORE:',
                       'shape': [-1, -1],
                       'dtype': 'array'}}}
-
+    def collect_asset_docs(self):
+        items = list(self._asset_docs_cache)
+        self._asset_docs_cache.clear()
+        for item in items:
+            yield item
 
 class DigitalOutput(Device):
     """ DigitalOutput """
