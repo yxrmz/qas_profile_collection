@@ -146,7 +146,7 @@ class AnalogPizzaBoxTrigger(Device):
 
 #XF:07BMB-CT{PBA:1}:Pulse:1:Frequency-SP
 apb_trigger = AnalogPizzaBoxTrigger(prefix="XF:07BMB-CT{PBA:1}:Pulse:1:", name="apb_trigger")
-apb_trigger_pil100k = AnalogPizzaBoxTrigger(prefix="XF:07BMB-CT{PBA:1}:Pulse:2:", name="apb_trigger_pil100k")
+apb_trigger_pil900k = AnalogPizzaBoxTrigger(prefix="XF:07BMB-CT{PBA:1}:Pulse:2:", name="apb_trigger_pil900k")
 
 
 
