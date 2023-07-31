@@ -106,6 +106,8 @@ def execute_trajectory(name, ignore_shutter=True, **metadata):
     sample_stageB_z   = sample_stage1.z.user_readback.get()
 
     pe_y = pe_pos.vertical.user_readback.get()
+    linkam_temperature = linkam.temperature_current.get()
+    linkam_rr = linkam.ramprate.get()
 
     cm_xu = cm.hor_up.user_readback.get()
     cm_xd = cm.hor_down.user_readback.get()
@@ -132,7 +134,8 @@ def execute_trajectory(name, ignore_shutter=True, **metadata):
               'incident_slits': [incident_slitsB_top, incident_slitsB_bottom, incident_slitsB_inboard, incident_slitsB_outboard],
               'sample_stageB': [sample_stageB_rot, sample_stageB_x, sample_stageB_y, sample_stageB_z],
               'pe_vertical': [pe_y],
-              'cm_horizontal':[cm_xu, cm_xd]}
+              'cm_horizontal':[cm_xu, cm_xd],
+              'linkam_temperature':[linkam_temperature, linkam_rr]}
 
         for flyer in flyers:
             if hasattr(flyer, 'offset'):
@@ -217,6 +220,9 @@ def execute_trajectory_xs3(name, ignore_shutter=True, **metadata):
     sample_stageB_y   = sample_stage1.y.user_readback.get()
     sample_stageB_z   = sample_stage1.z.user_readback.get()
 
+    linkam_temperature = linkam.temperature_current.get()
+    linkam_rr = linkam.ramprate.get()
+
     pe_y = pe_pos.vertical.user_readback.get()
 
     cm_xu = cm.hor_up.user_readback.get()
@@ -295,6 +301,7 @@ def execute_trajectory_xs3(name, ignore_shutter=True, **metadata):
           'incident_slits': [incident_slitsB_top, incident_slitsB_bottom, incident_slitsB_inboard, incident_slitsB_outboard],
           'sample_stageB': [sample_stageB_rot, sample_stageB_x, sample_stageB_y, sample_stageB_z],
           'pe_vertical': [pe_y],
+          'linkam_temperature': [linkam_temperature, linkam_rr],
           'cm_horizontal':[cm_xu, cm_xd],
           'rois': [[roi1_ch1_lo, roi1_ch1_hi, roi2_ch1_lo, roi2_ch1_hi, roi3_ch1_lo, roi3_ch1_hi, roi4_ch1_lo, roi4_ch1_hi],
                    [roi1_ch2_lo, roi1_ch2_hi, roi2_ch2_lo, roi2_ch2_hi, roi3_ch2_lo, roi3_ch2_hi, roi4_ch2_lo, roi4_ch2_hi],

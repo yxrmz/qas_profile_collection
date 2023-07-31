@@ -103,7 +103,8 @@ xlive_gui = isstools.xlive.XliveGui(plan_funcs=plan_funcs,
                                     apb_c = None ,
                                     accelerator=nsls_ii,
                                     mono=mono1,
-                                    sdd = xs,  # xs or None # put back to get xs back or opt out!
+                                    sdd = xs,
+                                    pe1 = pe1, # xs or None # put back to get xs back or opt out!
                                     shutters_dict=shutters_dictionary,
                                     det_dict=detector_dictionary,
                                     motors_dict=motors_dictionary,

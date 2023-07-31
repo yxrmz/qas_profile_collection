@@ -210,6 +210,7 @@ def get_offsets(time:int = 2, *args, hutch_c=False, **kwargs):
 
     try:
         yield from bps.mv(shutter_ph, 'Close')
+        yield from current_suppression_plan()
     except FailedStatus:
         raise CannotActuateShutter(f'Error: Photon shutter failed to close.')
     if hutch_c:
@@ -225,6 +226,17 @@ def get_offsets(time:int = 2, *args, hutch_c=False, **kwargs):
     except FailedStatus:
          print('Error: Photon shutter failed to open')
          pass
-        
-        
-    return uid
+
+
+def current_suppression_plan(*args, hutch_c=False, **kwargs):
+
+    #abp_c must be activated to perfrom current suppression on hutch C ionization chambers
+    # if hutch_c:
+    #     detector = apb_c
+    # else:
+    #     detector = apb
+
+    for i in range(1,5):
+        print(f'Performing current suppression on ch{i}')
+        yield from bps.mv(getattr(apb, 'amp_ch' + str(i)).supr_mode, 2)
+        print(f'Current suppression on ch{i} is done')

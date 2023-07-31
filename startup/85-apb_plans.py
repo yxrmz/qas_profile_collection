@@ -166,6 +166,8 @@ def get_md_for_scan(name, mono_scan_type, plan_name, experiment, detector=None, 
         sample_stageB_z = sample_stage1.z.user_readback.get()
 
         pe_y = pe_pos.vertical.user_readback.get()
+        linkam_temperature = linkam.temperature_current.get()
+        linkam_rr = linkam.ramprate.get()
 
         cm_xu = cm.hor_up.user_readback.get()
         cm_xd = cm.hor_down.user_readback.get()
@@ -196,6 +198,7 @@ def get_md_for_scan(name, mono_scan_type, plan_name, experiment, detector=None, 
                                  incident_slitsB_outboard],
               'sample_stageB': [sample_stageB_rot, sample_stageB_x, sample_stageB_y, sample_stageB_z],
               'pe_vertical': [pe_y],
+              'linkam_temperature': [linkam_temperature, linkam_rr],
               'cm_horizontal': [cm_xu, cm_xd],
               'hutch': hutch,
               }

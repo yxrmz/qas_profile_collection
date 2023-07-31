@@ -107,6 +107,8 @@ class LinkamThermal(Device):
     lnp_speed = Cpt(EpicsSignal, 'LNP_SPEED')
     lnp_mode_set = Cpt(EpicsSignal, 'LNP_MODE:SET')
     lnp_speed_set = Cpt(EpicsSignal, 'LNP_SPEED:SET')
+    ramprate = Cpt(EpicsSignal, 'RAMPRATE')
+    ramprate_set = Cpt(EpicsSignal, 'RAMPRATE:SET')
 
 
     def on(self):
