@@ -283,7 +283,7 @@ class PilatusStreamHDF5(PilatusHDF5):
 
         # self.hdf5.blocking_callbacks.put(1)
 
-        staged_list += self.ext_trigger_device.stage()
+        # staged_list += self.ext_trigger_device.stage()
         return staged_list
 
     def unstage(self):
@@ -295,7 +295,7 @@ class PilatusStreamHDF5(PilatusHDF5):
         self.set_num_images(1)
         self.set_exposure_time(1)
         # self.hdf5.blocking_callbacks.put(0)
-        unstaged_list += self.ext_trigger_device.unstage()
+        # unstaged_list += self.ext_trigger_device.unstage()
         return unstaged_list
 
     def kickoff(self):
@@ -303,7 +303,7 @@ class PilatusStreamHDF5(PilatusHDF5):
         return self.ext_trigger_device.kickoff()
 
     def complete(self):
-        print_to_gui(f'Pilatus complete is starting...', add_timestamp=True)
+        print(f'Pilatus complete is starting...', add_timestamp=True)
         acquire_status = self.cam.acquire.set(0)
         capture_status = self.hdf5.capture.set(0)
         (acquire_status and capture_status).wait()
@@ -335,12 +335,12 @@ class PilatusStreamHDF5(PilatusHDF5):
         #     datum_id = '{}/{}'.format(_resource_uid, next(_datum_id_counter))
         #     self._datum_ids.append(datum_id)
 
-        print_to_gui(f'Pilatus complete is done.', add_timestamp=True)
+        #print_to_gui(f'Pilatus complete is done.', add_timestamp=True)
         return NullStatus() and ext_trigger_status
 
 
     def collect(self):
-        print_to_gui(f'Pilatus collect is starting...', add_timestamp=True)
+        #print_to_gui(f'Pilatus collect is starting...', add_timestamp=True)
         ts = ttime.time()
         yield {'data': self._datum_ids,
                'timestamps': {self.format_datum_key(key_dict): ts for key_dict in self.datum_keys},
@@ -359,7 +359,7 @@ class PilatusStreamHDF5(PilatusHDF5):
         #            'timestamps': {key: ts for key in data},
         #            'time': ts,  # TODO: use the proper timestamps from the mono start and stop times
         #            'filled': {key: False for key in data}}
-        print_to_gui(f'Pilatus collect is complete', add_timestamp=True)
+        #print_to_gui(f'Pilatus collect is complete', add_timestamp=True)
         yield from self.ext_trigger_device.collect()
 
     def describe_collect(self):
@@ -413,7 +413,7 @@ class PilatusStreamHDF5(PilatusHDF5):
 
 
 pilatus = PilatusHDF5("XF:07BM-ES{Det-Pil3}:", name="pilatus")  # , detector_id="SAXS")
-pilatus_stream = PilatusStreamHDF5("XF:07BM-ES{Det:Pil3}:", name="pilatus_stream", ext_trigger_device=apb_trigger_pil900k)
+pilatus_stream = PilatusStreamHDF5("XF:07BM-ES{Det-Pil3}:", name="pilatus_stream", ext_trigger_device=apb_trigger_pil900k)
 
 pilatus.set_primary_roi(1)
 pilatus.stats1.kind = 'hinted'
