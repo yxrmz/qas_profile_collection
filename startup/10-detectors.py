@@ -7,7 +7,7 @@ import time as ttime
 from ophyd import (ProsilicaDetector, SingleTrigger, Component as Cpt, Device,
                    EpicsSignal, EpicsSignalRO, ImagePlugin, StatsPlugin, ROIPlugin,
                    DeviceStatus)
-from ophyd.status import Status
+from ophyd.status import Status, SubscriptionStatus
 from ophyd import DeviceStatus
 from bluesky.examples import NullStatus
 
@@ -369,28 +369,35 @@ class EncoderFS(Encoder):
         self._ready_to_collect = True
         "Start writing data into the file."
 
-        self.ignore_sel.set(0).wait()
+        def callback(value, old_value, **kwargs):
+            if old_value == 1 and value == 0:
+                # print(f"{datetime.now()} callback in kickoff for {self.name}")
+                return True
+            else:
+                return False
 
-        # Return a 'status object' that immediately reports we are 'done' ---
-        # ready to collect at any time.
-        return NullStatus()
+        st = SubscriptionStatus(self.ignore_rb, callback, run=False)
+
+        st_sel = self.ignore_sel.set(0)
+
+        return st and st_sel
 
     def complete(self):
         print('storing', self.name, 'in', self._full_path)
         if not self._ready_to_collect:
-            raise RuntimeError("must called kickoff() method before calling complete()")
+            raise RuntimeError(f"must called kickoff() method before calling complete() in {self.name}")
+
+        def callback(value, old_value, **kwargs):
+            if old_value == 0 and value == 1:
+                # print(f"{datetime.now()} callback in complete for {self.name}")
+                return True
+            else:
+                return False
+
+        st = SubscriptionStatus(self.ignore_rb, callback, run=False)
+
         # Stop adding new data to the file.
-        self.ignore_sel.set(1).wait()
-        #while not os.path.isfile(self._full_path):
-        #    ttime.sleep(.1)
-
-        # FIXME: beam line disaster fix.
-        # Let's move the file to the correct place
-        #workstation_file_root = '/mnt/xf08ida-ioc1/'
-        #workstation_full_path = os.path.join(workstation_file_root, self._filename)
-        #print('Moving file from {} to {}'.format(workstation_full_path, self._full_path))
-        #cp_stat = shutil.copy(workstation_full_path, self._full_path)
-
+        st_sel = self.ignore_sel.set(1)
 
         # HACK: Make datum documents here so that they are available for collect_asset_docs
         # before collect() is called. May need changes to RE to do this properly. - Dan A.
@@ -405,41 +412,7 @@ class EncoderFS(Encoder):
 
         self._datum_ids.append(datum_id)
 
-        return NullStatus()
-
-    # def complete(self):
-    #     print_to_gui(f'{ttime.ctime()} >>> {self.name} complete starting...')
-    #     self.ignore_sel.set(1).wait()
-    #
-    #     # print(f'     !!!!! {datetime.now()} complete in {self.name} after stop writing')
-    #
-    #     # while not os.path.isfile(self._full_path):
-    #     #    ttime.sleep(.1)
-    #
-    #     # FIXME: beam line disaster fix.
-    #     # Let's move the file to the correct place
-    #     workstation_file_root = '/mnt/xf07bm-ioc1/'
-    #     workstation_full_path = os.path.join(workstation_file_root, self._filename)
-    #     # print('Moving file from {} to {}'.format(workstation_full_path, self._full_path))
-    #     print(f'{ttime.ctime()} Moving file from {workstation_full_path} to {self._full_path}')
-    #
-    #     # print_to_gui(f'Here')
-    #     cp_stat = shutil.copy(workstation_full_path, self._full_path)
-    #     # print_to_gui(f'Copy done')
-    #     # HACK: Make datum documents here so that they are available for collect_asset_docs
-    #     # before collect() is called. May need changes to RE to do this properly. - Dan A.
-    #
-    #     self._datum_ids = []
-    #
-    #     datum_id = '{}/{}'.format(self._resource_uid, next(self._datum_counter))
-    #     datum = {'resource': self._resource_uid,
-    #              'datum_kwargs': {},
-    #              'datum_id': datum_id}
-    #     self._asset_docs_cache.append(('datum', datum))
-    #
-    #     self._datum_ids.append(datum_id)
-    #     #print_to_gui(f'{ttime.ctime()} >>> {self.name} complete complete')
-    #     return NullStatus()
+        return st and st_sel
 
     def collect(self):
         """
@@ -473,6 +446,7 @@ class EncoderFS(Encoder):
                       'external': 'FILESTORE:',
                       'shape': [-1, -1],
                       'dtype': 'array'}}}
+
     def collect_asset_docs(self):
         items = list(self._asset_docs_cache)
         self._asset_docs_cache.clear()

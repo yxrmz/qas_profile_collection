@@ -286,7 +286,7 @@ class AnalogPizzaBoxStream(AnalogPizzaBoxAverage):
 
     # # Fly-able interface
 
-    # Not sure if we need it here or in FlyerAPB (see 63-...)
+    # Not sure if we need it here or in FlyerAPB (see 85-apb_plans.py)
     # def kickoff(self):
     #     status = self.stage()
     #     status &= self.trigger()
