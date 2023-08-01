@@ -36,6 +36,15 @@ class FlyerAPB:
                 self._mount_exists = True
                 print(colored(msg.format("", ""), "green"), file=sys.stdout, flush=True)
 
+        # Staging analog detector:
+        self.det.stage()
+
+        # Staging all encoder detectors:
+        for pb in self.pbs:
+            pb.stage()
+            pb.kickoff().wait()
+            print(f"energy = {mono1.energy.get()}")
+
         def callback(value, old_value, **kwargs):
 
             if int(round(old_value)) == 0 and int(round(value)) == 1:
@@ -47,15 +56,7 @@ class FlyerAPB:
 
         print(f'     !!!!! {datetime.now()} Flyer kickoff is complete at')
 
-        streaming_st = SubscriptionStatus(self.det.streaming, callback)
-
-        # Staging analog detector:
-        self.det.stage()
-
-        # Staging all encoder detectors:
-        for pb in self.pbs:
-            pb.stage()
-            pb.kickoff()
+        streaming_st = SubscriptionStatus(self.det.streaming, callback, run=False)
 
         # Start apb after encoder pizza-boxes, which will trigger the motor.
         self.det.stream.set(1)
@@ -71,10 +72,10 @@ class FlyerAPB:
                 return True
             else:
                 return False
-        streaming_st = SubscriptionStatus(self.det.streaming, callback_det)
+        streaming_st = SubscriptionStatus(self.det.streaming, callback_det, run=False)
 
         def callback_motor(status):
-            # print(f'     !!!!! {datetime.now()} callback_motor')
+            # print(f'!!!! {datetime.now()} callback_motor')
 
             # print('      I am sleeping for 10 seconds')
             # ttime.sleep(10.0)
@@ -84,14 +85,16 @@ class FlyerAPB:
             # Change it to 'put' to have a blocking call.
             # self.det.stream.set(0)
 
-            self.det.stream.put(0)
-            self.det.complete()
-
             for pb in self.pbs:
-                pb.complete()
+                pb.complete().wait()
+                pb.unstage()
+
+            st_stream = self.det.stream.set(0).wait()
+            st_complete = self.det.complete().wait()
+            self.det.unstage()
 
         self._motor_status.add_callback(callback_motor)
-        return streaming_st & self._motor_status
+        return streaming_st and self._motor_status
 
     def describe_collect(self):
         return_dict = self.det.describe_collect()
@@ -107,9 +110,6 @@ class FlyerAPB:
             yield from pb.collect_asset_docs()
 
     def collect(self):
-        self.det.unstage()
-        for pb in self.pbs:
-            pb.unstage()
 
         def collect_all():
             for pb in self.pbs:
