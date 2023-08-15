@@ -23,6 +23,34 @@ ROOT_PATH_SHARED = '/nsls2/data/qas-new/shared'
 RAW_PATH = 'raw'
 USER_FILEPATH = 'processed'
 
+######################################################################################
+
+import ophyd
+from ophyd.areadetector import (
+    AreaDetector,
+    ImagePlugin,
+    TIFFPlugin,
+    HDF5Plugin,
+    StatsPlugin,
+    ProcessPlugin,
+    ROIPlugin,
+    CamBase,
+)
+from ophyd.areadetector.plugins import HDF5Plugin_V33
+
+from ophyd.areadetector.filestore_mixins import (
+    FileStoreTIFFIterativeWrite,
+    FileStoreHDF5IterativeWrite,
+    FileStoreTIFFSquashing,
+    FileStoreIterativeWrite,
+    FileStoreTIFF,
+    FileStoreBase,
+    FileStorePluginBase,
+)
+
+
+######################################################################################
+
 class PilatusDetectorCamV33(PilatusDetectorCam):
     '''This is used to update the Pilatus to AD33.'''
 
@@ -49,13 +77,114 @@ class PilatusDetectorCamV33(PilatusDetectorCam):
     set_energy = Cpt(SignalWithRBV, 'Energy')
 
 
-class PilatusDetectorCam(PilatusDetector):
-    cam = Cpt(PilatusDetectorCamV33, 'cam1:')
+class FileStoreHDF5Squashing(FileStorePluginBase):
+    r"""Write out 'squashed' HDF5
 
-    def __init__(self, *args, **kwargs):
+    .. note::
+
+       See :class:`FileStoreBase` for the rest of the required parametrs
+
+    This mixin will also configure the ``cam`` and ``proc`` plugins
+    on the parent.
+
+    This is useful to work around the dynamic range of detectors
+    and minimizing disk spaced used by synthetically increasing
+    the exposure time of the saved images.
+
+    Parameters
+    ----------
+    images_per_set_name, number_of_sets_name : str, optional
+        The names of the signals on the parent to get the
+        images_pre_set and number_of_sets from.
+
+        The total number of frames extracted from the camera will be
+        :math:`number\_of\_sets * images\_per\_set` and result in
+        ``number_of_sets`` frames in the HDF5 file each of which is the average of
+        ``images_per_set`` frames from the detector.
+
+        Defaults to ``'images_per_set'`` and ``'number_of_sets'``
+
+    cam_name : str, optional
+        The name of the :class:`~ophyd.areadetector.cam.CamBase`
+        instance on the parent.
+
+        Defaults to ``'cam'``
+
+    proc_name : str, optional
+        The name of the
+        :class:`~ophyd.areadetector.plugins.ProcessPlugin` instance on
+        the parent.
+
+        Defaults to ``'proc1'``
+
+    Notes
+    -----
+
+    This class in cooperative and expected to particpate in multiple
+    inheritance, all ``*args`` and extra ``**kwargs`` are passed up the
+    MRO chain.
+
+    """
+
+    def __init__(
+        self,
+        *args,
+        images_per_set_name="images_per_set",
+        number_of_sets_name="number_of_sets",
+        cam_name="cam",
+        proc_name="proc",
+        **kwargs,
+    ):
         super().__init__(*args, **kwargs)
-        self.cam.ensure_nonblocking()
+        self.filestore_spec = "AD_HDF5"  # spec name stored in resource doc
+        self._ips_name = images_per_set_name
+        self._num_sets_name = number_of_sets_name
+        self._cam_name = cam_name
+        self._proc_name = proc_name
+        cam = getattr(self.parent, self._cam_name)
+        proc = getattr(self.parent, self._proc_name)
+        self.stage_sigs.update(
+            [
+                ("file_template", "%s%s_%6.6d.h5"),
+                ("file_write_mode", "Stream"),
+                ("capture", 1),
+                (proc.nd_array_port, cam.port_name.get()),
+                (proc.reset_filter, 1),
+                (proc.enable_filter, 1),
+                (proc.filter_type, "RecursiveAve"),
+                (proc.auto_reset_filter, 1),
+                (proc.filter_callbacks, 1),
+                ("nd_array_port", proc.port_name.get()),
+            ]
+        )
 
+    def get_frames_per_point(self):
+        return getattr(self.parent, self._num_sets_name).get()
+
+    def stage(self):
+        # print(f"Before staging: {self._fn = }\n{self._fp = }")
+
+        cam = getattr(self.parent, self._cam_name)
+        proc = getattr(self.parent, self._proc_name)
+        images_per_set = getattr(self.parent, self._ips_name).get()
+        num_sets = getattr(self.parent, self._num_sets_name).get()
+
+        self.stage_sigs.update(
+            [
+                (proc.num_filter, images_per_set),
+                (cam.num_images, images_per_set * num_sets),
+            ]
+        )
+        super().stage()
+        resource_kwargs = {
+            "frame_per_point": self.get_frames_per_point(),
+        }
+        self._generate_resource(resource_kwargs)
+        # print(f"After staging: {self._fn = }\n{self._fp = }")
+
+
+class QASHDF5Plugin(HDF5Plugin_V33, FileStoreHDF5Squashing, FileStoreIterativeWrite):
+    pass
 
 
 class HDF5PluginWithFileStore(HDF5Plugin, FileStoreHDF5IterativeWrite):
@@ -66,7 +195,6 @@ class HDF5PluginWithFileStore(HDF5Plugin, FileStoreHDF5IterativeWrite):
         #     return self.parent.cam.num_images.get()
         # else:
         #     return 1
-
 
 
 # Making ROIStatPlugin that is actually useful
@@ -105,8 +233,14 @@ class QASROIStatPlugin(ROIStatPlugin_V34):
         )
 
 
+class PilatusDetectorNonBlocking(PilatusDetector):
+    cam = Cpt(PilatusDetectorCamV33, 'cam1:')
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.cam.ensure_nonblocking()
 
-class PilatusBase(SingleTriggerV33, PilatusDetectorCam):
+
+class PilatusBase(SingleTriggerV33, PilatusDetectorNonBlocking):
     roi1 = Cpt(ROIPlugin, 'ROI1:')
     roi2 = Cpt(ROIPlugin, 'ROI2:')
     roi3 = Cpt(ROIPlugin, 'ROI3:')
@@ -199,20 +333,6 @@ class PilatusBase(SingleTriggerV33, PilatusDetectorCam):
         md['roi'] = self.roi_metadata
         return md
 
-    # @property
-    # def is_flying(self):
-    #     return self._is_flying
-    #
-    # @is_flying.setter
-    # def is_flying(self, is_flying):
-    #     self._is_flying = is_flying
-
-
-
-
-
-
-
 
 class PilatusHDF5(PilatusBase):
     hdf5 = Cpt(HDF5PluginWithFileStore,
@@ -233,6 +353,40 @@ class PilatusHDF5(PilatusBase):
         # self.read_attrs = [st, 'tiff']
         self.read_attrs = [st, 'hdf5']
         getattr(self, st).kind = 'hinted'
+
+
+class PilatusHDF5Squashing(PilatusHDF5):
+    image = Cpt(ImagePlugin, "image1:")
+    hdf5 = Cpt(
+        QASHDF5Plugin,
+        "HDF1:",
+        write_path_template=f'{ROOT_PATH}/{RAW_PATH}/pilatus3/%Y/%m/%d',
+        cam_name="cam",
+        proc_name="proc",
+        read_attrs=[],
+        root=f"{ROOT_PATH}/{RAW_PATH}/pilatus3",
+    )
+    proc = Cpt(ProcessPlugin, "Proc1:")
+
+    # These attributes together replace `num_images`. They control
+    # summing images before they are stored by the detector (a.k.a. "tiff
+    # squashing").
+    images_per_set = Cpt(Signal, value=1, add_prefix=())
+    number_of_sets = Cpt(Signal, value=1, add_prefix=())
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.proc.stage_sigs.update(
+            [
+                (self.proc.filter_type, "RecursiveAve"),
+                (self.proc.data_type_out, "UInt16"),
+            ]
+        )
+        self.cam.stage_sigs.update(
+            [
+                (self.cam.image_mode, "Single"),
+            ]
+        )
 
 
 class PilatusStreamHDF5(PilatusHDF5):
@@ -338,7 +492,6 @@ class PilatusStreamHDF5(PilatusHDF5):
         #print_to_gui(f'Pilatus complete is done.', add_timestamp=True)
         return NullStatus() and ext_trigger_status
 
-
     def collect(self):
         #print_to_gui(f'Pilatus collect is starting...', add_timestamp=True)
         ts = ttime.time()
@@ -410,9 +563,10 @@ class PilatusStreamHDF5(PilatusHDF5):
 
 
 
+pilatus = PilatusHDF5Squashing("XF:07BM-ES{Det-Pil3}:", name="pilatus")  # , detector_id="SAXS")
+pilatus.cam.ensure_nonblocking()
+# TODO: run warmup conditionally.
 
-
-pilatus = PilatusHDF5("XF:07BM-ES{Det-Pil3}:", name="pilatus")  # , detector_id="SAXS")
 pilatus_stream = PilatusStreamHDF5("XF:07BM-ES{Det-Pil3}:", name="pilatus_stream", ext_trigger_device=apb_trigger_pil900k)
 
 pilatus.set_primary_roi(1)

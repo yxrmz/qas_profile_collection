@@ -79,38 +79,38 @@ def execute_trajectory_pilatus(name, **metadata):
     yield from bp.fly([flyer_pilatus], md=md)
 
 
+# See 83-pilatus-callbacks.py for the 'count_pilatus_qas' plan.
+# def count_pilatus(sample_name, exposure_time=1, number_of_images=1, delays=0):
 
-def count_pilatus(sample_name, exposure_time=1, number_of_images=1, delays=0):
+#     """
+#     Diffraction count plan averaging subframe_count exposures for each frame.
 
-    """
-    Diffraction count plan averaging subframe_count exposures for each frame.
+#     Open the specified shutter before bp.count()'ing, close it when the plan ends.
 
-    Open the specified shutter before bp.count()'ing, close it when the plan ends.
+#     Parameters
+#     ----------
+#     detectors: list
+#         list of devices to be bp.count()'d, should include pe1
+#     shutter: Device (but a shutter)
+#         the shutter to close for background exposures
+#     sample_name: str
+#         added to the start document with key "sample_name"
+#     frame_count: int
+#         passed to bp.count(..., num=frame_count)
+#     subframe_time: float
+#         exposure time for each subframe, total exposure time will be subframe_time*subframe_count
+#     subframe_count: int
+#         number of exposures to average for each frame
 
-    Parameters
-    ----------
-    detectors: list
-        list of devices to be bp.count()'d, should include pe1
-    shutter: Device (but a shutter)
-        the shutter to close for background exposures
-    sample_name: str
-        added to the start document with key "sample_name"
-    frame_count: int
-        passed to bp.count(..., num=frame_count)
-    subframe_time: float
-        exposure time for each subframe, total exposure time will be subframe_time*subframe_count
-    subframe_count: int
-        number of exposures to average for each frame
+#     Returns
+#     -------
+#     run start id
+#     """
 
-    Returns
-    -------
-    run start id
-    """
+#     yield from bps.mv(shutter, 'Open')
+#     yield from bps.mv(pilatus.cam.acquire_time, exposure_time)
+#     yield from bps.mv(pilatus.cam.acquire_period, exposure_time + 0.1)
 
-    yield from bps.mv(shutter, 'Open')
-    yield from bps.mv(pilatus.cam.acquire_time, exposure_time)
-    yield from bps.mv(pilatus.cam.acquire_period, exposure_time + 0.1)
-
-    yield from bp.count([pilatus], md = {'experiment' : 'diffraction',
-                                         'sample_name' : sample_name,
-                                         'exposure_time' : exposure_time})
+#     yield from bp.count([pilatus], md = {'experiment' : 'diffraction',
+#                                          'sample_name' : sample_name,
+#                                          'exposure_time' : exposure_time})
