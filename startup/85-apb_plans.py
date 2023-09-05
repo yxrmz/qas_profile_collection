@@ -6,7 +6,7 @@ from ophyd.status import SubscriptionStatus
 from termcolor import colored
 
 
-class GPFSNotConnectedError(Exception):
+class LustreNotConnectedError(Exception):
     ...
 
 
@@ -26,12 +26,12 @@ class FlyerAPB:
         # "/nsls2/data/qas-new/legacy/raw/apb" on "xf07bmb-anpb1":
         if not self._mount_exists:
             msg = "\n\n    /nsls2/data/qas-new/legacy/raw/apb is {}mounted correctly @ xf07bmb-anpb1{}\n"
-            status = self.det.check_apb_gpfs_status()  # returns True for mounted, and False for not-mounted
+            status = self.det.check_apb_lustre_status()  # returns True for mounted, and False for not-mounted
             if not status:
                 self._mount_exists = False
                 error_msg = colored(msg.format("NOT ", ".\n    Contact Beamline staff for instructions."), "red")
                 print(error_msg, file=sys.stdout, flush=True)
-                raise GPFSNotConnectedError(error_msg)
+                raise LustreNotConnectedError(error_msg)
             else:
                 self._mount_exists = True
                 print(colored(msg.format("", ""), "green"), file=sys.stdout, flush=True)
