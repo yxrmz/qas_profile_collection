@@ -85,13 +85,15 @@ class FlyerAPB:
             # Change it to 'put' to have a blocking call.
             # self.det.stream.set(0)
 
+            # Try to stop acquisition on the detectors first, then unstage separately.
             for pb in self.pbs:
                 pb.complete().wait()
-                pb.unstage()
-
             st_stream = self.det.stream.set(0).wait()
             st_complete = self.det.complete().wait()
+
             self.det.unstage()
+            for pb in self.pbs:
+                pb.unstage()
 
         self._motor_status.add_callback(callback_motor)
         return streaming_st and self._motor_status
