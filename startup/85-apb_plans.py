@@ -6,7 +6,7 @@ from ophyd.status import SubscriptionStatus
 from termcolor import colored
 
 
-class GPFSNotConnectedError(Exception):
+class LustreNotConnectedError(Exception):
     ...
 
 
@@ -26,15 +26,24 @@ class FlyerAPB:
         # "/nsls2/data/qas-new/legacy/raw/apb" on "xf07bmb-anpb1":
         if not self._mount_exists:
             msg = "\n\n    /nsls2/data/qas-new/legacy/raw/apb is {}mounted correctly @ xf07bmb-anpb1{}\n"
-            status = self.det.check_apb_gpfs_status()  # returns True for mounted, and False for not-mounted
+            status = self.det.check_apb_lustre_status()  # returns True for mounted, and False for not-mounted
             if not status:
                 self._mount_exists = False
                 error_msg = colored(msg.format("NOT ", ".\n    Contact Beamline staff for instructions."), "red")
                 print(error_msg, file=sys.stdout, flush=True)
-                raise GPFSNotConnectedError(error_msg)
+                raise LustreNotConnectedError(error_msg)
             else:
                 self._mount_exists = True
                 print(colored(msg.format("", ""), "green"), file=sys.stdout, flush=True)
+
+        # Staging analog detector:
+        self.det.stage()
+
+        # Staging all encoder detectors:
+        for pb in self.pbs:
+            pb.stage()
+            pb.kickoff().wait()
+            print(f"energy = {mono1.energy.get()}")
 
         def callback(value, old_value, **kwargs):
 
@@ -47,15 +56,7 @@ class FlyerAPB:
 
         print(f'     !!!!! {datetime.now()} Flyer kickoff is complete at')
 
-        streaming_st = SubscriptionStatus(self.det.streaming, callback)
-
-        # Staging analog detector:
-        self.det.stage()
-
-        # Staging all encoder detectors:
-        for pb in self.pbs:
-            pb.stage()
-            pb.kickoff()
+        streaming_st = SubscriptionStatus(self.det.streaming, callback, run=False)
 
         # Start apb after encoder pizza-boxes, which will trigger the motor.
         self.det.stream.set(1)
@@ -71,10 +72,10 @@ class FlyerAPB:
                 return True
             else:
                 return False
-        streaming_st = SubscriptionStatus(self.det.streaming, callback_det)
+        streaming_st = SubscriptionStatus(self.det.streaming, callback_det, run=False)
 
         def callback_motor(status):
-            # print(f'     !!!!! {datetime.now()} callback_motor')
+            # print(f'!!!! {datetime.now()} callback_motor')
 
             # print('      I am sleeping for 10 seconds')
             # ttime.sleep(10.0)
@@ -84,14 +85,18 @@ class FlyerAPB:
             # Change it to 'put' to have a blocking call.
             # self.det.stream.set(0)
 
-            self.det.stream.put(0)
-            self.det.complete()
-
+            # Try to stop acquisition on the detectors first, then unstage separately.
             for pb in self.pbs:
-                pb.complete()
+                pb.complete().wait()
+            st_stream = self.det.stream.set(0).wait()
+            st_complete = self.det.complete().wait()
+
+            self.det.unstage()
+            for pb in self.pbs:
+                pb.unstage()
 
         self._motor_status.add_callback(callback_motor)
-        return streaming_st & self._motor_status
+        return streaming_st and self._motor_status
 
     def describe_collect(self):
         return_dict = self.det.describe_collect()
@@ -107,9 +112,6 @@ class FlyerAPB:
             yield from pb.collect_asset_docs()
 
     def collect(self):
-        self.det.unstage()
-        for pb in self.pbs:
-            pb.unstage()
 
         def collect_all():
             for pb in self.pbs:
