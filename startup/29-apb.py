@@ -230,9 +230,9 @@ class AnalogPizzaBoxAverage(AnalogPizzaBox):
         else:
             return False  # at least one file not saved
 
-
-apb_ave = AnalogPizzaBoxAverage(prefix="XF:07BMB-CT{PBA:1}:", name="apb_ave")
-apb_ave_c = AnalogPizzaBoxAverage(prefix="XF:07BMC-CT{PBA:1}:", name="apb_ave_c")
+# See the instantiation process below (with multiple attempts):
+# apb_ave = AnalogPizzaBoxAverage(prefix="XF:07BMB-CT{PBA:1}:", name="apb_ave")
+# apb_ave_c = AnalogPizzaBoxAverage(prefix="XF:07BMC-CT{PBA:1}:", name="apb_ave_c")
 
 
 class AnalogPizzaBoxStream(AnalogPizzaBoxAverage):
@@ -278,7 +278,7 @@ class AnalogPizzaBoxStream(AnalogPizzaBoxAverage):
 
     def trigger(self):
         def callback(value, old_value, **kwargs):
-            print(f'{ttime.time()} {old_value} ---> {value}')
+            # print(f'{ttime.time()} {old_value} ---> {value}')
             if self._acquiring and int(round(old_value)) == 1 and int(round(value)) == 0:
                 self._acquiring = False
                 return True
@@ -385,8 +385,10 @@ class AnalogPizzaBoxStream(AnalogPizzaBoxAverage):
 # apb_stream_c = AnalogPizzaBoxStream(prefix="XF:07BMC-CT{PBA:1}:", name="apb_stream_c")
 
 apb_dets = [
+    {"name": "apb_ave", "prefix": "XF:07BMB-CT{PBA:1}:"},
     {"name": "apb_stream", "prefix": "XF:07BMB-CT{PBA:1}:"},
-    #{"name": "apb_stream_c", "prefix": "XF:07BMC-CT{PBA:1}:"},
+    {"name": "apb_stream_c", "prefix": "XF:07BMC-CT{PBA:1}:"},
+    {"name": "apb_ave_c", "prefix": "XF:07BMC-CT{PBA:1}:"},
 ]
 
 wait_time = 1.0  # seconds
