@@ -4,6 +4,7 @@ import time as ttime
 from datetime import datetime
 from ophyd.status import SubscriptionStatus
 from termcolor import colored
+import bluesky.plans as bp
 
 
 class LustreNotConnectedError(Exception):
@@ -85,18 +86,19 @@ class FlyerAPB:
             # Change it to 'put' to have a blocking call.
             # self.det.stream.set(0)
 
-            # Try to stop acquisition on the detectors first, then unstage separately.
-            for pb in self.pbs:
-                pb.complete().wait()
-            st_stream = self.det.stream.set(0).wait()
-            st_complete = self.det.complete().wait()
-
-            self.det.unstage()
-            for pb in self.pbs:
-                pb.unstage()
+            self.stop()
 
         self._motor_status.add_callback(callback_motor)
         return streaming_st and self._motor_status
+
+    def stop(self):
+        self.det.stream.set(0).wait()
+        self.det.complete().wait()
+        self.det.unstage()
+
+        for pb in self.pbs:
+            pb.complete().wait()
+            pb.unstage()
 
     def describe_collect(self):
         return_dict = self.det.describe_collect()
@@ -119,6 +121,7 @@ class FlyerAPB:
             yield from self.det.collect()
         # print(f'collect is being returned ({ttime.ctime(ttime.time())})')
         return collect_all()
+
 
 flyer_apb = FlyerAPB(det=apb_stream, pbs=[pb1.enc1], motor=mono1)
 #flyer_apb_c = FlyerAPB(det=apb_stream_c, pbs=[pb1.enc1], motor=mono1)
@@ -224,7 +227,7 @@ def execute_trajectory_apb(name, **metadata):
                          'fly_scan',
                          'execute_trajectory_apb',
                          'fly_energy_scan_apb',
-                         detector = apb,
+                         detector=apb,
                          hutch='b',
                          **metadata)
     yield from bp.fly([flyer_apb], md=md)
