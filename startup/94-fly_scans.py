@@ -1,6 +1,7 @@
 import bluesky.plan_stubs as bps
 import bluesky.preprocessors as bpp
 
+
 def fly_scan_with_apb(name: str, comment: str, n_cycles: int = 1, delay: float = 0, hutch_c: bool = False, **kwargs):
     '''
     Trajectory Scan - Runs the monochromator along the trajectory that is previously loaded in the controller N times
@@ -41,7 +42,9 @@ def fly_scan_with_apb(name: str, comment: str, n_cycles: int = 1, delay: float =
 
     def final_plan():
         yield from bps.mv(flyer.motor.stop_trajectory, "1")
-        yield from bps.stop(flyer)
+        det_acquiring_status = (yield from bps.rd(flyer.det.acquiring))
+        if det_acquiring_status == 1:  # acquiring
+            yield from bps.stop(flyer)
 
     RE.md['experiment'] = ''
     return (yield from bpp.finalize_wrapper(plan(), final_plan))
