@@ -1,4 +1,4 @@
-
+import uuid
 from ophyd import (Component as Cpt, Device,
                    EpicsSignal, ROIPlugin, OverlayPlugin,
                    Signal, HDF5Plugin)
@@ -53,13 +53,23 @@ from ophyd.areadetector.filestore_mixins import (
 
 class PilatusDetectorCamV33(PilatusDetectorCam):
     '''This is used to update the Pilatus to AD33.'''
+    file_path = Cpt(SignalWithRBV, 'FilePath', string=True)
+    file_name = Cpt(SignalWithRBV, 'FileName', string=True)
+    file_template = Cpt(SignalWithRBV, 'FileName', string=True)
+    file_number = Cpt(SignalWithRBV, 'FileNumber')
+    file_auto_increment = Cpt(SignalWithRBV, "AutoIncrement")
+    set_energy = Cpt(SignalWithRBV, 'Energy')
 
     wait_for_plugins = Cpt(EpicsSignal, 'WaitForPlugins',
                            string=True, kind='config')
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.stage_sigs['wait_for_plugins'] = 'Yes'
+        self.stage_sigs.update({
+            "wait_for_plugins": "Yes",
+            "file_auto_increment": "Yes",
+            "file_number": 0,
+        })
 
     def ensure_nonblocking(self):
         self.stage_sigs['wait_for_plugins'] = 'Yes'
@@ -69,12 +79,6 @@ class PilatusDetectorCamV33(PilatusDetectorCam):
                 continue
             if hasattr(cpt, 'ensure_nonblocking'):
                 cpt.ensure_nonblocking()
-
-    file_path = Cpt(SignalWithRBV, 'FilePath', string=True)
-    file_name = Cpt(SignalWithRBV, 'FileName', string=True)
-    file_template = Cpt(SignalWithRBV, 'FileName', string=True)
-    file_number = Cpt(SignalWithRBV, 'FileNumber')
-    set_energy = Cpt(SignalWithRBV, 'Energy')
 
 
 class FileStoreHDF5Squashing(FileStorePluginBase):
@@ -303,6 +307,7 @@ class PilatusBase(SingleTriggerV33, PilatusDetectorNonBlocking):
 
     def stage(self):
         self.enforce_roi_match_between_plugins()
+        self.cam.file_name.put(f"{str(uuid.uuid4())[:8]}_")
         return super().stage()
 
     def get_roi_coords(self, roi_num):
