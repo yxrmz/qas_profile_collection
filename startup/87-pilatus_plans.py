@@ -72,7 +72,7 @@ def execute_trajectory_pilatus(name, **metadata):
                          'fly_scan',
                          'execute_trajectory_pilatus',
                          'fly_energy_scan_pilatus3',
-                         detector = apb,
+                         detector=apb,
                          hutch='b',
                          **metadata)
     md['aux_detector'] = 'pilatus900k'

@@ -123,7 +123,7 @@ class FileStoreHDF5Squashing(FileStorePluginBase):
         **kwargs,
     ):
         super().__init__(*args, **kwargs)
-        self.filestore_spec = "AD_HDF5"  # spec name stored in resource doc
+        self.filestore_spec = "AD_HDF5_SWMR"  # spec name stored in resource doc
         self._ips_name = images_per_set_name
         self._num_sets_name = number_of_sets_name
         self._cam_name = cam_name
@@ -174,7 +174,7 @@ class QASHDF5Plugin(HDF5Plugin_V33, FileStoreHDF5Squashing, FileStoreIterativeWr
     pass
 
 
-class HDF5PluginWithFileStore(HDF5Plugin, FileStoreHDF5IterativeWrite):
+class HDF5PluginWithFileStore(HDF5Plugin_V33, FileStoreHDF5IterativeWrite):
     """Add this as a component to detectors that write HDF5s."""
 
     def get_frames_per_point(self):
@@ -337,6 +337,12 @@ class PilatusHDF5(PilatusBase):
         # self.set_primary_roi(3)
         # self.set_primary_roi(4)
 
+        self.hdf5.stage_sigs.update(
+            [
+                (self.hdf5.swmr_mode, "On"),
+            ]
+        )
+
     def set_primary_roi(self, num):
         st = f"stats{num}"
         # self.read_attrs = [st, 'tiff']
@@ -417,8 +423,10 @@ class PilatusStreamHDF5(PilatusHDF5):
         #         break
         self.set_exposure_time(1 / self.acq_rate)
         self.cam.array_counter.put(0)
-        self.cam.trigger_mode.put(2)
-        self.cam.image_mode.put(1)
+        # pilatus_stream.cam.trigger_mode.enum_strs: ('Internal', 'Ext. Enable', 'Ext. Trigger', 'Mult. Trigger', 'Alignment')
+        self.cam.trigger_mode.put(2)  # 'Ext. Trigger'
+        # pilatus_stream.cam.image_mode.enum_strs: ('Single', 'Multiple', 'Continuous')
+        self.cam.image_mode.put(1)  # 'Multiple'
 
         # self.hdf5.blocking_callbacks.put(1)
 
@@ -559,7 +567,9 @@ class PilatusStreamHDF5(PilatusHDF5):
 
 pilatus = PilatusHDF5Squashing("XF:07BM-ES{Det-Pil3}:", name="pilatus")  # , detector_id="SAXS")
 pilatus.cam.ensure_nonblocking()
-# TODO: run warmup conditionally.
+
+pilatus.images_per_set.put(1)
+warmup_hdf5_plugins([pilatus])
 
 pilatus_stream = PilatusStreamHDF5(
     "XF:07BM-ES{Det-Pil3}:",

@@ -8,7 +8,7 @@ import bluesky.plans as bp  # noqa
 import bluesky.preprocessors as bpp
 import bluesky_darkframes
 
-from event_model import DocumentRouter
+from event_model import DocumentRouter, SingleRunDocumentRouter
 from ophyd import Device, Component as Cpt, EpicsSignal
 
 from bluesky.utils import ts_msg_hook
@@ -51,16 +51,20 @@ def pilatus_serializer_factory(name, doc):
 
 pilatus_serializer_rr = RunRouter([pilatus_serializer_factory], db.reg.handler_reg)
 
-# usage with dark frames:
-#   RE(
-#       dark_frame_preprocessor(
-#           count_qas(
-#               [pe1, mono1.energy], shutter_fs, sample_name=?,
-#               frame_count=?, subframe_time, subframe_count=?
-#           )
-#       ),
-#       purpose="pe1 debugging"
-#    )
+
+def save_tiffs_on_stop(name, doc):
+    if name == "stop":
+        pilatus.unstage()
+        # TODO: rework with event-model's SingleRunDocumentRouter.
+        run_start_uid = doc["run_start"]
+        for name, doc in db[run_start_uid].documents():
+            pilatus_serializer_rr(name, doc)
+
+        # TODO 2: export an averaged array
+        # data = np.array(list(hdr.data("pilatus_image")))
+        # data.mean(axis=(0, 1))
+        # <tiff-saving-code-here>
+
 
 def count_pilatus_qas(sample_name, frame_count, subframe_time, subframe_count, delay=None, shutter=shutter_fs, detector=pilatus, **kwargs):
     """
@@ -94,7 +98,8 @@ def count_pilatus_qas(sample_name, frame_count, subframe_time, subframe_count, d
         yield from bps.mv(shutter, 'Close')
         return ret
 
-    @bpp.subs_decorator(pilatus_serializer_rr)
+    # @bpp.subs_decorator(pilatus_serializer_rr)
+    @bpp.subs_decorator(save_tiffs_on_stop)
     def inner_count_qas():
         yield from bps.mv(detector.cam.acquire_time, subframe_time)
         # set acquire_period to slightly longer than exposure_time
@@ -104,7 +109,7 @@ def count_pilatus_qas(sample_name, frame_count, subframe_time, subframe_count, d
 
         return (
             yield from bp.count(
-                detector,
+                [detector],
                 num=frame_count,
                 md={
                     "experiment": 'diffraction',
@@ -117,6 +122,6 @@ def count_pilatus_qas(sample_name, frame_count, subframe_time, subframe_count, d
         )
 
     def finally_plan():
-        yield from bps.mv(shutter, "Open")
+        yield from bps.mv(shutter, "Close")
 
     return (yield from bpp.finalize_wrapper(inner_count_qas(), finally_plan))
