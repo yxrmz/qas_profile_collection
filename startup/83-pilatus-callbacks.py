@@ -38,13 +38,19 @@ from suitcase.tiff_series import Serializer
 
 
 def pilatus_serializer_factory(name, doc):
+    import datetime
     serializer = Serializer(
         '/nsls2/data/qas-new/legacy/processed/{year}/{cycle}/{PROPOSAL}Pilatus'.format(**doc),
         file_prefix = (
             '{start[sample_name]}-'
             '{start[exposure_time]:.1f}s-'
             '{start[scan_id]}-'
-        )
+        ),
+        # TODO: figure out how to use TiffWriter.write metadata correctly.
+        # metadata={"imagej_metadata_tag": {
+        #     "Info": datetime.datetime.now().isoformat()
+        #     }
+        # }
     )
     return [serializer], []
 
@@ -54,7 +60,7 @@ pilatus_serializer_rr = RunRouter([pilatus_serializer_factory], db.reg.handler_r
 
 def save_tiffs_on_stop(name, doc):
     if name == "stop":
-        pilatus.unstage()
+        # pilatus.unstage()
         # TODO: rework with event-model's SingleRunDocumentRouter.
         run_start_uid = doc["run_start"]
         for name, doc in db[run_start_uid].documents():
@@ -92,15 +98,10 @@ def count_pilatus_qas(sample_name, frame_count, subframe_time, subframe_count, d
     """
     from bluesky.plan_stubs import one_shot
 
-    def shuttered_oneshot(dets=[detector]):
-        yield from bps.mv(shutter, 'Open')
-        ret = yield from one_shot(dets)
-        yield from bps.mv(shutter, 'Close')
-        return ret
-
-    # @bpp.subs_decorator(pilatus_serializer_rr)
-    @bpp.subs_decorator(save_tiffs_on_stop)
+    @bpp.subs_decorator(pilatus_serializer_rr)
+    # @bpp.subs_decorator(save_tiffs_on_stop)
     def inner_count_qas():
+        yield from bps.mv(shutter, "Open")
         yield from bps.mv(detector.cam.acquire_time, subframe_time)
         # set acquire_period to slightly longer than exposure_time
         # to avoid spending a lot of time after the exposure just waiting around
@@ -116,7 +117,6 @@ def count_pilatus_qas(sample_name, frame_count, subframe_time, subframe_count, d
                     "sample_name": sample_name,
                     "exposure_time": subframe_time * subframe_count
                 },
-                per_shot=shuttered_oneshot,
                 delay=delay
             )
         )
