@@ -606,7 +606,116 @@ def pil_count(acq_time: int = 1, num_frames: int = 1, open_shutter: bool = True)
 from itertools import product
 
 import pandas as pd
-from databroker.assets.handlers import AreaDetectorTiffHandler, HandlerBase, PilatusCBFHandler, Xspress3HDF5Handler
+from databroker.assets.handlers import AreaDetectorTiffHandler, HandlerBase, PilatusCBFHandler, Xspress3HDF5Handler, AreaDetectorHDF5SWMRHandler
+# Note: the databroker is v0 and follows the old code path, so it uses databroker.assets.handlers.AreaDetectorHDF5SWMRHandler.
+# from area_detector_handlers.handlers import AreaDetectorHDF5SWMRHandler
+
+
+class QASAreaDetectorHDF5SWMRHandler(AreaDetectorHDF5SWMRHandler):
+    '''
+    The reason we need this custom handles is that the reference to `self._dataset` is not refreshed correctly,
+    so we redefine `self._dataset` on every call.
+
+    file = "<path>/575d134b-adf9-453a-a1a8_000000.h5"
+    swmr = AreaDetectorHDF5SWMRHandler(file)
+
+
+    In [150]: swmr._file["/entry/data/data"]
+    Out[150]: <HDF5 dataset "data": shape (3, 1043, 981), type "<u2">
+
+    In [151]: swmr._dataset
+    Out[151]: <HDF5 dataset "data": shape (1, 1043, 981), type "<u2">
+
+    ERROR:
+    ------
+
+    In [186]: list(swmr(0))
+    Out[186]:
+    [Frame([[    0,     0,     0, ...,     0,     0,     0],
+            [    0,     0,     0, ...,     0,     0,     0],
+            [    0,     0,     0, ...,     0,     0,     0],
+            ...,
+            [    0,     0,     0, ..., 65534, 65534, 65534],
+            [    0,     0,     0, ..., 65534, 65534, 65534],
+            [    0,     0,     0, ..., 65534, 65534, 65534]], dtype=uint16)]
+
+    In [187]: list(swmr(1))
+    ---------------------------------------------------------------------------
+    IndexError                                Traceback (most recent call last)
+    Cell In[187], line 1
+    ----> 1 list(swmr(1))
+
+    File /nsls2/conda/envs/2023-1.3-py310-tiled/lib/python3.10/site-packages/slicerator/__init__.py:226, in <genexpr>(.0)
+        225 def __iter__(self):
+    --> 226     return (self._get(i) for i in self.indices)
+
+    File /nsls2/conda/envs/2023-1.3-py310-tiled/lib/python3.10/site-packages/slicerator/__init__.py:206, in Slicerator._get(self, key)
+        205 def _get(self, key):
+    --> 206     return self._ancestor[key]
+
+    File /nsls2/conda/envs/2023-1.3-py310-tiled/lib/python3.10/site-packages/slicerator/__init__.py:187, in Slicerator.from_class.<locals>.SliceratorSubclass.__getitem__(self, i)
+        185 indices, new_length = key_to_indices(i, len(self))
+        186 if new_length is None:
+    --> 187     return self._get(indices)
+        188 else:
+        189     return cls(self, indices, new_length, propagate_attrs)
+
+    File /nsls2/conda/envs/2023-1.3-py310-tiled/lib/python3.10/site-packages/pims/base_frames.py:100, in FramesSequence.__getitem__(self, key)
+        97 def __getitem__(self, key):
+        98     """__getitem__ is handled by Slicerator. In all pims readers, the data
+        99     returning function is get_frame."""
+    --> 100     return self.get_frame(key)
+
+    File /nsls2/conda/envs/2023-1.3-py310-tiled/lib/python3.10/site-packages/databroker/assets/handlers.py:37, in ImageStack.get_frame(self, i)
+        36 def get_frame(self, i):
+    ---> 37     return Frame(self._dataset[self._start + i], frame_no=i)
+
+    File h5py/_objects.pyx:54, in h5py._objects.with_phil.wrapper()
+
+    File h5py/_objects.pyx:55, in h5py._objects.with_phil.wrapper()
+
+    File /nsls2/conda/envs/2023-1.3-py310-tiled/lib/python3.10/site-packages/h5py/_hl/dataset.py:741, in Dataset.__getitem__(self, args, new_dtype)
+        739 if self._fast_read_ok and (new_dtype is None):
+        740     try:
+    --> 741         return self._fast_reader.read(args)
+        742     except TypeError:
+        743         pass  # Fall back to Python read pathway below
+
+    File h5py/_selector.pyx:355, in h5py._selector.Reader.read()
+
+    File h5py/_selector.pyx:151, in h5py._selector.Selector.apply_args()
+
+    IndexError: Index (1) out of range for (0-0)
+    '''
+    def __call__(self, point_number):
+        self._dataset = self._file["/entry/data/data"]
+        return super().__call__(point_number)
+
+
+db.reg.register_handler('AD_HDF5_SWMR',
+                         QASAreaDetectorHDF5SWMRHandler, overwrite=True)
+
+# An exception has occurred, use '%tb verbose' to see the full traceback.
+# AttributeError: 'Array' object has no attribute 'id'
+
+# See /home/xf07bm/.cache/bluesky/log/bluesky.log for the full traceback.
+
+# In [2]: %debug
+# > /nsls2/conda/envs/2023-1.3-py310-tiled/lib/python3.10/site-packages/area_detector_handlers/handlers.py(211)__call__()
+#     209     def __call__(self, point_number):
+#     210         if self._dataset is not None:
+# --> 211             self._dataset.id.refresh()
+#     212         rtn = super().__call__(point_number)
+#     213
+
+# ipdb> p self._dataset.id.refresh()
+# *** AttributeError: 'Array' object has no attribute 'id'
+# ipdb> p self._dataset.id
+# *** AttributeError: 'Array' object has no attribute 'id'
+# ipdb> p self._dataset
+# dask.array<array, shape=(1, 1043, 981), dtype=uint16, chunksize=(1, 1043, 981), chunktype=numpy.ndarray>
+# ipdb>
+
 
 # PIL900k_HDF_DATA_KEY = 'entry/instrument/NDAttributes'
 # class QASPilatusHDF5Handler(Xspress3HDF5Handler): # Denis: I used Xspress3HDF5Handler as basis since it has all the basic functionality and I more or less understand how it works
