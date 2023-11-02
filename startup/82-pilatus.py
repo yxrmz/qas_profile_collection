@@ -340,6 +340,7 @@ class PilatusHDF5(PilatusBase):
         self.hdf5.stage_sigs.update(
             [
                 (self.hdf5.swmr_mode, "On"),
+                (self.hdf5.num_frames_flush, 1),
             ]
         )
 
