@@ -239,4 +239,5 @@ def current_suppression_plan(*args, hutch_c=False, **kwargs):
     for i in range(1,5):
         print(f'Performing current suppression on ch{i}')
         yield from bps.mv(getattr(apb, 'amp_ch' + str(i)).supr_mode, 2)
+        yield from sleep(2)
         print(f'Current suppression on ch{i} is done')
