@@ -22,6 +22,14 @@ class SampleStage(Device):
 
 sample_stage1 = SampleStage('XF:07BMB-ES{Stg:1', name='sample_stage1')
 
+
+class PilatusMotion(Device):
+    x = Cpt(EpicsMotor, '-Ax:X}Mtr')
+    y = Cpt(EpicsMotor, '-Ax:Y}Mtr')
+
+
+pilatus_motion = PilatusMotion('XF:07BMB-ES{PIL:3', name='pilatus_motion')
+
 class MonoTrajDesc(Device):
     filename = Cpt(EpicsSignal, '-Name')
     elem = Cpt(EpicsSignal, '-Elem')

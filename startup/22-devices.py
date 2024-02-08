@@ -4,6 +4,9 @@ from bluesky.plan_stubs import mv, abs_set
 from nslsii.devices import TwoButtonShutter
 
 
+
+
+
 class EPS_Shutter(Device):
     state = Cpt(EpicsSignal, 'Pos-Sts')
     cls = Cpt(EpicsSignal, 'Cmd:Cls-Cmd')
@@ -263,7 +266,7 @@ class WienerPowerSupply(Device):
     ir_grid_rb = Cpt(EpicsSignal, 'u305}V-Sense')
     ir_grid_sp = Cpt(EpicsSignal, 'u305}V-Set')
 
-# wps = WienerPowerSupply("XF:07BMC-OP{WPS:01-HV:", name='wps') # For hutch C
+wps = WienerPowerSupply("XF:07BMC-OP{WPS:01-HV:", name='wps') # For hutch C
 wps = WienerPowerSupply("XF:07BMB-OP{WPS:01-HV:", name='wps') #For hutch B
 class ICAmplifier(Device):
 

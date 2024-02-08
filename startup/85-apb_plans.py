@@ -119,7 +119,7 @@ class FlyerAPB:
         return collect_all()
 
 flyer_apb = FlyerAPB(det=apb_stream, pbs=[pb1.enc1], motor=mono1)
-#flyer_apb_c = FlyerAPB(det=apb_stream_c, pbs=[pb1.enc1], motor=mono1)
+flyer_apb_c = FlyerAPB(det=apb_stream_c, pbs=[pb1.enc1], motor=mono1)
 
 
 def get_traj_duration():

@@ -1,4 +1,4 @@
-def fly_scan_with_apb(name: str, comment: str, n_cycles: int = 1, delay: float = 0, hutch_c: bool = False, **kwargs):
+def fly_scan_with_apb(name: str, comment: str, n_cycles: int = 1, delay: float = 0, hutch_c: bool = False, shutter=shutter_fs, **kwargs):
     '''
     Trajectory Scan - Runs the monochromator along the trajectory that is previously loaded in the controller N times
     Parameters
@@ -18,6 +18,8 @@ def fly_scan_with_apb(name: str, comment: str, n_cycles: int = 1, delay: float =
     sys.stdout = kwargs.pop('stdout', sys.stdout)
     uids = []
 
+    yield from bps.mv(shutter, "Open")
+
     for indx in range(int(n_cycles)):
         name_n = '{} {:04d}'.format(name, indx + 1)
         yield from prep_traj_plan()
@@ -29,6 +31,9 @@ def fly_scan_with_apb(name: str, comment: str, n_cycles: int = 1, delay: float =
         uids.append(uid)
         print(f'Trajectory is complete {print_now()}')
         yield from bps.sleep(float(delay))
+
+    yield from bps.mv(shutter, "Close")
+
 
     RE.md['experiment'] = ''
     return uids

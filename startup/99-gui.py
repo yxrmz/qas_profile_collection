@@ -56,8 +56,16 @@ motors_dictionary = {jj_slits_hutchB.xctr.name: {'name': jj_slits_hutchB.xctr.na
                      sample_stage1.z.name:      {'name': sample_stage1.z.name,      'description':'B hutch_sample_stage_z',        'object':sample_stage1.z,       'keyword': 'B hutch sample z'},
                      sample_stage1.theta.name:  {'name': sample_stage1.theta.name,  'description':'B hutch_sample_stage_theta',    'object':sample_stage1.theta,   'keyword': 'B hutch sample theta'},
                      sample_stage1.chi.name:    {'name': sample_stage1.chi.name,    'description':'B hutch_sample_stage_chi',      'object':sample_stage1.chi,     'keyword': 'B hutch sample chi'},
-                     mono1.energy.name :        {'name' :mono1.energy.name,         'description': 'Mono Energy',                  'object': mono1.energy,         'keyword': 'Monochromator Energy'}
+                     mono1.energy.name :        {'name' :mono1.energy.name,         'description': 'Mono Energy',                  'object': mono1.energy,         'keyword': 'Monochromator Energy'},
+                     pilatus_motion.x.name :    {'name': pilatus_motion.x.name,     'description': 'Pilatus X motion',              'object': pilatus_motion.x,    'keyword': 'Pilatus X motion'},
+                     pilatus_motion.y.name :    {'name': pilatus_motion.y.name,     'description': 'Pilatus Y motion',              'object': pilatus_motion.y,    'keyword': 'Pilatus Y motion'}
                     }
+
+user_motors_dictionary = {
+                         sample_stage1.x.name:      {'name': sample_stage1.x.name,      'description':'B hutch_sample_stage_x',        'object':sample_stage1.x,       'keyword': 'B hutch sample x'},
+                         sample_stage1.y.name:      {'name': sample_stage1.y.name,      'description':'B hutch_sample_stage_y',        'object':sample_stage1.y,       'keyword': 'B hutch sample y'},
+                         sample_stage1.z.name:      {'name': sample_stage1.z.name,      'description':'B hutch_sample_stage_z',        'object':sample_stage1.z,       'keyword': 'B hutch sample z'},
+                         sample_stage1.rotary.name: {'name': sample_stage1.rotary.name, 'description':'B hutch_sample_stage_rotation', 'object':sample_stage1.rotary,  'keyword': 'B hutch sample rotation'}}
 
 shutters_dictionary = {
                        shutter_fe.name: shutter_fe,
@@ -82,9 +90,10 @@ aux_plan_funcs = {
 
 plan_funcs = {
     'XAS fly scan': fly_scan_with_apb,
-    # 'Fly scan in C': fly_scan_with_apb_c,
+   # 'Fly scan in C': fly_scan_with_apb_c,
     'XAS fly scan w/SDD': fly_scan_with_xs3,
-    'XRD take pattern': count_qas
+    'XRD take pattern': count_qas,
+    'XRD take pattern w/Pilatus':count_pilatus_qas
 }
 
 for shutter in shutters_dictionary.values():
@@ -95,14 +104,14 @@ app = QApplication(sys.argv)
 newApp = PyQt5.QtWidgets.QApplication(sys.argv)
 
 xlive_gui = isstools.xlive.XliveGui(plan_funcs=plan_funcs,
-                                    diff_plans=[count_qas, dark_frame_preprocessor],
+                                    diff_plans=[count_qas, dark_frame_preprocessor, count_pilatus_qas],
                                     aux_plan_funcs =aux_plan_funcs,
                                     service_plan_funcs=service_plan_funcs,
                                     prep_traj_plan= prep_traj_plan,
                                     RE=RE,
                                     db=db,
                                     apb = apb,
-                                    apb_c = None ,
+                                    apb_c = apb_c ,
                                     accelerator=nsls_ii,
                                     mono=mono1,
                                     sdd = xs,
@@ -110,6 +119,7 @@ xlive_gui = isstools.xlive.XliveGui(plan_funcs=plan_funcs,
                                     shutters_dict=shutters_dictionary,
                                     det_dict=detector_dictionary,
                                     motors_dict=motors_dictionary,
+                                    user_motors_dict = user_motors_dictionary,
                                     general_scan_func=general_scan,
                                     sample_stage = sample_stage1,
                                     wps = wps,
