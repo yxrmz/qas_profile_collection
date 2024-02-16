@@ -8,7 +8,7 @@ import atexit
 
 import PyQt5
 
-from bluesky.examples import motor
+from ophyd.sim import motor
 motor.move = motor.set
 
 
@@ -93,7 +93,8 @@ plan_funcs = {
    # 'Fly scan in C': fly_scan_with_apb_c,
     'XAS fly scan w/SDD': fly_scan_with_xs3,
     'XRD take pattern': count_qas,
-    'XRD take pattern w/Pilatus':count_pilatus_qas
+    'XRD take pattern w/Pilatus':count_pilatus_qas,
+    'XAS controlled loop scan' : fly_scan_with_apb_with_controlled_loop,
 }
 
 for shutter in shutters_dictionary.values():
