@@ -241,3 +241,20 @@ def current_suppression_plan(*args, hutch_c=False, **kwargs):
         yield from bps.mv(getattr(apb, 'amp_ch' + str(i)).supr_mode, 2)
         yield from sleep(2)
         print(f'Current suppression on ch{i} is done')
+
+def unstage_staged_devices():
+    devices = {'apb': apb,
+               'apb_ave': apb_ave,
+               'apb_stream': apb_stream,
+               'xs': xs,
+               'pb1.enc1': pb1.enc1,
+               'xs_stream': xs_stream,
+               'apb_trigger': apb_trigger}
+
+    for name, device in devices.items():
+        status = device._staged.value
+        print(f"{name} staged status: {status}")
+        if status == 'yes':
+            device.unstage()
+            status = device._staged.value
+            print(f"{name} staged status: {status}")
