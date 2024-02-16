@@ -18,6 +18,8 @@ from ophyd import Component as C
 from ophyd import StatusBase
 from ophyd.status import DeviceStatus
 from nslsii.ad33 import SingleTriggerV33, StatsPluginV33
+
+from packaging.version import Version
 from distutils.version import LooseVersion
 
 
@@ -230,7 +232,6 @@ pe1_pv_prefix = 'XF:07BM-ES{Det:PE1}'
 pe1 = QASPerkinElmer(pe1_pv_prefix, name='pe1',
                      read_attrs=['tiff', 'stats1.total'])
 
-
 # Check the version of ADCore and raise if it's less than 3.3
 # pe1_adcore_version = EpicsSignalRO('XF:07BM-ES{Det:PE1}cam1:ADCoreVersion_RBV', name='pe1_adcore_version')
 # pe1_driver_version = EpicsSignalRO('XF:07BM-ES{Det:PE1}cam1:DriverVersion_RBV', name='pe1_driver_version')
@@ -252,10 +253,11 @@ def check_adcore_version(det, min_adcore_version='3.3'):
     ------
         ADCoreVersionCheckException
     """
-    adcore_version = LooseVersion(det.cam.adcore_version.get())
-    if adcore_version < min_adcore_version:
+    # adcore_version = LooseVersion(det.cam.adcore_version.get())
+    adcore_version = Version(det.cam.adcore_version.get())
+    if adcore_version.base_version < min_adcore_version:
         raise ADCoreVersionCheckException(f'The ADCore version of your "{det.name}" ({det.cam.manufacturer.get()}) '
-                                          f'detector is "{adcore_version}", which is less than the minimally required '
+                                          f'detector is "{adcore_version.base_version}", which is less than the minimally required '
                                           f'ADCore version "{min_adcore_version}".\n'
                                           f'Make sure you are running the correct IOC script.')
 
