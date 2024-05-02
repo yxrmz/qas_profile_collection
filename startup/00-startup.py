@@ -72,6 +72,7 @@ ophyd.signal.EpicsSignalRO.set_defaults(timeout=GLOBAL_TIMEOUT, connection_timeo
 beamline_id = 'qas'
 
 from databroker.v0 import Broker
+# from databroker import Broker
 db = Broker.named(beamline_id)
 nslsii.configure_base(get_ipython().user_ns, db, bec=False, pbar=False,
                       publish_documents_with_kafka=False)
