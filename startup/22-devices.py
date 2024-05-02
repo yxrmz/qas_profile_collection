@@ -283,6 +283,9 @@ class ICAmplifier(Device):
     def set_gain(self, gain):
         self.gain.set(gain-3)
 
+    def set_gain_plan(self, gain):
+        yield from bps.abs_set(self.gain, gain-3)
+
 
 
 i0_amp = ICAmplifier('XF:07BM:K428:A:',name='i0_amp')

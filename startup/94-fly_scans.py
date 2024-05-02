@@ -243,3 +243,45 @@ def fly_scan_with_pilatus(name: str, comment: str, n_cycles: int = 1, delay: flo
 
     RE.md['experiment'] = ''
     return uids
+
+def read_voltage_and_set_condition():
+    voltage = apb.ch7.get()
+    if voltage < 2000:
+    # if voltage > 2000:
+        condition = True
+    else:
+        condition = False
+    return condition
+
+def fly_scan_with_hardware_trigger(name: str, comment: str, n_cycles: int = 1, delay: float = 0, hutch_c: bool = False, shutter=shutter_fs, **kwargs):
+    print(f'Hutch C is {hutch_c}')
+    sys.stdout = kwargs.pop('stdout', sys.stdout)
+    uids = []
+
+    yield from bps.mv(shutter, "Open")
+
+    condition1 = read_voltage_and_set_condition()
+    print(condition1)
+    condition2 = read_voltage_and_set_condition()
+    print(condition2)
+    count = 0
+    while count < int(n_cycles):
+        if condition2 - condition1 == 1:
+
+            name_n = '{} {:04d}'.format(name, count + 1)
+            yield from prep_traj_plan()
+            print(f'Trajectory preparation complete at {print_now()}')
+            if hutch_c:
+                uid = (yield from execute_trajectory_apb_c(name_n, comment=comment))
+            else:
+                uid = (yield from execute_trajectory_apb(name_n, comment=comment))
+            uids.append(uid)
+            print(f'Trajectory is complete {print_now()}')
+            yield from bps.sleep(float(delay))
+            count += 1
+
+            condition1 = condition2
+            condition2 = read_voltage_and_set_condition()
+        else:
+            condition1 = condition2
+            condition2 = read_voltage_and_set_condition()

@@ -83,14 +83,30 @@ class Monochromator(Device):
     traj8 = Cpt(MonoTrajDesc, 'MC:03}Traj:8')
     traj9 = Cpt(MonoTrajDesc, 'MC:03}Traj:9')
 
+    # trajectory_type = None
+
     angle_offset = Cpt(EpicsSignal, 'Mono:1-Ax:E}Offset', limits=True)
 
     def __init__(self, *args, enc = None, **kwargs):
         super().__init__(*args, **kwargs)
         self.pulses_per_deg = 1/self.main_motor_res.get()
         self.enc = enc
+        self.trajectory_type = None
         # self._preparing = None
         # self._starting = None
+
+    # @property
+    # def trajectory_type(self):
+    #     return self.trajectory_type
+    #
+    # @trajectory_type.setter
+    # def trajectory_type(self, value):
+    #     self.trajectory_type = value
+    #
+    # @trajectory_type.getter
+    # def trajectory_type(self):
+    #     return self.trajectory_type
+
 
     def set(self, command):
         if command == 'prepare':
