@@ -1,5 +1,5 @@
 
-def fly_scan_with_apb(name: str, comment: str, n_cycles: int = 1, delay: float = 0, hutch_c: bool = False, shutter=shutter_fs, **kwargs):
+def fly_scan_with_apb(name: str, comment: str, n_cycles: int = 1, delay: float = 0, autofoil :bool= False, hutch_c = False, shutter=shutter_fs, **kwargs):
     '''
     Trajectory Scan - Runs the monochromator along the trajectory that is previously loaded in the controller N times
     Parameters
@@ -18,6 +18,13 @@ def fly_scan_with_apb(name: str, comment: str, n_cycles: int = 1, delay: float =
     print(f'Hutch C is {hutch_c}')
     sys.stdout = kwargs.pop('stdout', sys.stdout)
     uids = []
+    if autofoil:
+    #if True:
+        current_element = getattr(mono1, f'traj{int(mono1.lut_number_rbv.get())}').elem.get()
+        try:
+            yield from set_reference_foil(current_element)
+        except:
+            pass
 
     yield from bps.mv(shutter, "Open")
 
@@ -40,7 +47,7 @@ def fly_scan_with_apb(name: str, comment: str, n_cycles: int = 1, delay: float =
     return uids
 
 
-def fly_scan_with_apb_with_controlled_loop(name: str, comment: str, n_cycles: int = 1, delay: float = 0, hutch_c: bool = False, shutter=shutter_fs, **kwargs):
+def fly_scan_with_apb_with_controlled_loop(name: str, comment: str, n_cycles: int = 1, delay: float = 0, autofoil :bool= False, hutch_c = False, shutter=shutter_fs, **kwargs):
     '''
     Trajectory Scan - Runs the monochromator along the trajectory that is previously loaded in the controller N times
     Parameters
@@ -59,6 +66,13 @@ def fly_scan_with_apb_with_controlled_loop(name: str, comment: str, n_cycles: in
     print(f'Hutch C is {hutch_c}')
     sys.stdout = kwargs.pop('stdout', sys.stdout)
     uids = []
+    if autofoil:
+    #if True:
+        current_element = getattr(mono1, f'traj{int(mono1.lut_number_rbv.get())}').elem.get()
+        try:
+            yield from set_reference_foil(current_element)
+        except:
+            pass
 
     yield from bps.mv(shutter, "Open")
 
@@ -121,7 +135,7 @@ def fly_scan_with_apb_with_controlled_loop(name: str, comment: str, n_cycles: in
     return uids
 
 
-def fly_scan_with_apb_trigger(name: str, comment: str, n_cycles: int = 1, delay: float = 0, autofoil :bool= False, **kwargs):
+def fly_scan_with_apb_trigger(name: str, comment: str, n_cycles: int = 1, delay: float = 0, autofoil :bool= False, hutch_c = False, **kwargs):
     '''
     Trajectory Scan - Runs the monochromator along the trajectory that is previously loaded in the controller N times
     Parameters
@@ -137,6 +151,7 @@ def fly_scan_with_apb_trigger(name: str, comment: str, n_cycles: int = 1, delay:
     uid : list(str)
         Lists containing the unique ids of the scans
     '''
+    print(f'Hutch C is {hutch_c}')
     sys.stdout = kwargs.pop('stdout', sys.stdout)
     uids = []
     if autofoil:
@@ -161,7 +176,7 @@ def fly_scan_with_apb_trigger(name: str, comment: str, n_cycles: int = 1, delay:
     return uids
 
 
-def fly_scan_with_xs3(name: str, comment: str, n_cycles: int = 1, delay: float = 0, autofoil :bool= False, **kwargs):
+def fly_scan_with_xs3(name: str, comment: str, n_cycles: int = 1, delay: float = 0,  autofoil :bool= False, hutch_c = False, **kwargs):
     '''
     Trajectory Scan - Runs the monochromator along the trajectory that is previously loaded in the controller N times
     Parameters
@@ -177,6 +192,7 @@ def fly_scan_with_xs3(name: str, comment: str, n_cycles: int = 1, delay: float =
     uid : list(str)
         Lists containing the unique ids of the scans
     '''
+    print(f'Hutch C is {hutch_c}')
     sys.stdout = kwargs.pop('stdout', sys.stdout)
     uids = []
     if autofoil:
@@ -244,25 +260,50 @@ def fly_scan_with_pilatus(name: str, comment: str, n_cycles: int = 1, delay: flo
     RE.md['experiment'] = ''
     return uids
 
-def read_voltage_and_set_condition():
-    voltage = apb.ch7.get()
-    if voltage < 2000:
-    # if voltage > 2000:
-        condition = True
+def read_voltage_and_set_condition(set_voltage=2000, rise=True, channel='7'):
+    read_voltage = getattr(apb, 'ch' + channel).get()
+    # voltage = apb.ch7.get()
+    if rise:
+        if read_voltage > set_voltage:
+            condition = True
+        else:
+            condition = False
+        return condition
     else:
-        condition = False
-    return condition
+        if read_voltage < set_voltage:
+            condition = True
+        else:
+            condition = False
+        return condition
 
-def fly_scan_with_hardware_trigger(name: str, comment: str, n_cycles: int = 1, delay: float = 0, hutch_c: bool = False, shutter=shutter_fs, **kwargs):
+def fly_scan_with_hardware_trigger(name: str,
+                                   comment: str,
+                                   n_cycles: int = 1,
+                                   delay: float = 0,
+                                   set_voltage: int = 2000,
+                                   channel: str = '7',
+                                   rise: bool = True,
+                                   autofoil: bool = False,
+                                   hutch_c=False,
+                                   shutter=shutter_fs,
+                                   **kwargs):
+
     print(f'Hutch C is {hutch_c}')
     sys.stdout = kwargs.pop('stdout', sys.stdout)
     uids = []
+    if autofoil:
+    #if True:
+        current_element = getattr(mono1, f'traj{int(mono1.lut_number_rbv.get())}').elem.get()
+        try:
+            yield from set_reference_foil(current_element)
+        except:
+            pass
 
     yield from bps.mv(shutter, "Open")
 
-    condition1 = read_voltage_and_set_condition()
+    condition1 = read_voltage_and_set_condition(set_voltage=set_voltage, rise=rise, channel=channel)
     print(condition1)
-    condition2 = read_voltage_and_set_condition()
+    condition2 = read_voltage_and_set_condition(set_voltage=set_voltage, rise=rise, channel=channel)
     print(condition2)
     count = 0
     while count < int(n_cycles):
@@ -281,7 +322,7 @@ def fly_scan_with_hardware_trigger(name: str, comment: str, n_cycles: int = 1, d
             count += 1
 
             condition1 = condition2
-            condition2 = read_voltage_and_set_condition()
+            condition2 = read_voltage_and_set_condition(set_voltage=set_voltage, rise=rise, channel=channel)
         else:
             condition1 = condition2
-            condition2 = read_voltage_and_set_condition()
+            condition2 = read_voltage_and_set_condition(set_voltage=set_voltage, rise=rise, channel=channel)
