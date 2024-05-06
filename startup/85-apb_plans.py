@@ -129,11 +129,29 @@ def get_traj_duration():
     return int(info[lut]['size']) / 16000
 
 
+#Not good fix for the problem with knowing whether we have oscillatory trajectory running over it.
+
+def parse_trajectory_header(trajectory_filename=None):
+    path = '/home/xf07bm/trajectory/'
+    with open(path + trajectory_filename, 'r') as f:
+        line = f.readline()
+    header = line[1:].split(',')
+    dictionary = {}
+    for head in header:
+        item = head.split(":")
+        dictionary[item[0].strip()] = item[1].strip()
+
+    if 'oscillatory' not in dictionary.keys():
+        dictionary['oscillatory'] = False
+    return dictionary
+
+
 def get_md_for_scan(name, mono_scan_type, plan_name, experiment, detector=None, hutch=None, **metadata):
         interp_fn = f"{ROOT_PATH}/{USER_FILEPATH}/{RE.md['year']}/{RE.md['cycle']}/{RE.md['PROPOSAL']}/{name}.raw"
         interp_fn = validate_file_exists(interp_fn)
         #print(f'Storing data at {interp_fn}')
         curr_traj = getattr(mono1, 'traj{:.0f}'.format(mono1.lut_number_rbv.get()))
+        trajectory_header_dict = parse_trajectory_header(mono1.trajectory_name.get())
 
         i0_gainB  = i0_amp.get_gain()
         it_gainB  = it_amp.get_gain()
@@ -190,6 +208,7 @@ def get_md_for_scan(name, mono_scan_type, plan_name, experiment, detector=None, 
               'element_full': full_element_name,
               'edge': curr_traj.edge.get(),
               'e0': curr_traj.e0.get(),
+              'oscillatory': trajectory_header_dict['oscillatory'],
               'pulses_per_degree': mono1.pulses_per_deg,
               'keithley_gainsB': [i0_gainB, it_gainB, ir_gainB, iff_gainB],
               'ionchamber_ratesB': [mfc1B_he, mfc2B_n2, mfc3B_ar, mfc4B_n2, mfc5B_ar],
