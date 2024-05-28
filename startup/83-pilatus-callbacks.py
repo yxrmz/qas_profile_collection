@@ -37,10 +37,11 @@ from event_model import RunRouter
 from suitcase.tiff_series import Serializer
 
 
+
 def pilatus_serializer_factory(name, doc):
 
 
-    # print(f">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>{doc = }>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+    print(f">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>{doc = }>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
     #
     # filename = '/nsls2/data/qas-new/legacy/processed/{year}/{cycle}/{PROPOSAL}Pilatus/test'.format(**doc)
     import datetime
@@ -51,6 +52,7 @@ def pilatus_serializer_factory(name, doc):
             '{start[exposure_time]:.1f}s-'
             '{start[scan_id]}-'
         ),
+        #astype='int32'
         # TODO: figure out how to use TiffWriter.write metadata correctly.
         # metadata={"imagej_metadata_tag": {
         #     "Info": datetime.datetime.now().isoformat()
@@ -60,7 +62,7 @@ def pilatus_serializer_factory(name, doc):
     return [serializer], []
 
 
-pilatus_serializer_rr = RunRouter([pilatus_serializer_factory], db.reg.handler_reg)
+pilatus_serializer_rr = RunRouter([pilatus_serializer_factory], db.reg.handler_reg, fill_or_fail=True)
 
 
 
@@ -107,7 +109,7 @@ def count_pilatus_qas(sample_name, frame_count, subframe_time, subframe_count, d
     """
     from bluesky.plan_stubs import one_shot
 
-    @bpp.subs_decorator(pilatus_serializer_rr)
+    #@bpp.subs_decorator(pilatus_serializer_rr)
     # @bpp.subs_decorator(save_tiffs_on_stop)
     def inner_count_qas():
         yield from bps.mv(shutter, "Open")
@@ -131,6 +133,8 @@ def count_pilatus_qas(sample_name, frame_count, subframe_time, subframe_count, d
         )
 
     def finally_plan():
+        for name, doc in db[-1].documents():
+            pilatus_serializer_rr(name, doc)
         yield from bps.mv(shutter, "Close")
 
     return (yield from bpp.finalize_wrapper(inner_count_qas(), finally_plan))
