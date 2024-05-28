@@ -1,13 +1,5 @@
-<<<<<<< HEAD
 
 def fly_scan_with_apb(name: str, comment: str, n_cycles: int = 1, delay: float = 0, autofoil :bool= False, hutch_c = False, shutter=shutter_fs, **kwargs):
-=======
-import bluesky.plan_stubs as bps
-import bluesky.preprocessors as bpp
-
-
-def fly_scan_with_apb(name: str, comment: str, n_cycles: int = 1, delay: float = 0, hutch_c: bool = False, **kwargs):
->>>>>>> main
     '''
     Trajectory Scan - Runs the monochromator along the trajectory that is previously loaded in the controller N times
     Parameters
