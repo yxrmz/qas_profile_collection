@@ -388,6 +388,7 @@ apb_dets = [
     {"name": "apb_ave", "prefix": "XF:07BMB-CT{PBA:1}:"},
     {"name": "apb_stream", "prefix": "XF:07BMB-CT{PBA:1}:"},
     {"name": "apb_stream_c", "prefix": "XF:07BMC-CT{PBA:1}:"},
+    {"name": "apb_ave_c", "prefix": "XF:07BMC-CT{PBA:1}:"},
 ]
 
 wait_time = 1.0  # seconds
