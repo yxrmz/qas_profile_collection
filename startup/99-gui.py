@@ -33,9 +33,9 @@ detector_dictionary = {#colmirror_diag.name: {'obj': colmirror_diag, 'elements':
                     'Ir Hutch C': {'device': apb_ave_c, 'channels': ['apb_ave_c_ch3_mean']},
                     'PIPS Hutch C': {'device': apb_ave_c, 'channels': ['apb_ave_c_ch4_mean']},
                     'xspress3 Hutch B' : {'device': xs, 'channels': ['xs_channel1_rois_roi01_value',
-                                                                     'xs_channel1_rois_roi02_value',
-                                                                     'xs_channel1_rois_roi03_value',
-                                                                     'xs_channel1_rois_roi04_value']},
+                                                                     'xs_channel2_rois_roi01_value',
+                                                                     'xs_channel3_rois_roi01_value',
+                                                                     'xs_channel4_rois_roi01_value']},
                     'pilatus': {'device': pilatus, 'channels': ['pilatus_stats1_total']}
 
 }
@@ -44,6 +44,7 @@ detector_dictionary = {#colmirror_diag.name: {'obj': colmirror_diag, 'elements':
 
 motors_dictionary = {jj_slits_hutchB.xctr.name: {'name': jj_slits_hutchB.xctr.name, 'description':'B hutch_inc_slits_xcenter',     'object': jj_slits_hutchB.xctr, 'keyword': 'B hutch ins xcenter',     'user_motor': False},
                      jj_slits_hutchC.xctr.name: {'name': jj_slits_hutchC.xctr.name, 'description':'C hutch_inc_slits_xcenter',     'object': jj_slits_hutchC.xctr, 'keyword': 'C hutch ins xcenter',     'user_motor': False},
+                     jj_slits_hutchB.xgap.name : {'name': jj_slits_hutchC.xgap.name, 'description':'B hutch_inc_slits_xgap',       'object': jj_slits_hutchB.xgap, 'keyword': 'C hutch ins xgap',        'user_motor': False},
                      drifts.drifts_x.name:      {'name': drifts.drifts_x.name,      'description':'C hutch_DRIFTS_horiz',          'object': drifts.drifts_x,      'keyword': 'C hutch DRIFTS horiz',    'user_motor': False},
                      drifts.drifts_z.name:      {'name': drifts.drifts_z.name,      'description':'C hutch_DRIFTS_z',              'object': drifts.drifts_z,      'keyword': 'C hutch DRIFTS z',        'user_motor': False},
                      beamstop.horizontal.name:  {'name': beamstop.horizontal.name,  'description': 'B hutch_beamstop_horiz',       'object':beamstop.horizontal,   'keyword': 'B hutch BS horiz',        'user_motor': False},

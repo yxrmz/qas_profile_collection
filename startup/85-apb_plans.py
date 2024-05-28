@@ -208,7 +208,7 @@ def get_md_for_scan(name, mono_scan_type, plan_name, experiment, detector=None, 
               'element_full': full_element_name,
               'edge': curr_traj.edge.get(),
               'e0': curr_traj.e0.get(),
-              'oscillatory': trajectory_header_dict['oscillatory'],
+              'oscillatory': curr_traj.type.get(),
               'pulses_per_degree': mono1.pulses_per_deg,
               'keithley_gainsB': [i0_gainB, it_gainB, ir_gainB, iff_gainB],
               'ionchamber_ratesB': [mfc1B_he, mfc2B_n2, mfc3B_ar, mfc4B_n2, mfc5B_ar],
@@ -245,6 +245,7 @@ def execute_trajectory_apb(name, **metadata):
                          hutch='b',
                          **metadata)
     yield from bp.fly([flyer_apb], md=md)
+    # yield from custom_fly([flyer_apb], md=md)
 
 
 def execute_trajectory_apb_c(name, **metadata):
@@ -256,3 +257,42 @@ def execute_trajectory_apb_c(name, **metadata):
                          hutch='c',
                          **metadata)
     yield from bp.fly([flyer_apb_c], md=md)    
+
+
+def custom_fly(flyers, *, md=None):
+    """
+    Perform a fly scan with one or more 'flyers'.
+
+    Parameters
+    ----------
+    flyers : collection
+        objects that support the flyer interface
+    md : dict, optional
+        metadata
+
+    Yields
+    ------
+    msg : Msg
+        'kickoff', 'wait', 'complete, 'wait', 'collect' messages
+
+    See Also
+    --------
+    :func:`bluesky.preprocessors.fly_during_wrapper`
+    :func:`bluesky.preprocessors.fly_during_decorator`
+    """
+    uid = yield from bps.open_run(md)
+    for flyer in flyers:
+        print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>Kickoff starting<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<')
+        yield from bps.kickoff(flyer, wait=True)
+        print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>Kickoff finished<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<')
+    for flyer in flyers:
+        print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>complete starting<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<')
+        yield from bps.complete(flyer, wait=True)
+        print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>complete finished<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<')
+    for flyer in flyers:
+        print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>collect starting<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<')
+        yield from bps.collect(flyer)
+        print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>collect finished<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<')
+    yield from bps.close_run()
+    print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>Flyer finished<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<')
+    return uid

@@ -280,3 +280,19 @@ def warmup_hdf5_plugins(detectors):
             print(f"  Warming up HDF5 plugin for {det.name} is done. array_size={det.hdf5.array_size.get()}\n")
         else:
             print(f"\n  Warming up of the HDF5 plugin is not needed for {det.name} as the array_size={_array_size}.")
+
+
+def print_to_gui(msg, tag='', add_timestamp=False, ntabs=0, stdout_alt=sys.stdout):
+    # print('THIS IS STDOUT', stdout, stdout is xlive_gui.emitstream_out)
+    try:
+        stdout = xlive_gui.emitstream_out
+    except NameError:
+        stdout = stdout_alt
+
+    msg = '\t'*ntabs + msg
+    if add_timestamp:
+        msg = f'({time_now_str()}) {msg}'
+    if tag:
+        msg = f'[{tag}] {msg}'
+
+    print(msg, file=stdout, flush=True)

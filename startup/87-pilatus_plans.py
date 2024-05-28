@@ -79,6 +79,8 @@ def execute_trajectory_pilatus(name, **metadata):
     yield from bp.fly([flyer_pilatus], md=md)
 
 
+
+
 # See 83-pilatus-callbacks.py for the 'count_pilatus_qas' plan.
 # def count_pilatus(sample_name, exposure_time=1, number_of_images=1, delays=0):
 

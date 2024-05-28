@@ -35,6 +35,7 @@ class MonoTrajDesc(Device):
     elem = Cpt(EpicsSignal, '-Elem')
     edge = Cpt(EpicsSignal, '-Edge')
     e0 = Cpt(EpicsSignal, '-E0')
+    type = Cpt(EpicsSignal, '-Type')
 
 
 class Monochromator(Device):

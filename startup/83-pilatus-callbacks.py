@@ -13,7 +13,7 @@ from ophyd import Device, Component as Cpt, EpicsSignal
 
 from bluesky.utils import ts_msg_hook
 RE.msg_hook = ts_msg_hook  # noqa
-
+from tifffile import imwrite
 
 # this is not needed if you have ophyd >= 1.5.4, maybe
 # monkey patch for trailing slash problem
@@ -38,6 +38,11 @@ from suitcase.tiff_series import Serializer
 
 
 def pilatus_serializer_factory(name, doc):
+
+
+    # print(f">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>{doc = }>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+    #
+    # filename = '/nsls2/data/qas-new/legacy/processed/{year}/{cycle}/{PROPOSAL}Pilatus/test'.format(**doc)
     import datetime
     serializer = Serializer(
         '/nsls2/data/qas-new/legacy/processed/{year}/{cycle}/{PROPOSAL}Pilatus'.format(**doc),
@@ -58,6 +63,7 @@ def pilatus_serializer_factory(name, doc):
 pilatus_serializer_rr = RunRouter([pilatus_serializer_factory], db.reg.handler_reg)
 
 
+
 def save_tiffs_on_stop(name, doc):
     if name == "stop":
         # pilatus.unstage()
@@ -73,6 +79,9 @@ def save_tiffs_on_stop(name, doc):
 
 
 def count_pilatus_qas(sample_name, frame_count, subframe_time, subframe_count, delay=None, shutter=shutter_fs, detector=pilatus, **kwargs):
+
+    pilatus.tiff_file_path.put(sample_name)
+
     """
 
     Diffraction count plan averaging subframe_count exposures for each frame.
