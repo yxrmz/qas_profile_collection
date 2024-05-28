@@ -1,6 +1,8 @@
 print(__file__)
 import bluesky as bs
 import bluesky.plans as bp
+import bluesky.plan_stubs as bps
+import bluesky.preprocessors as bpp
 import time as ttime
 from subprocess import call
 import os
@@ -174,6 +176,7 @@ def execute_trajectory(name, ignore_shutter=True, **metadata):
         #fly_plan = bpp.suspend_wrapper(fly_plan, suspenders)
 
     yield from fly_plan
+
 
 def execute_trajectory_xs3(name, ignore_shutter=True, **metadata):
     ''' Execute a trajectory on the flyers given:

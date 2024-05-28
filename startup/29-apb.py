@@ -14,6 +14,7 @@ from bluesky.utils import new_uid
 from isstools.trajectory.trajectory import trajectory_manager
 
 
+
 class AnalogPizzaBox(Device):
 
     polarity = 'neg'
@@ -192,12 +193,25 @@ class AnalogPizzaBoxAverage(AnalogPizzaBox):
         yield from bps.abs_set(self.sample_len, self.saved_status['sample_len'])
         yield from bps.abs_set(self.wf_len, self.saved_status['wf_len'])
 
-    def check_apb_gpfs_status(self,
-                            mount_root="/nsls2/data/qas-new/legacy/raw/apb",
-                            test_prefix="test",
-                            year_offset=0,
-                            wait_time=5.0):
-        year = str(datetime.now().year + year_offset)
+    def check_apb_lustre_status(
+            self,
+            mount_root="/nsls2/data/qas-new/legacy/raw/apb",
+            test_prefix="test",
+            year_offset=0,
+            wait_time=10.0,
+        ):
+        year = str(dt.datetime.now().year + year_offset)
+
+        def callback_saving(value, old_value, **kwargs):
+            # print(f'     !!!!! {datetime.now()} callback_saving\n{value} --> {old_value}')
+            if old_value == 0 and value == 1:
+                # print(f'     !!!!! {datetime.now()} callback_saving')
+                return True
+            else:
+                return False
+
+        filebin_st = SubscriptionStatus(self.filebin_status, callback_saving, run=False)
+        filetxt_st = SubscriptionStatus(self.filetxt_status, callback_saving, run=False)
 
         self.filename_bin.put(os.path.join(mount_root, year, f"{test_prefix}.bin"))
         self.filename_txt.put(os.path.join(mount_root, year, f"{test_prefix}.txt"))
@@ -206,22 +220,19 @@ class AnalogPizzaBoxAverage(AnalogPizzaBox):
         # 2000 samples is the minimum supported by the detector as of Jan. 2022.
         self.stream_samples.put(2000)
 
-        self.stream.put(1)
-        # TODO: rework it with conditional SubscriptionStatus
-        # to avoid potentially long wait.
-        ttime.sleep(wait_time)
+        self.stream.set(1)
 
-        bin_st = apb.filebin_status.get()  # 2=BAD status, 1=OK
-        txt_st = apb.filetxt_status.get()
+        files_status = filebin_st and filetxt_st
+        files_status.wait(timeout=wait_time)
 
-        if bin_st == 1 and txt_st == 1:
+        if files_status.done and files_status.success:
             return True  # files saved correctly
         else:
             return False  # at least one file not saved
 
-
-apb_ave = AnalogPizzaBoxAverage(prefix="XF:07BMB-CT{PBA:1}:", name="apb_ave")
-apb_ave_c = AnalogPizzaBoxAverage(prefix="XF:07BMC-CT{PBA:1}:", name="apb_ave_c")
+# See the instantiation process below (with multiple attempts):
+# apb_ave = AnalogPizzaBoxAverage(prefix="XF:07BMB-CT{PBA:1}:", name="apb_ave")
+# apb_ave_c = AnalogPizzaBoxAverage(prefix="XF:07BMC-CT{PBA:1}:", name="apb_ave_c")
 
 
 class AnalogPizzaBoxStream(AnalogPizzaBoxAverage):
@@ -267,7 +278,7 @@ class AnalogPizzaBoxStream(AnalogPizzaBoxAverage):
 
     def trigger(self):
         def callback(value, old_value, **kwargs):
-            print(f'{ttime.time()} {old_value} ---> {value}')
+            # print(f'{ttime.time()} {old_value} ---> {value}')
             if self._acquiring and int(round(old_value)) == 1 and int(round(value)) == 0:
                 self._acquiring = False
                 return True
@@ -280,13 +291,13 @@ class AnalogPizzaBoxStream(AnalogPizzaBoxAverage):
         return status
 
     def unstage(self, *args, **kwargs):
-        self._datum_counter = None
+        # self._datum_counter = None
         # st = self.stream.set(0)
         super().unstage(*args, **kwargs)
 
     # # Fly-able interface
 
-    # Not sure if we need it here or in FlyerAPB (see 63-...)
+    # Not sure if we need it here or in FlyerAPB (see 85-apb_plans.py)
     # def kickoff(self):
     #     status = self.stage()
     #     status &= self.trigger()
@@ -294,14 +305,14 @@ class AnalogPizzaBoxStream(AnalogPizzaBoxAverage):
 
     def complete(self, *args, **kwargs):
         def callback_saving(value, old_value, **kwargs):
-            print(f'     !!!!! {datetime.now()} callback_saving\n{value} --> {old_value}')
-            if int(round(old_value)) == 1 and int(round(value)) == 0:
-                print(f'     !!!!! {datetime.now()} callback_saving')
+            # print(f'     !!!!! {datetime.now()} callback_saving\n{value} --> {old_value}')
+            if old_value == 0 and value == 1:
+                # print(f'     !!!!! {datetime.now()} callback_saving')
                 return True
             else:
                 return False
-        filebin_st = SubscriptionStatus(self.filebin_status, callback_saving)
-        filetxt_st = SubscriptionStatus(self.filetxt_status, callback_saving)
+        filebin_st = SubscriptionStatus(self.filebin_status, callback_saving, run=False)
+        filetxt_st = SubscriptionStatus(self.filetxt_status, callback_saving, run=False)
 
         self._datum_ids = []
         datum_id = '{}/{}'.format(self._resource_uid, next(self._datum_counter))
@@ -310,7 +321,7 @@ class AnalogPizzaBoxStream(AnalogPizzaBoxAverage):
                  'datum_id': datum_id}
         self._asset_docs_cache.append(('datum', datum))
         self._datum_ids.append(datum_id)
-        return filebin_st & filetxt_st
+        return filebin_st and filetxt_st
 
     def collect(self):
         # self.ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -374,8 +385,13 @@ class AnalogPizzaBoxStream(AnalogPizzaBoxAverage):
 # apb_stream_c = AnalogPizzaBoxStream(prefix="XF:07BMC-CT{PBA:1}:", name="apb_stream_c")
 
 apb_dets = [
+    {"name": "apb_ave", "prefix": "XF:07BMB-CT{PBA:1}:"},
     {"name": "apb_stream", "prefix": "XF:07BMB-CT{PBA:1}:"},
     {"name": "apb_stream_c", "prefix": "XF:07BMC-CT{PBA:1}:"},
+<<<<<<< HEAD
+=======
+    {"name": "apb_ave_c", "prefix": "XF:07BMC-CT{PBA:1}:"},
+>>>>>>> main
 ]
 
 wait_time = 1.0  # seconds
@@ -435,6 +451,7 @@ apb.amp_ch8 = None
 class APBBinFileHandler(HandlerBase):
     "Read electrometer *.bin files"
     def __init__(self, fpath):
+
         # It's a text config file, which we don't store in the resources yet, parsing for now
         # fpath_txt = f'{os.path.splitext(fpath)[0]}.txt'
         #
