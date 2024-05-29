@@ -263,10 +263,10 @@ class QASXspress3Detector(XspressTrigger, Xspress3Detector):
 
     # Currently only using four channels. Uncomment these to enable more
     # channels:
-    # channel5 = C(Xspress3Channel, 'C5_', channel_num=5)
+    # channel5 = Cpt(Xspress3Channel, 'C5_', channel_num=5)
     # channel6 = Cpt(Xspress3Channel, 'C6_', channel_num=6)
-    # channel7 = C(Xspress3Channel, 'C7_', channel_num=7)
-    # channel8 = C(Xspress3Channel, 'C8_', channel_num=8)
+    # channel7 = Cpt(Xspress3Channel, 'C7_', channel_num=7)
+    # channel8 = Cpt(Xspress3Channel, 'C8_', channel_num=8)
 
 
 xs = QASXspress3Detector('XF:07BMB-ES{Xsp:1}:', name='xs')

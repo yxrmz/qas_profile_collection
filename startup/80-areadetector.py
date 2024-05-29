@@ -14,13 +14,13 @@ from ophyd.areadetector.filestore_mixins import (FileStoreIterativeWrite,
                                                  FileStoreTIFFSquashing,
                                                  FileStoreTIFF)
 from ophyd import Signal, EpicsSignal, EpicsSignalRO, EpicsSignalWithRBV # Tim test
-from ophyd import Component as C
+from ophyd import Component as Cpt
 from ophyd import StatusBase
 from ophyd.status import DeviceStatus
 from nslsii.ad33 import SingleTriggerV33, StatsPluginV33
 
 from packaging.version import Version
-from distutils.version import LooseVersion
+# from distutils.version import LooseVersion
 
 
 
@@ -36,60 +36,60 @@ class QASTIFFPlugin(TIFFPlugin, FileStoreTIFFSquashing,
 
 
 class PEDetCamWithVersions(PerkinElmerDetectorCam):
-    adcore_version = C(EpicsSignalRO, 'ADCoreVersion_RBV')
-    driver_version = C(EpicsSignalRO, 'DriverVersion_RBV')
+    adcore_version = Cpt(EpicsSignalRO, 'ADCoreVersion_RBV')
+    driver_version = Cpt(EpicsSignalRO, 'DriverVersion_RBV')
 
 
 class QASPerkinElmer(SingleTriggerV33, PerkinElmerDetector):
-    image = C(ImagePlugin, 'image1:')
-    cam = C(PEDetCamWithVersions, 'cam1:')
+    image = Cpt(ImagePlugin, 'image1:')
+    cam = Cpt(PEDetCamWithVersions, 'cam1:')
     _default_configuration_attrs = (PerkinElmerDetector._default_configuration_attrs +
         ('images_per_set', 'number_of_sets', 'pixel_size', 'sample_to_detector_distance'))
-    tiff = C(QASTIFFPlugin, 'TIFF1:',
-             write_path_template='a/b/c/d',
-             read_path_template='/a/b/c/d',
-             cam_name='cam',  # used to configure "tiff squashing"
-             proc_name='proc',  # ditto
-             read_attrs=[],
-             root='/nsls2/data/qas-new/legacy/raw/')
+    tiff = Cpt(QASTIFFPlugin, 'TIFF1:',
+               write_path_template='a/b/c/d',
+               read_path_template='/a/b/c/d',
+               cam_name='cam',  # used to configure "tiff squashing"
+               proc_name='proc',  # ditto
+               read_attrs=[],
+               root='/nsls2/data/qas-new/legacy/raw/')
 
     # hdf5 = C(QASHDF5Plugin, 'HDF1:',
     #          write_path_template='G:/pe1_data/%Y/%m/%d/',
     #          read_path_template='/direct/XF28ID2/pe1_data/%Y/%m/%d/',
     #          root='/direct/XF28ID2/')
 
-    proc = C(ProcessPlugin, 'Proc1:')
+    proc = Cpt(ProcessPlugin, 'Proc1:')
 
     # These attributes together replace `num_images`. They control
     # summing images before they are stored by the detector (a.k.a. "tiff
     # squashing").
-    images_per_set = C(Signal, value=1, add_prefix=())
-    number_of_sets = C(Signal, value=1, add_prefix=())
+    images_per_set = Cpt(Signal, value=1, add_prefix=())
+    number_of_sets = Cpt(Signal, value=1, add_prefix=())
     # sample_to_detector_distance measured in millimeters
-    sample_to_detector_distance = C(Signal, value=300.0, add_prefix=(), kind="config")
+    sample_to_detector_distance = Cpt(Signal, value=300.0, add_prefix=(), kind="config")
 
-    pixel_size = C(Signal, value=.0002, kind='config')
-    stats1 = C(StatsPluginV33, 'Stats1:')
-    stats2 = C(StatsPluginV33, 'Stats2:')
-    stats3 = C(StatsPluginV33, 'Stats3:')
-    stats4 = C(StatsPluginV33, 'Stats4:')
-    stats5 = C(StatsPluginV33, 'Stats5:')
+    pixel_size = Cpt(Signal, value=.0002, kind='config')
+    stats1 = Cpt(StatsPluginV33, 'Stats1:')
+    stats2 = Cpt(StatsPluginV33, 'Stats2:')
+    stats3 = Cpt(StatsPluginV33, 'Stats3:')
+    stats4 = Cpt(StatsPluginV33, 'Stats4:')
+    stats5 = Cpt(StatsPluginV33, 'Stats5:')
 
-    trans1 = C(TransformPlugin, 'Trans1:')
+    trans1 = Cpt(TransformPlugin, 'Trans1:')
 
-    roi1 = C(ROIPlugin, 'ROI1:')
-    roi2 = C(ROIPlugin, 'ROI2:')
-    roi3 = C(ROIPlugin, 'ROI3:')
-    roi4 = C(ROIPlugin, 'ROI4:')
-
-
+    roi1 = Cpt(ROIPlugin, 'ROI1:')
+    roi2 = Cpt(ROIPlugin, 'ROI2:')
+    roi3 = Cpt(ROIPlugin, 'ROI3:')
+    roi4 = Cpt(ROIPlugin, 'ROI4:')
 
 
-    num_dark_images = C(EpicsSignal, 'cam1:PENumOffsetFrames')
-    acquire_dark  = C(EpicsSignal,'cam1:PEAcquireOffset')
-    dark_aquisition_complete = C(EpicsSignal, 'cam1:PEAcquireOffset')
 
-    acquire_light = C(EpicsSignal, 'cam1:Acquire')
+
+    num_dark_images = Cpt(EpicsSignal, 'cam1:PENumOffsetFrames')
+    acquire_dark  = Cpt(EpicsSignal, 'cam1:PEAcquireOffset')
+    dark_aquisition_complete = Cpt(EpicsSignal, 'cam1:PEAcquireOffset')
+
+    acquire_light = Cpt(EpicsSignal, 'cam1:Acquire')
 
 
     def set(self,command):
