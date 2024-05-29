@@ -41,7 +41,7 @@ from suitcase.tiff_series import Serializer
 def pilatus_serializer_factory(name, doc):
 
 
-    print(f">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>{doc = }>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+    # print(f">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>{doc = }>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
     #
     # filename = '/nsls2/data/qas-new/legacy/processed/{year}/{cycle}/{PROPOSAL}Pilatus/test'.format(**doc)
     import datetime
