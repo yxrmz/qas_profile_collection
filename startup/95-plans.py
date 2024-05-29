@@ -65,8 +65,6 @@ def prep_traj_plan(delay = 0.1):
     yield from bps.sleep(delay)
 
 
-
-
 def execute_trajectory(name, ignore_shutter=True, **metadata):
     ''' Execute a trajectory on the flyers given:
             flyers : list of flyers to fly on
@@ -118,6 +116,7 @@ def execute_trajectory(name, ignore_shutter=True, **metadata):
     def inner():
         interp_fn = f"{ROOT_PATH}/{USER_FILEPATH}/{RE.md['year']}/{RE.md['cycle']}/{RE.md['PROPOSAL']}/{name}.raw"
         curr_traj = getattr(mono1, 'traj{:.0f}'.format(mono1.lut_number_rbv.get()))
+
         md = {'plan_args': {},
               'plan_name': 'execute_trajectory',
               'experiment': 'fly_energy_scan',

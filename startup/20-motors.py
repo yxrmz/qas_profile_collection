@@ -22,11 +22,20 @@ class SampleStage(Device):
 
 sample_stage1 = SampleStage('XF:07BMB-ES{Stg:1', name='sample_stage1')
 
+
+class PilatusMotion(Device):
+    x = Cpt(EpicsMotor, '-Ax:X}Mtr')
+    y = Cpt(EpicsMotor, '-Ax:Y}Mtr')
+
+
+pilatus_motion = PilatusMotion('XF:07BMB-ES{PIL:3', name='pilatus_motion')
+
 class MonoTrajDesc(Device):
     filename = Cpt(EpicsSignal, '-Name')
     elem = Cpt(EpicsSignal, '-Elem')
     edge = Cpt(EpicsSignal, '-Edge')
     e0 = Cpt(EpicsSignal, '-E0')
+    type = Cpt(EpicsSignal, '-Type')
 
 
 class Monochromator(Device):
@@ -75,14 +84,15 @@ class Monochromator(Device):
     traj8 = Cpt(MonoTrajDesc, 'MC:03}Traj:8')
     traj9 = Cpt(MonoTrajDesc, 'MC:03}Traj:9')
 
+    # trajectory_type = None
+
     angle_offset = Cpt(EpicsSignal, 'Mono:1-Ax:E}Offset', limits=True)
 
     def __init__(self, *args, enc = None, **kwargs):
         super().__init__(*args, **kwargs)
         self.pulses_per_deg = 1/self.main_motor_res.get()
         self.enc = enc
-        # self._preparing = None
-        # self._starting = None
+
 
     def set(self, command):
         if command == 'prepare':

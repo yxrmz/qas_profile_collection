@@ -72,6 +72,7 @@ ophyd.signal.EpicsSignalRO.set_defaults(timeout=GLOBAL_TIMEOUT, connection_timeo
 beamline_id = 'qas'
 
 from databroker.v0 import Broker
+# from databroker import Broker
 db = Broker.named(beamline_id)
 nslsii.configure_base(get_ipython().user_ns, db, bec=False, pbar=False,
                       publish_documents_with_kafka=False)
@@ -258,3 +259,40 @@ def print_now():
     if timeout is DEFAULT_CONNECTION_TIMEOUT:
         timeout = self.connection_timeout
     # print(f'{print_now()}: waiting for {self.name} to connect within {timeout:.4f} s...')
+
+
+def warmup_hdf5_plugins(detectors):
+    """
+    Warm-up the hdf5 plugins.
+
+    This is necessary for when the corresponding IOC restarts we have to trigger one image
+    for the hdf5 plugin to work correctly, else we get file writing errors.
+
+    Parameter:
+    ----------
+    detectors: list
+    """
+    for det in detectors:
+        _array_size = det.hdf5.array_size.get()
+        if 0 in [_array_size.height, _array_size.width] and hasattr(det, "hdf5"):
+            print(f"\n  Warming up HDF5 plugin for {det.name} as the array_size={_array_size}...")
+            det.hdf5.warmup()
+            print(f"  Warming up HDF5 plugin for {det.name} is done. array_size={det.hdf5.array_size.get()}\n")
+        else:
+            print(f"\n  Warming up of the HDF5 plugin is not needed for {det.name} as the array_size={_array_size}.")
+
+
+def print_to_gui(msg, tag='', add_timestamp=False, ntabs=0, stdout_alt=sys.stdout):
+    # print('THIS IS STDOUT', stdout, stdout is xlive_gui.emitstream_out)
+    try:
+        stdout = xlive_gui.emitstream_out
+    except NameError:
+        stdout = stdout_alt
+
+    msg = '\t'*ntabs + msg
+    if add_timestamp:
+        msg = f'({time_now_str()}) {msg}'
+    if tag:
+        msg = f'[{tag}] {msg}'
+
+    print(msg, file=stdout, flush=True)

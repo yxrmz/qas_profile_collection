@@ -9,7 +9,7 @@ from ophyd import (ProsilicaDetector, SingleTrigger, Component as Cpt, Device,
                    DeviceStatus)
 from ophyd.status import Status, SubscriptionStatus
 from ophyd import DeviceStatus
-from bluesky.examples import NullStatus
+from ophyd.sim import NullStatus
 
 from databroker.assets.handlers_base import HandlerBase
 from ophyd import (Component as C, FormattedComponent as FC)

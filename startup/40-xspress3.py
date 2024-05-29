@@ -115,6 +115,8 @@ class QASXspress3Detector(XspressTrigger, Xspress3Detector):
 
     cnt_time = Cpt(EpicsSignal, 'C1_SCA0:Value_RBV')
 
+    # channel6 = Cpt(Xspress3Channel, 'C6_', channel_num=6)
+
     #TODO change folder to xspress3
     hdf5 = Cpt(Xspress3FileStoreFlyable, 'HDF5:',
                read_path_template='/nsls2/data/qas-new/legacy/raw/x3m/%Y/%m/%d/',
@@ -262,7 +264,7 @@ class QASXspress3Detector(XspressTrigger, Xspress3Detector):
     # Currently only using four channels. Uncomment these to enable more
     # channels:
     # channel5 = C(Xspress3Channel, 'C5_', channel_num=5)
-    channel6 = C(Xspress3Channel, 'C6_', channel_num=6)
+    # channel6 = Cpt(Xspress3Channel, 'C6_', channel_num=6)
     # channel7 = C(Xspress3Channel, 'C7_', channel_num=7)
     # channel8 = C(Xspress3Channel, 'C8_', channel_num=8)
 

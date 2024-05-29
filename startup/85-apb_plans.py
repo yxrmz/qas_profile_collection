@@ -124,7 +124,7 @@ class FlyerAPB:
 
 
 flyer_apb = FlyerAPB(det=apb_stream, pbs=[pb1.enc1], motor=mono1)
-#flyer_apb_c = FlyerAPB(det=apb_stream_c, pbs=[pb1.enc1], motor=mono1)
+flyer_apb_c = FlyerAPB(det=apb_stream_c, pbs=[pb1.enc1], motor=mono1)
 
 
 def get_traj_duration():
@@ -134,11 +134,29 @@ def get_traj_duration():
     return int(info[lut]['size']) / 16000
 
 
+#Not good fix for the problem with knowing whether we have oscillatory trajectory running over it.
+
+def parse_trajectory_header(trajectory_filename=None):
+    path = '/home/xf07bm/trajectory/'
+    with open(path + trajectory_filename, 'r') as f:
+        line = f.readline()
+    header = line[1:].split(',')
+    dictionary = {}
+    for head in header:
+        item = head.split(":")
+        dictionary[item[0].strip()] = item[1].strip()
+
+    if 'oscillatory' not in dictionary.keys():
+        dictionary['oscillatory'] = False
+    return dictionary
+
+
 def get_md_for_scan(name, mono_scan_type, plan_name, experiment, detector=None, hutch=None, **metadata):
         interp_fn = f"{ROOT_PATH}/{USER_FILEPATH}/{RE.md['year']}/{RE.md['cycle']}/{RE.md['PROPOSAL']}/{name}.raw"
         interp_fn = validate_file_exists(interp_fn)
         #print(f'Storing data at {interp_fn}')
         curr_traj = getattr(mono1, 'traj{:.0f}'.format(mono1.lut_number_rbv.get()))
+        trajectory_header_dict = parse_trajectory_header(mono1.trajectory_name.get())
 
         i0_gainB  = i0_amp.get_gain()
         it_gainB  = it_amp.get_gain()
@@ -195,6 +213,7 @@ def get_md_for_scan(name, mono_scan_type, plan_name, experiment, detector=None, 
               'element_full': full_element_name,
               'edge': curr_traj.edge.get(),
               'e0': curr_traj.e0.get(),
+              'oscillatory': curr_traj.type.get(),
               'pulses_per_degree': mono1.pulses_per_deg,
               'keithley_gainsB': [i0_gainB, it_gainB, ir_gainB, iff_gainB],
               'ionchamber_ratesB': [mfc1B_he, mfc2B_n2, mfc3B_ar, mfc4B_n2, mfc5B_ar],
@@ -231,6 +250,7 @@ def execute_trajectory_apb(name, **metadata):
                          hutch='b',
                          **metadata)
     yield from bp.fly([flyer_apb], md=md)
+    # yield from custom_fly([flyer_apb], md=md)
 
 
 def execute_trajectory_apb_c(name, **metadata):
@@ -242,3 +262,42 @@ def execute_trajectory_apb_c(name, **metadata):
                          hutch='c',
                          **metadata)
     yield from bp.fly([flyer_apb_c], md=md)    
+
+
+def custom_fly(flyers, *, md=None):
+    """
+    Perform a fly scan with one or more 'flyers'.
+
+    Parameters
+    ----------
+    flyers : collection
+        objects that support the flyer interface
+    md : dict, optional
+        metadata
+
+    Yields
+    ------
+    msg : Msg
+        'kickoff', 'wait', 'complete, 'wait', 'collect' messages
+
+    See Also
+    --------
+    :func:`bluesky.preprocessors.fly_during_wrapper`
+    :func:`bluesky.preprocessors.fly_during_decorator`
+    """
+    uid = yield from bps.open_run(md)
+    for flyer in flyers:
+        print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>Kickoff starting<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<')
+        yield from bps.kickoff(flyer, wait=True)
+        print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>Kickoff finished<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<')
+    for flyer in flyers:
+        print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>complete starting<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<')
+        yield from bps.complete(flyer, wait=True)
+        print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>complete finished<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<')
+    for flyer in flyers:
+        print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>collect starting<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<')
+        yield from bps.collect(flyer)
+        print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>collect finished<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<')
+    yield from bps.close_run()
+    print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>Flyer finished<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<')
+    return uid

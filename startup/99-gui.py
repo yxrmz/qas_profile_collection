@@ -8,7 +8,7 @@ import atexit
 
 import PyQt5
 
-from bluesky.examples import motor
+from ophyd.sim import motor
 motor.move = motor.set
 
 
@@ -33,29 +33,35 @@ detector_dictionary = {#colmirror_diag.name: {'obj': colmirror_diag, 'elements':
                     'Ir Hutch C': {'device': apb_ave_c, 'channels': ['apb_ave_c_ch3_mean']},
                     'PIPS Hutch C': {'device': apb_ave_c, 'channels': ['apb_ave_c_ch4_mean']},
                     'xspress3 Hutch B' : {'device': xs, 'channels': ['xs_channel1_rois_roi01_value',
-                                                                     'xs_channel1_rois_roi02_value',
-                                                                     'xs_channel1_rois_roi03_value',
-                                                                     'xs_channel1_rois_roi04_value']}
+                                                                     'xs_channel2_rois_roi01_value',
+                                                                     'xs_channel3_rois_roi01_value',
+                                                                     'xs_channel4_rois_roi01_value']},
+                    'pilatus': {'device': pilatus, 'channels': ['pilatus_stats1_total']}
 
 }
 
 
 
-motors_dictionary = {jj_slits_hutchB.xctr.name: {'name': jj_slits_hutchB.xctr.name, 'description':'B hutch_inc_slits_xcenter',     'object': jj_slits_hutchB.xctr, 'keyword': 'B hutch ins xcenter'},
-                     jj_slits_hutchC.xctr.name: {'name': jj_slits_hutchC.xctr.name, 'description':'C hutch_inc_slits_xcenter',     'object': jj_slits_hutchC.xctr, 'keyword': 'C hutch ins xcenter'},
-                     drifts.drifts_x.name:      {'name': drifts.drifts_x.name,      'description':'C hutch_DRIFTS_horiz',          'object': drifts.drifts_x,      'keyword': 'C hutch DRIFTS horiz'},
-                     drifts.drifts_z.name:      {'name': drifts.drifts_z.name,      'description':'C hutch_DRIFTS_z',              'object': drifts.drifts_z,      'keyword': 'C hutch DRIFTS z'},
-                     beamstop.horizontal.name:  {'name': beamstop.horizontal.name,  'description': 'B hutch_beamstop_horiz',       'object':beamstop.horizontal,   'keyword': 'B hutch BS horiz'},
-                     beamstop.vertical.name:    {'name': beamstop.vertical.name,    'description': 'B hutch_beamstop_vertical',    'object': beamstop.vertical,    'keyword': 'B hutchB BS vertical'},
-                     ibp_hutchB.name:           {'name': ibp_hutchB.name,           'description': 'B hutch_inc_beam_path',        'object': ibp_hutchB,           'keyword': 'B hutch inc beam path'},
-                     ibp_hutchC.name:           {'name': ibp_hutchC.name,           'description': 'C hutch_inc_beam_path',        'object': ibp_hutchC,           'keyword': 'C hutch inc beam path'},
-                     sample_stage1.rotary.name: {'name': sample_stage1.rotary.name, 'description':'B hutch_sample_stage_rotation', 'object':sample_stage1.rotary,  'keyword': 'B hutch sample rotation'},
-                     sample_stage1.x.name:      {'name': sample_stage1.x.name,      'description':'B hutch_sample_stage_x',        'object':sample_stage1.x,       'keyword': 'B hutch sample x'},
-                     sample_stage1.y.name:      {'name': sample_stage1.y.name,      'description':'B hutch_sample_stage_y',        'object':sample_stage1.y,       'keyword': 'B hutch sample y'},
-                     sample_stage1.z.name:      {'name': sample_stage1.z.name,      'description':'B hutch_sample_stage_z',        'object':sample_stage1.z,       'keyword': 'B hutch sample z'},
-                     sample_stage1.theta.name:  {'name': sample_stage1.theta.name,  'description':'B hutch_sample_stage_theta',    'object':sample_stage1.theta,   'keyword': 'B hutch sample theta'},
-                     sample_stage1.chi.name:    {'name': sample_stage1.chi.name,    'description':'B hutch_sample_stage_chi',      'object':sample_stage1.chi,     'keyword': 'B hutch sample chi'},
+motors_dictionary = {jj_slits_hutchB.xctr.name: {'name': jj_slits_hutchB.xctr.name, 'description':'B hutch_inc_slits_xcenter',     'object': jj_slits_hutchB.xctr, 'keyword': 'B hutch ins xcenter',     'user_motor': False},
+                     jj_slits_hutchC.xctr.name: {'name': jj_slits_hutchC.xctr.name, 'description':'C hutch_inc_slits_xcenter',     'object': jj_slits_hutchC.xctr, 'keyword': 'C hutch ins xcenter',     'user_motor': False},
+                     jj_slits_hutchB.xgap.name : {'name': jj_slits_hutchC.xgap.name, 'description':'B hutch_inc_slits_xgap',       'object': jj_slits_hutchB.xgap, 'keyword': 'C hutch ins xgap',        'user_motor': False},
+                     drifts.drifts_x.name:      {'name': drifts.drifts_x.name,      'description':'C hutch_DRIFTS_horiz',          'object': drifts.drifts_x,      'keyword': 'C hutch DRIFTS horiz',    'user_motor': False},
+                     drifts.drifts_z.name:      {'name': drifts.drifts_z.name,      'description':'C hutch_DRIFTS_z',              'object': drifts.drifts_z,      'keyword': 'C hutch DRIFTS z',        'user_motor': False},
+                     beamstop.horizontal.name:  {'name': beamstop.horizontal.name,  'description': 'B hutch_beamstop_horiz',       'object':beamstop.horizontal,   'keyword': 'B hutch BS horiz',        'user_motor': False},
+                     beamstop.vertical.name:    {'name': beamstop.vertical.name,    'description': 'B hutch_beamstop_vertical',    'object': beamstop.vertical,    'keyword': 'B hutchB BS vertical',    'user_motor': False},
+                     ibp_hutchB.name:           {'name': ibp_hutchB.name,           'description': 'B hutch_inc_beam_path',        'object': ibp_hutchB,           'keyword': 'B hutch inc beam path',   'user_motor': False},
+                     ibp_hutchC.name:           {'name': ibp_hutchC.name,           'description': 'C hutch_inc_beam_path',        'object': ibp_hutchC,           'keyword': 'C hutch inc beam path',   'user_motor': False},
+                     sample_stage1.x.name:      {'name': sample_stage1.x.name,      'description':'B hutch_sample_stage_x',        'object':sample_stage1.x,       'keyword': 'B hutch sample x',        'user_motor': True},
+                     sample_stage1.y.name:      {'name': sample_stage1.y.name,      'description':'B hutch_sample_stage_y',        'object':sample_stage1.y,       'keyword': 'B hutch sample y',        'user_motor': True},
+                     sample_stage1.z.name:      {'name': sample_stage1.z.name,      'description':'B hutch_sample_stage_z',        'object':sample_stage1.z,       'keyword': 'B hutch sample z',        'user_motor': True},
+                     sample_stage1.rotary.name: {'name': sample_stage1.rotary.name, 'description':'B hutch_sample_stage_rotation', 'object':sample_stage1.rotary,  'keyword': 'B hutch sample rotation', 'user_motor': True},
+                     sample_stage1.theta.name:  {'name': sample_stage1.theta.name,  'description':'B hutch_sample_stage_theta',    'object':sample_stage1.theta,   'keyword': 'B hutch sample theta',    'user_motor': False},
+                     sample_stage1.chi.name:    {'name': sample_stage1.chi.name,    'description':'B hutch_sample_stage_chi',      'object':sample_stage1.chi,     'keyword': 'B hutch sample chi',      'user_motor': False},
+                     mono1.energy.name :        {'name' :mono1.energy.name,         'description': 'Mono Energy',                  'object': mono1.energy,         'keyword': 'Monochromator Energy',    'user_motor': False},
+                     pilatus_motion.x.name :    {'name': pilatus_motion.x.name,     'description': 'Pilatus X motion',              'object': pilatus_motion.x,    'keyword': 'Pilatus X motion',        'user_motor': False},
+                     pilatus_motion.y.name :    {'name': pilatus_motion.y.name,     'description': 'Pilatus Y motion',              'object': pilatus_motion.y,    'keyword': 'Pilatus Y motion',        'user_motor': False}
                     }
+
 
 shutters_dictionary = {
                        shutter_fe.name: shutter_fe,
@@ -80,9 +86,12 @@ aux_plan_funcs = {
 
 plan_funcs = {
     'XAS fly scan': fly_scan_with_apb,
-    # 'Fly scan in C': fly_scan_with_apb_c,
+   # 'Fly scan in C': fly_scan_with_apb_c,
     'XAS fly scan w/SDD': fly_scan_with_xs3,
-    'XRD take pattern': count_qas
+    'XRD take pattern': count_qas,
+    'XRD take pattern w/Pilatus':count_pilatus_qas,
+    'XAS controlled loop scan' : fly_scan_with_apb_with_controlled_loop,
+    'XAS hardware trigger scan' : fly_scan_with_hardware_trigger,
 }
 
 for shutter in shutters_dictionary.values():
@@ -93,14 +102,14 @@ app = QApplication(sys.argv)
 newApp = PyQt5.QtWidgets.QApplication(sys.argv)
 
 xlive_gui = isstools.xlive.XliveGui(plan_funcs=plan_funcs,
-                                    diff_plans=[count_qas, dark_frame_preprocessor],
+                                    diff_plans=[count_qas, dark_frame_preprocessor, count_pilatus_qas],
                                     aux_plan_funcs =aux_plan_funcs,
                                     service_plan_funcs=service_plan_funcs,
                                     prep_traj_plan= prep_traj_plan,
                                     RE=RE,
                                     db=db,
                                     apb = apb,
-                                    apb_c = None ,
+                                    apb_c = apb_c ,
                                     accelerator=nsls_ii,
                                     mono=mono1,
                                     sdd = xs,
