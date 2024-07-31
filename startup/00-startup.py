@@ -296,3 +296,12 @@ def print_to_gui(msg, tag='', add_timestamp=False, ntabs=0, stdout_alt=sys.stdou
         msg = f'[{tag}] {msg}'
 
     print(msg, file=stdout, flush=True)
+
+
+def print_docs(name, doc):
+    print("====================== Emitting Document ==================")
+    print(f"{name = }")
+    print(f"{doc = }")
+    print("====================== Done ==================")
+
+#RE.subscribe(print_docs)

@@ -194,12 +194,13 @@ class QASXspress3Detector(XspressTrigger, Xspress3Detector):
         # print(f'\n!!! num_frames: {num_frames}\n')
 
         for frame_num in range(num_frames):
-            datum_id = '{}/{}'.format(self.hdf5._resource_uid, next(self._datum_counter))
-            datum = {'resource': self.hdf5._resource_uid,
-                     'datum_kwargs': {'frame': frame_num},
-                     'datum_id': datum_id}
-            self._asset_docs_cache.append(('datum', datum))
-            self._datum_ids.append(datum_id)
+            if self.hdf5._resource_uid is not None:
+                datum_id = '{}/{}'.format(self.hdf5._resource_uid, next(self._datum_counter))
+                datum = {'resource': self.hdf5._resource_uid,
+                         'datum_kwargs': {'frame': frame_num},
+                         'datum_id': datum_id}
+                self._asset_docs_cache.append(('datum', datum))
+                self._datum_ids.append(datum_id)
 
         return NullStatus()
 
