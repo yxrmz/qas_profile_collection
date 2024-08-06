@@ -264,6 +264,7 @@ class EncoderFS(Encoder):
         self._asset_docs_cache = deque()
         self._resource_uid = None
         self._datum_counter = None
+        self._datum_ids = None
 
     # ## 3s scan testing staging method
     # def stage(self):
@@ -428,12 +429,15 @@ class EncoderFS(Encoder):
         now = ttime.time()
         #ttime.sleep(1)  # wait for file to be written by pizza box
         #breakpoint()
-        for datum_id in self._datum_ids:
-            data = {self.name: datum_id}
-            yield {'data': data,
-                   'timestamps': {key: now for key in data},
-                   'time': now,
-                   'filled': {key: False for key in data}}
+        if self._datum_ids is not None:
+            for datum_id in self._datum_ids:
+                data = {self.name: datum_id}
+                yield {'data': data,
+                       'timestamps': {key: now for key in data},
+                       'time': now,
+                       'filled': {key: False for key in data}}
+
+        self._datum_ids = None
         print('Collect of {} complete'.format(self.name))
 
     def describe_collect(self):
