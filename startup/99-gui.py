@@ -74,6 +74,8 @@ service_plan_funcs = {
     'xs_count': xs_count,
     'set Reference foil': set_reference_foil,
     'sleep': sleep_plan,
+    'move_energy': move_energy,
+    'set_lakeshore': set_lakeshore_temp,
     }
 
 sample_stages = [{'x': sample_stage1.x.name, 'y': sample_stage1.y.name}]

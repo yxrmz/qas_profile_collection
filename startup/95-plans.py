@@ -367,3 +367,13 @@ def get_offsets_plan(detectors = [apb_ave], time = 2):
 def sleep_plan(delay: float = 1.0, *args, **kwargs):
     yield from bps.sleep(float(delay))
 
+
+def move_energy(energy: float = 20000, *args, **kwargs):
+    yield from bps.mv(mono1.energy, float(energy))
+
+
+def set_lakeshore_temp(temperature: float= 5, ramp_rate: float=10, *args, **kwargs):
+    yield from bps.mv(lakeshore.ramp_rate, float(ramp_rate))
+    yield from bps.sleep(0.1)
+    yield from bps.mv(lakeshore.setpoint, float(temperature))
+    yield from bps.sleep(0.1)

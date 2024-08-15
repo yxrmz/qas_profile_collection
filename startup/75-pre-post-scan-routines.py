@@ -52,7 +52,8 @@ def get_reference_foil():
         if fw1_1 == the_fw1_1 and fw1_2 == the_fw1_2 and fw2_1 == the_fw2_1:
             the_element = element
     if the_element is None:
-        raise ValueError(f"failed to find an element for fw1={the_fw1} and fw2={the_fw2} in file {json_file_path}")
+        # raise ValueError(f"failed to find an element for fw1={the_fw1} and fw2={the_fw2} in file {json_file_path}")
+        raise ValueError(f"failed to find an element for fw1={the_fw1_1} and fw2={the_fw2_1} in file {json_file_path}")
     return the_element
 
     #yield from mv(foil_wheel.wheel2, reference[element]['foilwheel2'])

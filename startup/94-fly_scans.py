@@ -52,7 +52,7 @@ def fly_scan_with_apb(name: str, comment: str, n_cycles: int = 1, delay: float =
         if det_acquiring_status == 1:  # acquiring
             yield from bps.stop(flyer)
 
-    yield from bps.mv(shutter, "Close")
+    # yield from bps.mv(shutter, "Close")
 
 
     RE.md['experiment'] = ''

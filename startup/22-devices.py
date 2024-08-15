@@ -239,7 +239,15 @@ class EPS_MFC5(Device):
 
 mfc5_ar = EPS_MFC5('XF:07BMA-CT{MFC', name='mfc5_ar')
 
+class Lakeshore336Setpoint(Device):
+    readback = Cpt(EpicsSignalRO, 'Chan:A}T-I')
+    setpoint = Cpt(EpicsSignal, 'Out:1}T-SP')
+    ramp_rate = Cpt(EpicsSignal, 'Out:1}Val:Ramp-SP')
+    done = Cpt(EpicsSignalRO, 'Out:1}Enbl:Ramp-Sts')
+    ramp_enabled = Cpt(EpicsSignal, 'Out:1}Enbl:Ramp-Sel')
+    done_value = 0
 
+lakeshore = Lakeshore336Setpoint('XF:07BM-B{LS:01-', name = 'lakeshore')
 
 '''
 Here is the amplifier definition
