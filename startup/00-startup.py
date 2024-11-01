@@ -29,6 +29,11 @@ logger_open_files.addHandler(handler1)
 logger_open_files.propagate = False
 
 
+
+def time_now_str():
+    return datetime.strftime(datetime.now(), '%Y-%m-%d %H:%M:%S.%f')
+
+
 def audit(event, args):
     if event == "open":
         logger_open_files.debug(f"Opening file: {args}")
@@ -74,6 +79,7 @@ beamline_id = 'qas'
 from databroker.v0 import Broker
 # from databroker import Broker
 db = Broker.named(beamline_id)
+
 nslsii.configure_base(get_ipython().user_ns, db, bec=False, pbar=False,
                       publish_documents_with_kafka=False)
 nslsii.configure_kafka_publisher(RE, 'qas')

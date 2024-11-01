@@ -190,7 +190,7 @@ class LinkamThermal(Device):
         print( text )
 
 linkam = LinkamThermal('XF:07BM-B{Linkam:1}:', name='linkam')
-
+# hutch B ion chamber MFCs
 class EPS_MFC(Device):
     ch1_he_rb = Cpt(EpicsSignal, '-AI}MFC1_FB')
     ch1_he_sp = Cpt(EpicsSignal, '-AO}MFC1_SP')
@@ -239,6 +239,56 @@ class EPS_MFC5(Device):
 
 mfc5_ar = EPS_MFC5('XF:07BMA-CT{MFC', name='mfc5_ar')
 
+# hutch C ion chamber MFCs
+
+class DIODE_MFC(Device):
+    ch1_c_he_rb = Cpt(EpicsSignal, ':1}Gas:Flow-I')
+    ch1_c_he_sp = Cpt(EpicsSignal, ':1}Gas:Flow-SP')
+
+    ch2_c_n2_rb = Cpt(EpicsSignal, ':2}Gas:Flow-I')
+    ch2_c_n2_sp = Cpt(EpicsSignal, ':2}Gas:Flow-SP')
+
+    ch3_c_ar_rb = Cpt(EpicsSignal, ':3}Gas:Flow-I')
+    ch3_c_ar_sp = Cpt(EpicsSignal, ':3}Gas:Flow-SP')
+
+    ch4_c_n2_rb = Cpt(EpicsSignal, ':4}Gas:Flow-I')
+    ch4_c_n2_sp = Cpt(EpicsSignal, ':4}Gas:Flow-SP')
+
+    ch5_c_ar_rb = Cpt(EpicsSignal, ':5}Gas:Flow-I')
+    ch5_c_ar_sp = Cpt(EpicsSignal, ':5}Gas:Flow-SP')
+
+mfc_c = DIODE_MFC('XF:07BMC-CT{Ion:1-MFC', name='mfc_c')
+class DIODE_MFC1(Device):
+    flow_rb = Cpt(EpicsSignal, ':1}Gas:Flow-I')
+    flow_sp = Cpt(EpicsSignal, ':1}Gas:Flow-SP')
+
+mfc1_c_he = DIODE_MFC1('XF:07BMC-CT{Ion:1-MFC', name='mfc1_c_he')
+class DIODE_MFC2(Device):
+    flow_rb = Cpt(EpicsSignal, ':2}Gas:Flow-I')
+    flow_sp = Cpt(EpicsSignal, ':2}Gas:Flow-SP')
+
+mfc2_c_n2 = DIODE_MFC2('XF:07BMC-CT{Ion:1-MFC', name='mfc2_c_n2')
+
+class DIODE_MFC3(Device):
+    flow_rb = Cpt(EpicsSignal, ':3}Gas:Flow-I')
+    flow_sp = Cpt(EpicsSignal, ':3}Gas:Flow-SP')
+
+mfc3_c_ar = DIODE_MFC3('XF:07BMC-CT{Ion:1-MFC', name='mfc3_c_ar')
+
+class DIODE_MFC4(Device):
+    flow_rb = Cpt(EpicsSignal, ':4}Gas:Flow-I')
+    flow_sp = Cpt(EpicsSignal, ':4}Gas:Flow-SP')
+
+mfc4_c_n2 = DIODE_MFC4('XF:07BMC-CT{Ion:1-MFC', name='mfc4_c_n2')
+
+class DIODE_MFC5(Device):
+    flow_rb = Cpt(EpicsSignal, ':5}Gas:Flow-I')
+    flow_sp = Cpt(EpicsSignal, ':5}Gas:Flow-SP')
+
+mfc5_c_ar = DIODE_MFC5('XF:07BMC-CT{Ion:1-MFC', name='mfc5_c_ar')
+
+
+
 class Lakeshore336Setpoint(Device):
     readback = Cpt(EpicsSignalRO, 'Chan:A}T-I')
     setpoint = Cpt(EpicsSignal, 'Out:1}T-SP')
@@ -275,7 +325,7 @@ class WienerPowerSupply(Device):
     ir_grid_sp = Cpt(EpicsSignal, 'u305}V-Set')
 
 wps = WienerPowerSupply("XF:07BMC-OP{WPS:01-HV:", name='wps') # For hutch C
-wps = WienerPowerSupply("XF:07BMB-OP{WPS:01-HV:", name='wps') #For hutch B
+wps = WienerPowerSupply("XF:07BMB-OP{WPS:01-HV:", name='wps') # For hutch B
 class ICAmplifier(Device):
 
     gain = Cpt(EpicsSignal,'Gain')
@@ -294,7 +344,7 @@ class ICAmplifier(Device):
     def set_gain_plan(self, gain):
         yield from bps.abs_set(self.gain, gain-3)
 
-
+#hutch B ion chamber amplifiers
 
 i0_amp = ICAmplifier('XF:07BM:K428:A:',name='i0_amp')
  
@@ -303,6 +353,15 @@ it_amp = ICAmplifier('XF:07BM:K428:B:',name='it_amp')
 ir_amp = ICAmplifier('XF:07BM:K428:C:',name='ir_amp')
 
 iff_amp = ICAmplifier('XF:07BM:K428:D:',name='iff_amp')
+
+#hutch C ion chamber amplifiers
+i0_amp_c = ICAmplifier('XF:07BM:K428:E:', name='i0_amp_c')
+
+it_amp_c = ICAmplifier('XF:07BM:K428:F:', name='it_amp_c')
+
+ir_amp_c = ICAmplifier('XF:07BM:K428:G:', name='ir_amp_c')
+
+
 
 
 '''

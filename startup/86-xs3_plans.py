@@ -37,6 +37,7 @@ class FlyerAPBwithTrigger(FlyerAPB):
         self.trigger.unstage()
         yield from super().collect()
         yield from self.trigger.collect()
+        print(f'-------------- FLYER APBTRIGGER collect is being returned------------- ({ttime.ctime(ttime.time())})')
 
 
 flyer_apb_trigger = FlyerAPBwithTrigger(det=apb_stream, pbs=[pb1.enc1], motor=mono1, trigger=apb_trigger)
@@ -68,18 +69,22 @@ class FlyerXS(FlyerAPBwithTrigger):
         return st_super & saving_st
 
     def describe_collect(self):
+        print('---------------------------------In describe collect--------------------------------------')
         dict_super = super().describe_collect()
         dict_xs = self.xs_det.describe_collect()
         return {**dict_super, **dict_xs}
 
     def collect_asset_docs(self):
+        print('---------------------------------collect asset doc--------------------------------------')
         yield from super().collect_asset_docs()
         yield from self.xs_det.collect_asset_docs()
 
     def collect(self):
+        print('---------------------------------In collect--------------------------------------')
         self.xs_det.unstage()
         yield from super().collect()
         yield from self.xs_det.collect()
+        print(f'-------------- FLYER APBTRIGGER collect is being returned------------- ({ttime.ctime(ttime.time())})')
 
 
 flyer_xs = FlyerXS(det=apb_stream, pbs=[pb1.enc1], motor=mono1, trigger=apb_trigger, xs_det=xs_stream)

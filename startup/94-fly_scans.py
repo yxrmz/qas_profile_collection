@@ -51,11 +51,17 @@ def fly_scan_with_apb(name: str, comment: str, n_cycles: int = 1, delay: float =
         det_acquiring_status = (yield from bps.rd(flyer.det.acquiring))
         if det_acquiring_status == 1:  # acquiring
             yield from bps.stop(flyer)
+        __energy = mono1.energy.user_readback.get()
+
+        print(f"After Fly scan {__energy = }")
+        print_to_gui("--------------------------FLY scan finished----------------------", add_timestamp=True)
 
     # yield from bps.mv(shutter, "Close")
 
 
     RE.md['experiment'] = ''
+
+
     return (yield from bpp.finalize_wrapper(plan(), final_plan))
 
 

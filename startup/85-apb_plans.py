@@ -119,7 +119,7 @@ class FlyerAPB:
             for pb in self.pbs:
                 yield from pb.collect()
             yield from self.det.collect()
-        # print(f'collect is being returned ({ttime.ctime(ttime.time())})')
+        print(f'-------------- FLYER APB collect is being returned------------- ({ttime.ctime(ttime.time())})')
         return collect_all()
 
 
@@ -158,11 +158,6 @@ def get_md_for_scan(name, mono_scan_type, plan_name, experiment, detector=None, 
         curr_traj = getattr(mono1, 'traj{:.0f}'.format(mono1.lut_number_rbv.get()))
         trajectory_header_dict = parse_trajectory_header(mono1.trajectory_name.get())
 
-        i0_gainB  = i0_amp.get_gain()
-        it_gainB  = it_amp.get_gain()
-        ir_gainB  = ir_amp.get_gain()
-        iff_gainB = iff_amp.get_gain()
-
         # Terrible hack again following Eli's foot steps
         foil_elem = get_reference_foil()
         i0_gainB = i0_amp.get_gain()
@@ -188,13 +183,45 @@ def get_md_for_scan(name, mono_scan_type, plan_name, experiment, detector=None, 
         sample_stageB_y = sample_stage1.y.user_readback.get()
         sample_stageB_z = sample_stage1.z.user_readback.get()
 
-        pe_y = pe_pos.vertical.user_readback.get()
+        # pe_y = pe_pos.vertical.user_readback.get()
         linkam_temperature = linkam.temperature_current.get()
         linkam_rr = linkam.ramprate.get()
 
         cm_xu = cm.hor_up.user_readback.get()
         cm_xd = cm.hor_down.user_readback.get()
         # End of terrible hack
+
+        # Terrible hack again following Eli's foot steps for hutch C
+
+        i0_gainC = i0_amp_c.get_gain()
+        it_gainC = it_amp_c.get_gain()
+        ir_gainC = ir_amp_c.get_gain()
+
+
+        mfc1C_he = mfc1_c_he.flow_rb.get()
+        mfc2C_n2 = mfc2_c_n2.flow_rb.get()
+        mfc3C_ar = mfc3_c_ar.flow_rb.get()
+        mfc4C_n2 = mfc4_c_n2.flow_rb.get()
+        mfc5C_ar = mfc5_c_ar.flow_rb.get()
+
+        incident_beampathC_y = ibp_hutchC.user_readback.get()
+
+        incident_slitsC_top = jj_slits_hutchC.top.user_readback.get()
+        incident_slitsC_bottom = jj_slits_hutchC.bottom.user_readback.get()
+        incident_slitsC_inboard = jj_slits_hutchC.inboard.user_readback.get()
+        incident_slitsC_outboard = jj_slits_hutchC.outboard.user_readback.get()
+
+        drifts_table_hor_up = exp_table_c.hor_up.user_readback.get()
+        drifts_table_hor_down = exp_table_c.hor_down.user_readback.get()
+        drifts_table_vert_up_in = exp_table_c.vert_up_in.user_readback.get()
+        drifts_table_vert_up_out = exp_table_c.vert_up_out.user_readback.get()
+        drifts_table_vert_down = exp_table_c.vert_down.user_readback.get()
+
+
+        drifts_z = drifts.drifts_z.user_readback.get()
+        drifts_x = drifts.drifts_x.user_readback.get()
+
+        # End of terrible hack of hutch C
 
 
         try:
@@ -221,7 +248,15 @@ def get_md_for_scan(name, mono_scan_type, plan_name, experiment, detector=None, 
               'incident_slits': [incident_slitsB_top, incident_slitsB_bottom, incident_slitsB_inboard,
                                  incident_slitsB_outboard],
               'sample_stageB': [sample_stageB_rot, sample_stageB_x, sample_stageB_y, sample_stageB_z],
-              'pe_vertical': [pe_y],
+              'keithley_gainsC': [i0_gainC, it_gainC, ir_gainC],
+              'ionchamber_ratesC': [mfc1C_he, mfc2C_n2, mfc3C_ar, mfc4C_n2, mfc5C_ar],
+              'incident_beampathC': [incident_beampathC_y],
+              'incident_slits_c': [incident_slitsC_top, incident_slitsC_bottom, incident_slitsC_inboard,
+                                 incident_slitsC_outboard],
+              'hutchC_table':[drifts_table_hor_up,drifts_table_hor_down, drifts_table_vert_up_in,
+                               drifts_table_vert_up_out, drifts_table_vert_down],
+              'drifts_stageC': [drifts_z,drifts_x],
+              # 'pe_vertical': [pe_y],
               'linkam_temperature': [linkam_temperature, linkam_rr],
               'cm_horizontal': [cm_xu, cm_xd],
               'hutch': hutch,

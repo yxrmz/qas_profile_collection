@@ -370,6 +370,7 @@ class QASXspress3DetectorStream(QASXspress3Detector):
                    'timestamps': {key: ts for key in data},
                    'time': ts,  # TODO: use the proper timestamps from the mono start and stop times
                    'filled': {key: False for key in data}}
+            print(f"-------------------{ts}-------------------------------------")
 
     def collect_asset_docs(self):
         items = list(self._asset_docs_cache)

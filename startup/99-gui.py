@@ -76,6 +76,8 @@ service_plan_funcs = {
     'sleep': sleep_plan,
     'move_energy': move_energy,
     'set_lakeshore': set_lakeshore_temp,
+    'set_linkam': set_linkam_temp,
+    # 'set_gains': set_gains
     }
 
 sample_stages = [{'x': sample_stage1.x.name, 'y': sample_stage1.y.name}]
@@ -88,7 +90,7 @@ aux_plan_funcs = {
 
 plan_funcs = {
     'XAS fly scan': fly_scan_with_apb,
-   # 'Fly scan in C': fly_scan_with_apb_c,
+    # 'Fly scan in C': fly_scan_with_apb_c,
     'XAS fly scan w/SDD': fly_scan_with_xs3,
     'XRD take pattern': count_qas,
     'XRD take pattern w/Pilatus':count_pilatus_qas,

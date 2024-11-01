@@ -111,6 +111,7 @@ class AnalogPizzaBoxTrigger(Device):
 
         # Copied from 10-detectors.py (class EncoderFS)
         now = ttime.time()
+        print(f"{len(self._datum_ids) = }")
         for datum_id in self._datum_ids:
             data = {self.name: datum_id}
             yield {'data': data,

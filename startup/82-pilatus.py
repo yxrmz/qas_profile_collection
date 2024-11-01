@@ -292,7 +292,7 @@ class PilatusBase(SingleTriggerV33, PilatusDetectorNonBlocking):
 
     def stage(self):
         self.enforce_roi_match_between_plugins()
-        self.cam.file_name.put(f"{str(uuid.uuid4())[:8]}_")
+        # self.cam.file_name.put(f"{str(uuid.uuid4())[:8]}_")
         return super().stage()
 
     def get_roi_coords(self, roi_num):

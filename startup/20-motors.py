@@ -22,13 +22,14 @@ class SampleStage(Device):
 
 sample_stage1 = SampleStage('XF:07BMB-ES{Stg:1', name='sample_stage1')
 
-
 class PilatusMotion(Device):
     x = Cpt(EpicsMotor, '-Ax:X}Mtr')
     y = Cpt(EpicsMotor, '-Ax:Y}Mtr')
 
 
 pilatus_motion = PilatusMotion('XF:07BMB-ES{PIL:3', name='pilatus_motion')
+
+
 
 class MonoTrajDesc(Device):
     filename = Cpt(EpicsSignal, '-Name')
@@ -214,6 +215,17 @@ class Table(Device):
     vert_down_out = Cpt(EpicsMotor, '-Ax:YDO}Mtr')
 
 exp_table = Table('XF:07BMB-OP{Asm:1', name='exp_table')
+
+
+class Table_c(Device):
+    hor_up = Cpt(EpicsMotor, '-Ax:XU}Mtr')
+    hor_down = Cpt(EpicsMotor, '-Ax:XD}Mtr')
+    vert_up_in = Cpt(EpicsMotor, '-Ax:YUI}Mtr')
+    vert_up_out = Cpt(EpicsMotor, '-Ax:YUO}Mtr')
+    vert_down = Cpt(EpicsMotor, '-Ax:YD}Mtr')
+
+
+exp_table_c = Table_c('XF:07BMC-OP{Asm:1', name='exp_table_c')
 
 
 class BeamStop(Device):

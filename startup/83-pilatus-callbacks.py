@@ -118,7 +118,10 @@ def count_pilatus_qas(sample_name, frame_count, subframe_time, subframe_count, d
         # to avoid spending a lot of time after the exposure just waiting around
         yield from bps.mv(detector.cam.acquire_period, subframe_time + 0.1)
         yield from bps.mv(detector.images_per_set, subframe_count)
-
+# temporarily add sample_stage B position to md
+        sample_stageB_x = sample_stage1.x.user_readback.get()
+        sample_stageB_y = sample_stage1.y.user_readback.get()
+# end of temporary md
         return (
             yield from bp.count(
                 [detector],
@@ -126,7 +129,8 @@ def count_pilatus_qas(sample_name, frame_count, subframe_time, subframe_count, d
                 md={
                     "experiment": 'diffraction',
                     "sample_name": sample_name,
-                    "exposure_time": subframe_time * subframe_count
+                    "exposure_time": subframe_time * subframe_count,
+                    'sample_stageB': [sample_stageB_x, sample_stageB_y]
                 },
                 delay=delay
             )
@@ -135,6 +139,11 @@ def count_pilatus_qas(sample_name, frame_count, subframe_time, subframe_count, d
     def finally_plan():
         for name, doc in db[-1].documents():
             pilatus_serializer_rr(name, doc)
+
+        __energy = mono1.energy.user_readback.get()
+
+        print(f"After XRD scan {__energy = }")
+        print_to_gui("--------------------------XRD scan finished----------------------", add_timestamp=True)
         yield from bps.mv(shutter, "Close")
 
     return (yield from bpp.finalize_wrapper(inner_count_qas(), finally_plan))
