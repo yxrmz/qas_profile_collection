@@ -360,6 +360,8 @@ class QASXspress3DetectorStream(QASXspress3Detector):
     def collect(self):
         num_frames = len(self._datum_ids)
 
+        # break num_frames up and yield in sections?
+
         for frame_num in range(num_frames):
             datum_id = self._datum_ids[frame_num]
             data = {self.name: datum_id}
@@ -370,7 +372,7 @@ class QASXspress3DetectorStream(QASXspress3Detector):
                    'timestamps': {key: ts for key in data},
                    'time': ts,  # TODO: use the proper timestamps from the mono start and stop times
                    'filled': {key: False for key in data}}
-            print(f"-------------------{ts}-------------------------------------")
+            # print(f"-------------------{ts}-------------------------------------")
 
     def collect_asset_docs(self):
         items = list(self._asset_docs_cache)

@@ -35,7 +35,9 @@ detector_dictionary = {#colmirror_diag.name: {'obj': colmirror_diag, 'elements':
                     'xspress3 Hutch B' : {'device': xs, 'channels': ['xs_channel1_rois_roi01_value',
                                                                      'xs_channel2_rois_roi01_value',
                                                                      'xs_channel3_rois_roi01_value',
-                                                                     'xs_channel4_rois_roi01_value']},
+                                                                     'xs_channel4_rois_roi01_value',
+                                                                     'xs_channel6_rois_roi01_value',
+                                                                     'xs_channel6_rois_roi04_value']},
                     'pilatus': {'device': pilatus, 'channels': ['pilatus_stats1_total']}
 
 }
@@ -77,7 +79,7 @@ service_plan_funcs = {
     'move_energy': move_energy,
     'set_lakeshore': set_lakeshore_temp,
     'set_linkam': set_linkam_temp,
-    # 'set_gains': set_gains
+    'set_gains': set_gains
     }
 
 sample_stages = [{'x': sample_stage1.x.name, 'y': sample_stage1.y.name}]
@@ -106,7 +108,7 @@ app = QApplication(sys.argv)
 newApp = PyQt5.QtWidgets.QApplication(sys.argv)
 
 xlive_gui = isstools.xlive.XliveGui(plan_funcs=plan_funcs,
-                                    diff_plans=[count_qas, dark_frame_preprocessor, count_pilatus_qas],
+                                    diff_plans=[count_qas, dark_frame_preprocessor, count_pilatus_qas, count_pilatus_qas_dafs],
                                     aux_plan_funcs =aux_plan_funcs,
                                     service_plan_funcs=service_plan_funcs,
                                     prep_traj_plan= prep_traj_plan,

@@ -13,6 +13,8 @@ from ophyd import Device, Component as Cpt, EpicsSignal
 
 from bluesky.utils import ts_msg_hook
 RE.msg_hook = ts_msg_hook  # noqa
+
+from xas import xray
 from tifffile import imwrite
 
 # this is not needed if you have ophyd >= 1.5.4, maybe
@@ -80,9 +82,33 @@ def save_tiffs_on_stop(name, doc):
         # <tiff-saving-code-here>
 
 
-def count_pilatus_qas(sample_name, frame_count, subframe_time, subframe_count, delay=None, shutter=shutter_fs, detector=pilatus, **kwargs):
+def xas_energy_grid_dafs(below_edge, above_edge, e0, edge_start, edge_end, preedge_spacing, xanes_spacing, exafs_k_spacing):
+    energy_range_lo= e0 + below_edge
+    energy_range_hi = e0 + above_edge
+
+    preedge = np.arange(energy_range_lo, e0 + edge_start-1, preedge_spacing)
+
+    before_edge = np.arange(e0+edge_start,e0 + edge_start+7, 1)
+
+    edge = np.arange(e0+edge_start+7, e0+edge_end-7, xanes_spacing)
+
+    after_edge = np.arange(e0 + edge_end - 7, e0 + edge_end, 0.7)
+
+    eenergy = xray.k2e(xray.e2k(e0 + edge_end, e0), e0)
+    post_edge = np.array([])
+
+    while (eenergy < energy_range_hi):
+        kenergy = xray.e2k(eenergy, e0)
+        kenergy += exafs_k_spacing
+        eenergy = xray.k2e(kenergy, e0)
+        post_edge = np.append(post_edge, eenergy)
+    return np.concatenate((preedge, before_edge, edge, after_edge, post_edge))
+
+def count_pilatus_qas(sample_name, frame_count, subframe_time, subframe_count, delay=None, shutter=shutter_fs, detector=pilatus,  **kwargs):
 
     pilatus.tiff_file_path.put(sample_name)
+
+
 
     """
 
@@ -147,3 +173,17 @@ def count_pilatus_qas(sample_name, frame_count, subframe_time, subframe_count, d
         yield from bps.mv(shutter, "Close")
 
     return (yield from bpp.finalize_wrapper(inner_count_qas(), finally_plan))
+
+
+def count_pilatus_qas_dafs(sample_name, frame_count, subframe_time, subframe_count, delay=None, shutter=shutter_fs,
+                           detector=pilatus, dafs_mode=False, e0=24350, below_edge=200, above_edge=1000, edge_start=-30, edge_end=30,
+                           pre_edge_spacing=5, xanes_spacing=1, exafs_k_spacing=0.05, **kwargs):
+
+    if dafs_mode:
+        energy_points = xas_energy_grid_dafs(below_edge, above_edge, e0, edge_start, edge_end, pre_edge_spacing, xanes_spacing,
+                                    exafs_k_spacing)
+        for i, energy in enumerate(energy_points):
+            yield from move_energy(energy)
+            yield from count_pilatus_qas(sample_name=f'{sample_name}_{energy:1.0f}eV_index_{i+1:03}', frame_count=frame_count,
+                                         subframe_count=subframe_count, subframe_time=subframe_time, delay=delay, shutter=shutter, detector=detector)
+

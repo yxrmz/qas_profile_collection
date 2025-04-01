@@ -298,6 +298,8 @@ def get_offsets_plan(detectors = [apb_ave], time = 2):
        # yield from bps.abs_set(detector.divide, detector.divide_old)
        yield from detector.restore_to_saved_status()
 
+   print(f"{uid = }")
+
    table = db[uid].table()
 
    for detector in detectors:
@@ -344,19 +346,18 @@ def set_linkam_temp(temperature: float= 5, ramp_rate: float=10, *args, **kwargs)
 
 
 
-# def set_gains(i0: int = 6, it: int = 6, ir: int = 6, iff: int = 6, *args, **kwargs):
-#     combo_box_offset = 3 #gains starts at 3 but the combo box index starts at 0
-#
-#     yield from bps.abs_set(apb.amp_ch1.gain, int(i0)-combo_box_offset)
-#     yield from sleep_plan(0.5)
-#     yield from bps.abs_set(apb.amp_ch2.gain, int(it)-combo_box_offset)
-#     yield from sleep_plan(0.5)
-#     yield from bps.abs_set(apb.amp_ch3.gain, int(ir)-combo_box_offset)
-#     yield from sleep_plan(0.5)
-#     yield from bps.abs_set(apb.amp_ch4.gain, int(iff)-combo_box_offset)
-#     yield from sleep_plan(1)
-#
-#     yield from get_offsets()
+def set_gains(i0: int = 6, it: int = 6, ir: int = 6, iff: int = 6, *args, **kwargs):
+    combo_box_offset = 3 #gains starts at 3 but the combo box index starts at 0
+
+    apb.amp_ch1.gain.put(int(i0)-combo_box_offset)
+    yield from sleep_plan(0.1)
+    apb.amp_ch2.gain.put(int(it)-combo_box_offset)
+    yield from sleep_plan(0.1)
+    apb.amp_ch3.gain.put(int(ir)-combo_box_offset)
+    yield from sleep_plan(0.1)
+    apb.amp_ch4.gain.put(int(iff)-combo_box_offset)
+    yield from sleep_plan(0.5)
+    yield from get_offsets()
 
 
 

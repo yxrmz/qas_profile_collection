@@ -49,14 +49,17 @@ class FlyerXS(FlyerAPBwithTrigger):
         super().__init__( det, pbs, motor, trigger)
         self.xs_det = xs_det
 
-    def kickoff(self, traj_duration=None):  
+    def kickoff(self, traj_duration=None):
+        # print('---------------------------------In kickoff--------------------------------------')
         traj_duration = get_traj_duration()
         acq_rate = self.trigger.freq.get()
         self.xs_det.stage(acq_rate, traj_duration)
         st_super = super().kickoff(traj_duration=traj_duration)
+        # print('---------------------------------Kickoff complete--------------------------------------')
         return st_super
 
     def complete(self):
+        # print('---------------------------------In complete--------------------------------------')
         st_super = super().complete()
         def callback_xs(value, old_value, **kwargs):
             if int(round(old_value)) == 1 and int(round(value)) == 0:
@@ -66,25 +69,27 @@ class FlyerXS(FlyerAPBwithTrigger):
                 return False
 
         saving_st = SubscriptionStatus(self.xs_det.hdf5.capture, callback_xs)
+        # print('---------------------------------Complete finished--------------------------------------')
         return st_super & saving_st
 
     def describe_collect(self):
-        print('---------------------------------In describe collect--------------------------------------')
+        # print('---------------------------------In describe collect--------------------------------------')
         dict_super = super().describe_collect()
         dict_xs = self.xs_det.describe_collect()
         return {**dict_super, **dict_xs}
 
     def collect_asset_docs(self):
-        print('---------------------------------collect asset doc--------------------------------------')
+        # print('---------------------------------collect asset doc--------------------------------------')
         yield from super().collect_asset_docs()
         yield from self.xs_det.collect_asset_docs()
 
     def collect(self):
-        print('---------------------------------In collect--------------------------------------')
+        # print('---------------------------------In collect--------------------------------------')
         self.xs_det.unstage()
         yield from super().collect()
+        # print(f'-------------- FLYER APBTRIGGER collect is being returned------------- ({ttime.ctime(ttime.time())})')
         yield from self.xs_det.collect()
-        print(f'-------------- FLYER APBTRIGGER collect is being returned------------- ({ttime.ctime(ttime.time())})')
+        # print(f'-------------- FLYER XS collect is being returned------------- ({ttime.ctime(ttime.time())})')
 
 
 flyer_xs = FlyerXS(det=apb_stream, pbs=[pb1.enc1], motor=mono1, trigger=apb_trigger, xs_det=xs_stream)
