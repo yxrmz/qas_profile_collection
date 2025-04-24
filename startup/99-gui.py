@@ -1,5 +1,7 @@
 print(__file__)
 print("Loading isstools, preparing GUI...")
+
+from IPython import get_ipython
 from PyQt5.QtWidgets import QApplication
 import functools
 import isstools.xlive
@@ -7,6 +9,7 @@ import collections
 import atexit
 
 import PyQt5
+
 
 from ophyd.sim import motor
 motor.move = motor.set
@@ -103,9 +106,16 @@ plan_funcs = {
 for shutter in shutters_dictionary.values():
     shutter.status.wait_for_connection()
 
-app = QApplication(sys.argv)
+ipython = get_ipython()
+if ipython is not None:
+    ipython.run_line_magic('gui', 'qt')
 
-newApp = PyQt5.QtWidgets.QApplication(sys.argv)
+app = QApplication.instance()
+
+if not app:
+    app = QApplication(sys.argv)
+
+#newApp = PyQt5.QtWidgets.QApplication(sys.argv)
 
 xlive_gui = isstools.xlive.XliveGui(plan_funcs=plan_funcs,
                                     diff_plans=[count_qas, dark_frame_preprocessor, count_pilatus_qas, count_pilatus_qas_dafs],
@@ -132,9 +142,9 @@ xlive_gui = isstools.xlive.XliveGui(plan_funcs=plan_funcs,
 
 sys.stdout = xlive_gui.emitstream_out
 
+
 def xlive():
     xlive_gui.show()
-
 
 
 xlive()
