@@ -13,6 +13,8 @@ from pathlib import Path
 
 import logging
 from logging.handlers import TimedRotatingFileHandler
+import redis
+from redis_json_dict import RedisJSONDict
 
 logger_open_files = logging.getLogger("QAS")
 logger_open_files.setLevel(logging.DEBUG)
@@ -234,7 +236,9 @@ except ImportError:
 
 # runengine_metadata_dir = appdirs.user_data_dir(appname="bluesky") / Path("runengine-metadata")  # writes to ~/.local/...
 runengine_metadata_dir = Path(f'{ROOT_PATH_SHARED}/config/bluesky/') / Path("runengine-metadata")
-RE.md = PersistentDict(runengine_metadata_dir) # PersistentDict will create the directory if it does not exist
+#_md = PersistentDict(runengine_metadata_dir) # PersistentDict will create the directory if it does not exist
+
+RE.md = RedisJSONDict(redis.Redis("info.qas.nsls2.bnl.gov", 6379), prefix="")
 
 # these should *always* be QAS
 RE.md['group'] = beamline_id
@@ -242,6 +246,8 @@ RE.md['beamline_id'] = beamline_id.upper()
 
 
 RE.md['Facility'] = 'NSLS-II'
+
+
 # RE.md['Mono_pulses_per_deg']=
 
 # isstools reads these
