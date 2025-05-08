@@ -80,8 +80,14 @@ from databroker.v0 import Broker
 # from databroker import Broker
 db = Broker.named(beamline_id)
 
-nslsii.configure_base(get_ipython().user_ns, db, bec=False, pbar=False,
-                      publish_documents_with_kafka=False)
+nslsii.configure_base(
+    get_ipython().user_ns, 
+    db,
+    # broker_name=beamline_id, 
+    bec=False, 
+    pbar=False,
+    publish_documents_with_kafka=False,
+    redis_url = "info.qas.nsls2.bnl.gov")
 nslsii.configure_kafka_publisher(RE, 'qas')
 
 # TODO: remove after testing.
@@ -152,96 +158,15 @@ USER_FILEPATH = 'processed'
 #def print_to_gui(string, stdout=sys.stdout):
 #    print(string, file=stdout, flush=True)
 
-try:
-    from bluesky.utils import PersistentDict
-except ImportError:
-    import msgpack
-    import msgpack_numpy
-    import zict
-
-    class PersistentDict(zict.Func):
-        """
-        A MutableMapping which syncs it contents to disk.
-        The contents are stored as msgpack-serialized files, with one file per item
-        in the mapping.
-        Note that when an item is *mutated* it is not immediately synced:
-        >>> d['sample'] = {"color": "red"}  # immediately synced
-        >>> d['sample']['shape'] = 'bar'  # not immediately synced
-        but that the full contents are synced to disk when the PersistentDict
-        instance is garbage collected.
-        """
-        def __init__(self, directory):
-            self._directory = directory
-            self._file = zict.File(directory)
-            self._cache = {}
-            super().__init__(self._dump, self._load, self._file)
-            self.reload()
-
-            # Similar to flush() or _do_update(), but without reference to self
-            # to avoid circular reference preventing collection.
-            # NOTE: This still doesn't guarantee call on delete or gc.collect()!
-            #       Explicitly call flush() if immediate write to disk required.
-            def finalize(zfile, cache, dump):
-                zfile.update((k, dump(v)) for k, v in cache.items())
-
-            import weakref
-            self._finalizer = weakref.finalize(
-                self, finalize, self._file, self._cache, PersistentDict._dump)
-
-        @property
-        def directory(self):
-            return self._directory
-
-        def __setitem__(self, key, value):
-            self._cache[key] = value
-            super().__setitem__(key, value)
-
-        def __getitem__(self, key):
-            return self._cache[key]
-
-        def __delitem__(self, key):
-            del self._cache[key]
-            super().__delitem__(key)
-
-        def __repr__(self):
-            return f"<{self.__class__.__name__} {dict(self)!r}>"
-
-        @staticmethod
-        def _dump(obj):
-            "Encode as msgpack using numpy-aware encoder."
-            # See https://github.com/msgpack/msgpack-python#string-and-binary-type
-            # for more on use_bin_type.
-            return msgpack.packb(
-                obj,
-                default=msgpack_numpy.encode,
-                use_bin_type=True)
-
-        @staticmethod
-        def _load(file):
-            return msgpack.unpackb(
-                file,
-                object_hook=msgpack_numpy.decode,
-                raw=False)
-
-        def flush(self):
-            """Force a write of the current state to disk"""
-            for k, v in self.items():
-                super().__setitem__(k, v)
-
-        def reload(self):
-            """Force a reload from disk, overwriting current cache"""
-            self._cache = dict(super().items())
-
 # runengine_metadata_dir = appdirs.user_data_dir(appname="bluesky") / Path("runengine-metadata")  # writes to ~/.local/...
-runengine_metadata_dir = Path(f'{ROOT_PATH_SHARED}/config/bluesky/') / Path("runengine-metadata")
-RE.md = PersistentDict(runengine_metadata_dir) # PersistentDict will create the directory if it does not exist
+# runengine_metadata_dir = Path(f'{ROOT_PATH_SHARED}/config/bluesky/') / Path("runengine-metadata")
 
 # these should *always* be QAS
 RE.md['group'] = beamline_id
 RE.md['beamline_id'] = beamline_id.upper()
-
-
 RE.md['Facility'] = 'NSLS-II'
+
+
 # RE.md['Mono_pulses_per_deg']=
 
 # isstools reads these
