@@ -253,6 +253,12 @@ foil_wheel_pair1 = FoilWheel1('XF:07BMB-OP{FoilWheel:1', name='foil_wheel1')
 foil_wheel_pair2 = FoilWheel2('XF:07BMB-OP{FoilWheel:2', name='foil_wheel2')
 
 
+class FoilWheel4(Device):
+    wheel4 = Cpt(EpicsMotor, '-Ax:Rot}Mtr')
+
+foil_wheel_4 = FoilWheel4('XF:07BMB-OP{FoilWheel:3', name='foil_wheel4')
+
+
 class Drifts(Device):
     drifts_z = Cpt(EpicsMotor, '-Ax:Z}Mtr')
     drifts_x = Cpt(EpicsMotor, '-Ax:X}Mtr')
