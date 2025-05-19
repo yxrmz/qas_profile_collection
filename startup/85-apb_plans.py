@@ -25,17 +25,17 @@ class FlyerAPB:
 
         # Check that the filesystem is mounted at
         # "/nsls2/data/qas-new/legacy/raw/apb" on "xf07bmb-anpb1":
-        if not self._mount_exists:
-            msg = "\n\n    /nsls2/data/qas-new/legacy/raw/apb is {}mounted correctly @ xf07bmb-anpb1{}\n"
-            status = self.det.check_apb_lustre_status()  # returns True for mounted, and False for not-mounted
-            if not status:
-                self._mount_exists = False
-                error_msg = colored(msg.format("NOT ", ".\n    Contact Beamline staff for instructions."), "red")
-                print(error_msg, file=sys.stdout, flush=True)
-                raise LustreNotConnectedError(error_msg)
-            else:
-                self._mount_exists = True
-                print(colored(msg.format("", ""), "green"), file=sys.stdout, flush=True)
+        # if not self._mount_exists:
+        #     msg = "\n\n    /nsls2/data/qas-new/legacy/raw/apb is {}mounted correctly @ xf07bmb-anpb1{}\n"
+        #     status = self.det.check_apb_lustre_status()  # returns True for mounted, and False for not-mounted
+        #     if not status:
+        #         self._mount_exists = False
+        #         error_msg = colored(msg.format("NOT ", ".\n    Contact Beamline staff for instructions."), "red")
+        #         print(error_msg, file=sys.stdout, flush=True)
+        #         raise LustreNotConnectedError(error_msg)
+        #     else:
+        #         self._mount_exists = True
+        #         print(colored(msg.format("", ""), "green"), file=sys.stdout, flush=True)
 
         # Staging analog detector:
         self.det.stage()
@@ -93,7 +93,10 @@ class FlyerAPB:
 
     def stop(self):
         self.det.stream.set(0).wait()
+        print(f"\n!!! In stop: before det.complete()")
+        # ttime.sleep(1)
         self.det.complete().wait()
+        print(f"\n!!! In stop: after det.complete()")
         self.det.unstage()
 
         for pb in self.pbs:

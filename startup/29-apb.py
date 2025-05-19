@@ -19,7 +19,7 @@ class AnalogPizzaBox(Device):
 
     polarity = 'neg'
 
-    ch1 = Cpt(EpicsSignal, 'SA:Ch1:mV-I')
+    ch1 = Cpt(EpicsSignal, 'SA:Ch1:mV-I', kind=Kind.config)
     ch2 = Cpt(EpicsSignal, 'SA:Ch2:mV-I')
     ch3 = Cpt(EpicsSignal, 'SA:Ch3:mV-I')
     ch4 = Cpt(EpicsSignal, 'SA:Ch4:mV-I')
@@ -304,15 +304,22 @@ class AnalogPizzaBoxStream(AnalogPizzaBoxAverage):
     #     return status
 
     def complete(self, *args, **kwargs):
-        def callback_saving(value, old_value, **kwargs):
-            # print(f'     !!!!! {datetime.now()} callback_saving\n{value} --> {old_value}')
+        # breakpoint()
+        print(f"In complete of {self.name}")
+        from datetime import datetime
+
+        def callback_saving(*, old_value, value, **kwargs):
+            print(f'     !!!!! {datetime.now()} callback_saving\n{old_value=} --> {value=}\n           {kwargs = }')
+            # breakpoint()
             if old_value == 0 and value == 1:
-                # print(f'     !!!!! {datetime.now()} callback_saving')
+                print(f'     !!!!! {datetime.now()} callback_saving: {old_value=} --> {value=}')
                 return True
             else:
                 return False
         filebin_st = SubscriptionStatus(self.filebin_status, callback_saving, run=False)
         filetxt_st = SubscriptionStatus(self.filetxt_status, callback_saving, run=False)
+
+        # breakpoint()
 
         self._datum_ids = []
         datum_id = '{}/{}'.format(self._resource_uid, next(self._datum_counter))

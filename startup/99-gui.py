@@ -67,6 +67,17 @@ motors_dictionary = {jj_slits_hutchB.xctr.name: {'name': jj_slits_hutchB.xctr.na
                      pilatus_motion.y.name :    {'name': pilatus_motion.y.name,     'description': 'Pilatus Y motion',              'object': pilatus_motion.y,    'keyword': 'Pilatus Y motion',        'user_motor': False}
                     }
 
+# ion_chambers = ['i0', 'it', 'ir']
+# voltage_destination = ['plate', 'grid']
+#
+# wps_dictionary = {}
+# for ic in ion_chambers:
+#     for vd in voltage_destination:
+#         string = f"{ic}_{vd}_sp"
+#         wps_dictionary[getattr(wps, string).name] = {'name': getattr(wps, string).name, 'description': f"WPS {ic} {vd} voltage", 'object': getattr(wps, string), 'Keyword': f"Voltage {ic} {vd}", 'user_motor': False}
+
+
+# motors_dictionary = {**motors_dictionary, **wps_dictionary}
 
 shutters_dictionary = {
                        shutter_fe.name: shutter_fe,
@@ -106,9 +117,11 @@ plan_funcs = {
 for shutter in shutters_dictionary.values():
     shutter.status.wait_for_connection()
 
-ipython = get_ipython()
-if ipython is not None:
-    ipython.run_line_magic('gui', 'qt')
+raise RuntimeError()
+
+# ipython = get_ipython()
+# if ipython is not None:
+#     ipython.run_line_magic('gui', 'qt')
 
 app = QApplication.instance()
 

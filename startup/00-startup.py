@@ -87,8 +87,13 @@ nslsii.configure_base(
     bec=False, 
     pbar=False,
     publish_documents_with_kafka=False,
-    redis_url = "info.qas.nsls2.bnl.gov")
-nslsii.configure_kafka_publisher(RE, 'qas')
+    # redis_url = "info.qas.nsls2.bnl.gov"
+    )
+# nslsii.configure_kafka_publisher(RE, 'qas')
+
+import redis
+from redis_json_dict import RedisJSONDict
+RE.md = RedisJSONDict(redis.Redis("info.qas.nsls2.bnl.gov", 6379), prefix="")
 
 # TODO: remove after testing.
 # sys.addaudithook(audit)
