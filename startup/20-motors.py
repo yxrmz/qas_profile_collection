@@ -269,3 +269,8 @@ drifts = Drifts('XF:07BMC-OP{Stg:1', name='drifts')
 ibp_hutchB = EpicsMotor('XF:07BMB-OP{IBP:1-Ax:Y}Mtr', name='ibp_hutchB')
 ibp_hutchC = EpicsMotor('XF:07BMC-OP{IBP:1-Ax:Y}Mtr', name='ibp_hutchC')
 
+
+class IonChamberY(Device):
+    y = Cpt(EpicsMotor, '-Ax:Y}Mtr')
+
+hutchC_ic_motor = IonChamberY('XF:07BMC-OP{IONC:it', name='hutchC_ic_motor')

@@ -64,7 +64,9 @@ motors_dictionary = {jj_slits_hutchB.xctr.name: {'name': jj_slits_hutchB.xctr.na
                      sample_stage1.chi.name:    {'name': sample_stage1.chi.name,    'description':'B hutch_sample_stage_chi',      'object':sample_stage1.chi,     'keyword': 'B hutch sample chi',      'user_motor': False},
                      mono1.energy.name :        {'name' :mono1.energy.name,         'description': 'Mono Energy',                  'object': mono1.energy,         'keyword': 'Monochromator Energy',    'user_motor': False},
                      pilatus_motion.x.name :    {'name': pilatus_motion.x.name,     'description': 'Pilatus X motion',              'object': pilatus_motion.x,    'keyword': 'Pilatus X motion',        'user_motor': False},
-                     pilatus_motion.y.name :    {'name': pilatus_motion.y.name,     'description': 'Pilatus Y motion',              'object': pilatus_motion.y,    'keyword': 'Pilatus Y motion',        'user_motor': False}
+                     pilatus_motion.y.name :    {'name': pilatus_motion.y.name,     'description': 'Pilatus Y motion',              'object': pilatus_motion.y,    'keyword': 'Pilatus Y motion',        'user_motor': False},
+                     hutchC_ic_motor.y.name :    {'name': hutchC_ic_motor.y.name,     'description': 'C Hutch IonChamber Y motion',  'object': hutchC_ic_motor.y,    'keyword': 'C hutch ICY motion',        'user_motor': False},
+                     #exp_table_c.vert_up_in.name:{'name': exp_table_c.vert_up_in.name,     'description': 'C Hutch exp_table_vert_up_in',  'object': exp_table_c.vert_up_in,    'keyword': 'C Hutch table_vert_up_in',      'user_motor': False},
                     }
 
 # ion_chambers = ['i0', 'it', 'ir']
@@ -117,11 +119,11 @@ plan_funcs = {
 for shutter in shutters_dictionary.values():
     shutter.status.wait_for_connection()
 
-raise RuntimeError()
+# raise RuntimeError()
 
-# ipython = get_ipython()
-# if ipython is not None:
-#     ipython.run_line_magic('gui', 'qt')
+ipython = get_ipython()
+if ipython is not None:
+    ipython.run_line_magic('gui', 'qt')
 
 app = QApplication.instance()
 
