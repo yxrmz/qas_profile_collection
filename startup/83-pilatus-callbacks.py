@@ -51,9 +51,11 @@ def pilatus_serializer_factory(name, doc):
         '/nsls2/data/qas-new/legacy/processed/{year}/{cycle}/{PROPOSAL}Pilatus'.format(**doc),
         file_prefix = (
             '{start[sample_name]}-'
-            '{start[exposure_time]:.1f}s-'
+            '{start[subframe_time]:.1f}s-'
+            'avg{start[subframe_count]}-'
             '{start[scan_id]}-'
         ),
+
         #astype='int32'
         # TODO: figure out how to use TiffWriter.write metadata correctly.
         # metadata={"imagej_metadata_tag": {
@@ -103,6 +105,47 @@ def xas_energy_grid_dafs(below_edge, above_edge, e0, edge_start, edge_end, preed
         eenergy = xray.k2e(kenergy, e0)
         post_edge = np.append(post_edge, eenergy)
     return np.concatenate((preedge, before_edge, edge, after_edge, post_edge))
+
+import os
+import time
+
+def export_md_to_txt(md, folder=None):
+    """
+    Save md dictionary to a .txt file in the same folder as the data.
+
+    Parameters
+    ----------
+    md : dict
+        Metadata dictionary
+    folder : str, optional
+        Data folder; if None, auto-build using group/year/cycle/SAF
+    """
+
+    # print(md)
+    if folder is None:
+        # Reconstruct folder based on typical QAS structure        
+        
+        folder = "/nsls2/data/qas-new/legacy/processed/{}/{}/{}Pilatus".format(md['year'], md['cycle'], md['PROPOSAL'])
+        #print(folder)
+
+    os.makedirs(folder, exist_ok=True)
+    
+    frame_count = md.get('frame_count', 1)  # Get frame_count from md, default to 1 if missing
+    for i in range(1, frame_count + 1):  # Loop from 1 to frame_count inclusive
+        file_name = "{}_{}_{}_meta.txt".format(
+            md.get('scan_id'),
+            md.get('sample_name'),
+            i-1
+        )
+  
+        file_path = os.path.join(folder, file_name)
+
+        with open(file_path, 'w') as f:
+            for key, value in md.items():
+                f.write(f"{key}: {value}\n")
+
+        print(f"Metadata saved to {file_path}")
+
 
 def count_pilatus_qas(sample_name, frame_count, subframe_time, subframe_count, delay=None, shutter=shutter_fs, detector=pilatus,  **kwargs):
 
@@ -155,7 +198,10 @@ def count_pilatus_qas(sample_name, frame_count, subframe_time, subframe_count, d
                 md={
                     "experiment": 'diffraction',
                     "sample_name": sample_name,
-                    "exposure_time": subframe_time * subframe_count,
+                    "frame_count": frame_count,
+                    "subframe_time": subframe_time,
+                    "subframe_count": subframe_count,
+                    "total_exposure_time": subframe_time * subframe_count,
                     'sample_stageB': [sample_stageB_x, sample_stageB_y]
                 },
                 delay=delay
@@ -170,6 +216,8 @@ def count_pilatus_qas(sample_name, frame_count, subframe_time, subframe_count, d
 
         print(f"After XRD scan {__energy = }")
         print_to_gui("--------------------------XRD scan finished----------------------", add_timestamp=True)
+        hdr = db[-1]
+        export_md_to_txt(hdr.start)
         yield from bps.mv(shutter, "Close")
 
     return (yield from bpp.finalize_wrapper(inner_count_qas(), finally_plan))
