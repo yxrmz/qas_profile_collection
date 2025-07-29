@@ -31,7 +31,6 @@ from ophyd.areadetector.plugins import HDF5Plugin_V33
 
 ######################################################################################
 
-
 class PilatusDetectorCamV33(PilatusDetectorCam):
     """This is used to update the Pilatus to AD33."""
 
@@ -41,6 +40,7 @@ class PilatusDetectorCamV33(PilatusDetectorCam):
     file_number = Cpt(SignalWithRBV, "FileNumber")
     file_auto_increment = Cpt(SignalWithRBV, "AutoIncrement")
     set_energy = Cpt(SignalWithRBV, "Energy")
+
 
     wait_for_plugins = Cpt(EpicsSignal, "WaitForPlugins", string=True, kind="config")
 
@@ -328,11 +328,13 @@ class PilatusHDF5(PilatusBase):
         root="/",
         write_path_template=f"{ROOT_PATH}/{RAW_PATH}/pilatus3/%Y/%m/%d",
     )  # ,
+
     # write_path_template=f'/nsls2/xf08id/data/pil900k/%Y/%m/%d')
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.set_primary_roi(1)
+        self.sample_to_detector_distance = Signal(name='sample_to_detector_distance', value=220)
         # self.set_primary_roi(2)
         # self.set_primary_roi(3)
         # self.set_primary_roi(4)
@@ -571,6 +573,8 @@ class PilatusStreamHDF5(PilatusHDF5):
 pilatus = PilatusHDF5Squashing("XF:07BM-ES{Det-Pil3}:", name="pilatus")  # , detector_id="SAXS")
 pilatus.cam.ensure_nonblocking()
 
+pe1 = pilatus
+
 pilatus.images_per_set.put(1)
 warmup_hdf5_plugins([pilatus])
 
@@ -589,7 +593,11 @@ pilatus.stats4.kind = "hinted"
 
 # pil900k.cam.ensure_nonblocking()
 
+##############
 
+
+# pe1 = pilatus
+##############
 def take_pil900k_test_image_plan():
     yield from shutter.open_plan()
     pilatus.cam.acquire.set(1)
@@ -766,3 +774,4 @@ db.reg.register_handler('AD_HDF5_SWMR',
 # from xas.handlers import QASPilatusHDF5Handler
 # db.reg.register_handler('PIL900k_HDF5',
 #                          QASPilatusHDF5Handler, overwrite=True)
+

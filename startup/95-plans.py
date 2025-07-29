@@ -171,7 +171,8 @@ def execute_trajectory_xs3(name, ignore_shutter=True, **metadata):
     linkam_temperature = linkam.temperature_current.get()
     linkam_rr = linkam.ramprate.get()
 
-    pe_y = pe_pos.vertical.user_readback.get()
+    # pe_y = pe_pos.vertical.user_readback.get()
+    pe_y = 100
 
     cm_xu = cm.hor_up.user_readback.get()
     cm_xd = cm.hor_down.user_readback.get()

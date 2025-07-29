@@ -1,5 +1,5 @@
 
-def fly_scan_with_apb(name: str, comment: str, n_cycles: int = 1, delay: float = 0, autofoil :bool= False, hutch_c = True, shutter=shutter_fs, **kwargs):
+def fly_scan_with_apb(name: str, comment: str, n_cycles: int = 1, delay: float = 0, autofoil :bool= False, hutch_c = False, shutter=shutter_fs, **kwargs):
     '''
     Trajectory Scan - Runs the monochromator along the trajectory that is previously loaded in the controller N times
     Parameters

@@ -114,6 +114,7 @@ plan_funcs = {
     'XRD take pattern w/Pilatus':count_pilatus_qas,
     'XAS controlled loop scan' : fly_scan_with_apb_with_controlled_loop,
     'XAS hardware trigger scan' : fly_scan_with_hardware_trigger,
+    'XAS constant exposure': constant_exposure,
 }
 
 for shutter in shutters_dictionary.values():
@@ -144,7 +145,7 @@ xlive_gui = isstools.xlive.XliveGui(plan_funcs=plan_funcs,
                                     accelerator=nsls_ii,
                                     mono=mono1,
                                     sdd = xs,
-                                    pe1 = pe1, # xs or None # put back to get xs back or opt out!
+                                    pe1 = pilatus, # xs or None # put back to get xs back or opt out!
                                     shutters_dict=shutters_dictionary,
                                     det_dict=detector_dictionary,
                                     motors_dict=motors_dictionary,
