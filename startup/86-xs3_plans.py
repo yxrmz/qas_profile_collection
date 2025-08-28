@@ -94,6 +94,8 @@ class FlyerXS(FlyerAPBwithTrigger):
 
 flyer_xs = FlyerXS(det=apb_stream, pbs=[pb1.enc1], motor=mono1, trigger=apb_trigger, xs_det=xs_stream)
 
+flyer_xsx = FlyerXS(det=apb_stream, pbs=[pb1.enc1], motor=mono1, trigger=apb_trigger, xs_det=xsx_stream)
+
 
 def execute_trajectory_apb_trigger(name, **metadata):
     md = get_md_for_scan(name,
@@ -114,3 +116,15 @@ def execute_trajectory_xs(name, **metadata):
                          **metadata)
     md['aux_detector'] = 'XSpress3'
     yield from bp.fly([flyer_xs], md=md)
+
+
+def execute_trajectory_xsx(name, **metadata):
+    md = get_md_for_scan(name,
+                         'fly_scan',
+                         'execute_trajectory_xsx',
+                         'fly_energy_scan_xs3x',
+                         detector = apb,
+                         hutch='b',
+                         **metadata)
+    md['aux_detector'] = 'XSpress3x'
+    yield from bp.fly([flyer_xsx], md=md)

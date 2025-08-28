@@ -41,7 +41,17 @@ detector_dictionary = {#colmirror_diag.name: {'obj': colmirror_diag, 'elements':
                                                                      'xs_channel4_rois_roi01_value',
                                                                      'xs_channel6_rois_roi01_value',
                                                                      'xs_channel6_rois_roi04_value']},
-                    'pilatus': {'device': pilatus, 'channels': ['pilatus_stats1_total']}
+                    'pilatus': {'device': pilatus, 'channels': ['pilatus_stats1_total']},
+                    'xspress3x Hutch B' : {'device': xsx, 'channels': ['xsx_channel1_rois_roi01_value',
+                                                                       'xsx_channel2_rois_roi01_value',
+                                                                       'xsx_channel3_rois_roi01_value',
+                                                                       'xsx_channel4_rois_roi01_value',
+                                                                       'xsx_channel5_rois_roi01_value',
+                                                                       'xsx_channel6_rois_roi01_value',
+                                                                       'xsx_channel7_rois_roi01_value',
+                                                                       'xsx_channel8_rois_roi01_value',
+                                                                       'xsx_channel6_rois_roi04_value']}
+
 
 }
 
@@ -90,6 +100,7 @@ shutters_dictionary = {
 service_plan_funcs = {
     'get_offsets': get_offsets,
     'xs_count': xs_count,
+    'xsx_count': xsx_count,
     'set Reference foil': set_reference_foil,
     'sleep': sleep_plan,
     'move_energy': move_energy,
@@ -110,6 +121,7 @@ plan_funcs = {
     'XAS fly scan': fly_scan_with_apb,
     # 'Fly scan in C': fly_scan_with_apb_c,
     'XAS fly scan w/SDD': fly_scan_with_xs3,
+    'XAS fly scan w/XSX': fly_scan_with_xs3x,
     'XRD take pattern': count_qas,
     'XRD take pattern w/Pilatus':count_pilatus_qas,
     'XAS controlled loop scan' : fly_scan_with_apb_with_controlled_loop,
@@ -120,7 +132,7 @@ plan_funcs = {
 for shutter in shutters_dictionary.values():
     shutter.status.wait_for_connection()
 
-# raise RuntimeError()
+raise RuntimeError()
 
 ipython = get_ipython()
 if ipython is not None:
