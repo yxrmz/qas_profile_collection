@@ -76,7 +76,8 @@ ophyd.signal.EpicsSignalRO.set_defaults(timeout=GLOBAL_TIMEOUT, connection_timeo
 
 beamline_id = 'qas'
 
-from databroker.v0 import Broker
+from databroker.v0 import Broker #Old data broker 2025-August-21
+# from databroker.v1 import Broker #new databroker 2025-August-21 test with Kari
 # from databroker import Broker
 db = Broker.named(beamline_id)
 
